@@ -15,7 +15,7 @@ import "@/styles/forms.css";
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    // const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
         <html lang="en">
@@ -27,8 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </head>
 
             <body>
-                <div className={`app-wrapper ${isCollapsed ? 'collapsed' : ''}`}>
+                {/* <div className={`app-wrapper ${isCollapsed ? 'collapsed' : ''}`}> */}
                     {/* <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} /> */}
+                <div className="app-wrapper">
                     <Sidebar />
                     
                     <div className="layout-right">

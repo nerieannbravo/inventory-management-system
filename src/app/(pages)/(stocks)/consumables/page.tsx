@@ -475,7 +475,7 @@ export default function Consumables() {
                         <div className="modal-content view">
                             <div className="modal-view-properties">
                                 <strong>Current Stock:</strong>
-                                <strong>Price:</strong>
+                                <strong>Unit Price:</strong>
                                 <strong>Reorder Level:</strong>
                                 <strong>Status:</strong>
                                 <strong>Expiration Date:</strong>
