@@ -28,7 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             <body>
                 <div className={`app-wrapper ${isCollapsed ? 'collapsed' : ''}`}>
-                    <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+                    {/* <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} /> */}
+                    <Sidebar />
                     
                     <div className="layout-right">
                         <Topbar />
