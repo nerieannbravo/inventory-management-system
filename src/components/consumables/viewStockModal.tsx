@@ -1,44 +1,69 @@
 import React from "react";
 
 interface ViewStockModalProps {
-  item: {
-    id: number;
-    name: string;
-    stock: number;
-    unit: string;
-    status: string;
-    reorder: number;
-    // Additional fields would be included in a real application
-  };
-  formatStatus: (status: string) => string;
+	item: {
+		id: number;
+		name: string;
+		stock: number;
+		unit: string;
+		status: string;
+		reorder: number;
+		// Additional fields would be included in a real application
+	};
+	formatStatus: (status: string) => string;
 }
 
 export default function ViewStockModal({ item, formatStatus }: ViewStockModalProps) {
-  return (
-    <>
-      <div className="modal-heading">
-        <h1 className="modal-title">{item.name}</h1>
-      </div>
+	return (
+		<>
+			<div className="modal-heading">
+				<h1 className="modal-title">{item.name}</h1>
+			</div>
 
-      <div className="modal-content view">
-        <div className="modal-view-properties">
-          <strong>Current Stock:</strong>
-          <strong>Unit Price:</strong>
-          <strong>Reorder Level:</strong>
-          <strong>Status:</strong>
-          <strong>Expiration Date:</strong>
-          <strong>Date Added:</strong>
-        </div>
+			<div className="modal-content view">
+				<div className="view-stock-form">
+					<div className="form-row">
+						<div className="form-group">
+							<label>Quantity</label>
+							<p>{item.stock}</p>
+						</div>
 
-        <div className="modal-view-values">
-          <p>{item.stock} {item.unit}</p>
-          <p>Php 100.00</p>
-          <p>{item.reorder}</p>
-          <p>{formatStatus(item.status)}</p>
-          <p>April 29, 2027</p>
-          <p>April 1, 2024</p>
-        </div>
-      </div>
-    </>
-  );
+						<div className="form-group">
+							<label>Unit Measure</label>
+							<p>{item.unit}</p>
+						</div>
+
+						<div className="form-group">
+							<label>Unit Price</label>
+							<p>Php 100.00</p>
+						</div>
+					</div>
+
+					<div className="form-row">
+						<div className="form-group">
+							<label>Reorder Level</label>
+							<p>{item.reorder}</p>
+						</div>
+
+						<div className="form-group">
+							<label>Status</label>
+							<p>{formatStatus(item.status)}</p>
+						</div>
+					</div>
+
+					<div className="form-row">
+						<div className="form-group">
+							<label>Expiration Date</label>
+							<p>March 2, 2027</p>
+						</div>
+
+						<div className="form-group">
+							<label>Date Added</label>
+							<p>April 22, 2025</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</>
+	);
 }
