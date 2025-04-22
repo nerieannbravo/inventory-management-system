@@ -12,9 +12,6 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
     return ReactDOM.createPortal(
         <div className="modal-overlay">
             <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <button className="close-modal-btn" onClick={onClose}>
-                    <i className="ri-close-line"></i>
-                </button>
                 {children}
             </div>
         </div>,

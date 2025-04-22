@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import ConfirmationPopup from "./confirmationPopup";
 
 interface EditStockModalProps {
 	item: {
@@ -11,9 +12,10 @@ interface EditStockModalProps {
 		// Additional fields would be included in a real application
 	};
 	onSave: (updatedItem: any) => void;
+	onClose: () => void;
 }
 
-export default function EditStockModal({ item, onSave }: EditStockModalProps) {
+export default function EditStockModal({ item, onSave, onClose }: EditStockModalProps) {
 	const [formData, setFormData] = useState({
 		id: item.id,
 		name: item.name,
@@ -25,8 +27,22 @@ export default function EditStockModal({ item, onSave }: EditStockModalProps) {
 		expiration: "" // Default value, would be populated from item in a real app
 	});
 
+	// State to track if form is dirty (has changes)
+	const [isFormDirty, setIsFormDirty] = useState(false);
+	const [originalData] = useState({ ...formData });
+
 	// Add formErrors state similar to AddStockModal
 	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+	// Confirmation dialog states
+	const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
+	const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+
+	// Check if form data has changed from original
+	useEffect(() => {
+		const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
+		setIsFormDirty(hasChanges);
+	}, [formData, originalData]);
 
 	const handleChange = (field: string, value: any) => {
 		setFormData(prev => ({
@@ -62,7 +78,20 @@ export default function EditStockModal({ item, onSave }: EditStockModalProps) {
 		const isValid = validateForm();
 		if (!isValid) return;
 
+		// Show update confirmation instead of updating immediately
+		setShowUpdateConfirmation(true);
+	};
+
+	const handleConfirmUpdate = () => {
 		onSave(formData);
+	};
+
+	const handleClose = () => {
+		if (isFormDirty) {
+			setShowCloseConfirmation(true);
+		} else {
+			onClose();
+		}
 	};
 
 	return (
@@ -73,6 +102,9 @@ export default function EditStockModal({ item, onSave }: EditStockModalProps) {
 					<p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
 					<p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
 				</div>
+				<button className="close-modal-btn" onClick={handleClose}>
+					<i className="ri-close-line"></i>
+				</button>
 			</div>
 
 			<div className="modal-content edit">
@@ -168,6 +200,30 @@ export default function EditStockModal({ item, onSave }: EditStockModalProps) {
 					Update
 				</button>
 			</div>
+
+			{/* Update Confirmation Dialog */}
+			<ConfirmationPopup
+				isOpen={showUpdateConfirmation}
+				onClose={() => setShowUpdateConfirmation(false)}
+				onConfirm={handleConfirmUpdate}
+				title="Confirm Update"
+				message={`Are you sure you want to update the stock details for "${formData.name}"?`}
+				confirmText="Update"
+				cancelText="Cancel"
+				variant="success"
+			/>
+
+			{/* Close Without Saving Dialog */}
+			<ConfirmationPopup
+				isOpen={showCloseConfirmation}
+				onClose={() => setShowCloseConfirmation(false)}
+				onConfirm={onClose}
+				title="Unsaved Changes"
+				message="You have unsaved changes. Are you sure you want to close without updating?"
+				confirmText="Close Without Saving"
+				cancelText="Continue Editing"
+				variant="warning"
+			/>
 		</>
 	);
 }

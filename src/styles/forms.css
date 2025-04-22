@@ -107,10 +107,24 @@
 
 
 /* ----- MODAL FORMS STYLING: DELETE ----- */
-.modal-content.delete {
-    padding: 0;
+.modal-heading.delete {
     margin: 0;
+    margin-bottom: 15px;
+	display: flex;
+	flex-direction: row;
+	justify-content: start;
+	align-items: center;
+	gap: 10px;
+}
+
+.modal-heading.delete i {
+	font-size: 26px;
+    color: var(--error-color);
+}
+
+.modal-content.delete {
     background-color: var(--foreground-color);
+    text-align: center;
 }
 
 .modal-actions.delete {
@@ -121,7 +135,7 @@
 	margin-top: 32px;
 }
 
-.modal-content.delete .delete-btn {
+.modal-actions.delete .delete-btn {
     width: 120px;
     height: 35px;
     border-radius: 8px;
@@ -132,7 +146,7 @@
     cursor: pointer;
 }
 
-.modal-content.delete .cancel-btn {
+.modal-actions.delete .cancel-btn {
     width: 120px;
     height: 35px;
     border-radius: 8px;
@@ -142,11 +156,11 @@
     cursor: pointer;
 }
 
-.modal-content.delete .delete-btn:hover {
+.modal-actions.delete .delete-btn:hover {
     background-color: var(--primary-hover-color);
 }
 
-.modal-content.delete .cancel-btn:hover {
+.modal-actions.delete .cancel-btn:hover {
     background-color: var(--table-header-hover-color);
 }
 

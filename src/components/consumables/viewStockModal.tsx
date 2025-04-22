@@ -11,11 +11,16 @@ interface ViewStockModalProps {
 		// Additional fields would be included in a real application
 	};
 	formatStatus: (status: string) => string;
+	onClose: () => void;
 }
 
-export default function ViewStockModal({ item, formatStatus }: ViewStockModalProps) {
+export default function ViewStockModal({ item, formatStatus, onClose }: ViewStockModalProps) {
 	return (
 		<>
+			<button className="close-modal-btn" onClick={onClose}>
+				<i className="ri-close-line"></i>
+			</button>
+
 			<div className="modal-heading">
 				<h1 className="modal-title">{item.name}</h1>
 			</div>

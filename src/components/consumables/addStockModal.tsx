@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import ConfirmationPopup from "./confirmationPopup";
 
 interface StockForm {
 	name: string;
@@ -19,24 +20,32 @@ interface AddStockModalProps {
 }
 
 export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
-	const [stockForms, setStockForms] = useState<StockForm[]>([
-		{
-			name: "",
-			quantity: 0,
-			unit: "",
-			price: 0,
-			usable: 0,
-			defective: 0,
-			missing: 0,
-			reorder: 0,
-			status: "available",
-			expiration: "",
-		},
-	]);
+	// Initial stock form state
+	const initialFormState = {
+		name: "",
+		quantity: 0,
+		unit: "",
+		price: 0,
+		usable: 0,
+		defective: 0,
+		missing: 0,
+		reorder: 0,
+		status: "available",
+		expiration: "",
+	};
 
-	const [formErrors, setFormErrors] = useState<Record<string, string>[]>(
-		stockForms.map(() => ({}))
-	);
+	const [stockForms, setStockForms] = useState<StockForm[]>([initialFormState]);
+	const [formErrors, setFormErrors] = useState<Record<string, string>[]>([{}]);
+	const [isFormDirty, setIsFormDirty] = useState(false);
+
+	// Confirmation dialog states
+	const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+	const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+
+	// Track if any form has been modified
+	useEffect(() => {
+		setIsFormDirty(true);
+	}, [stockForms]);
 
 	const handleFormChange = (index: number, field: string, value: any) => {
 		setStockForms((prev) =>
@@ -49,18 +58,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	const handleAddAnotherStock = () => {
 		setStockForms((prev) => [
 			...prev,
-			{
-				name: "",
-				quantity: 0,
-				unit: "",
-				price: 0,
-				usable: 0,
-				defective: 0,
-				missing: 0,
-				reorder: 0,
-				status: "available",
-				expiration: "",
-			},
+			initialFormState
 		]);
 
 		// Add a new empty errors object for the new form
@@ -72,6 +70,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		setFormErrors((prev) => prev.filter((_, i) => i !== index));
 	};
 
+	// Input validations
 	const validateForm = () => {
 		const errors = stockForms.map((form) => {
 			const errorObj: Record<string, string> = {};
@@ -80,7 +79,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			if (form.quantity <= 0)
 				errorObj.quantity = "Quantity must be greater than 0";
 			if (!form.unit) errorObj.unit = "Unit measure is required";
-			if (form.price < 0) errorObj.price = "Price must be 0 or more";
+			if (form.price <= 0) errorObj.price = "Price must be greater than 0";
 			if (form.usable < 0) errorObj.usable = "Usable quantity must be 0 or more";
 			if (form.defective < 0)
 				errorObj.defective = "Defective quantity must be 0 or more";
@@ -96,11 +95,11 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 			// Sum check for total quantity
 			const sum = form.usable + form.defective + form.missing;
-			if (sum > form.quantity) {
-				errorObj.usable = "Sum of these quantities cannot exceed total quantity";
+			if (sum > form.quantity || sum != form.quantity) {
+				errorObj.usable = "Sum of these quantities cannot exceed and must be equal total quantity";
 				errorObj.defective =
-					"Sum of these quantities cannot exceed total quantity";
-				errorObj.missing = "Sum of these quantities cannot exceed total quantity";
+					"Sum of these quantities cannot exceed and must be equal total quantity";
+				errorObj.missing = "Sum of these quantities cannot exceed and must be equal total quantity";
 			}
 
 			// Expiration date is optional, but if filled, must not be in the past
@@ -123,14 +122,32 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
 		const isValid = validateForm();
 		if (!isValid) return;
 
+		// Show save confirmation instead of saving immediately
+		setShowSaveConfirmation(true);
+	};
+
+	const handleConfirmSave = () => {
 		onSave(stockForms);
+	};
+
+	const handleClose = () => {
+		if (isFormDirty) {
+			setShowCloseConfirmation(true);
+		} else {
+			onClose();
+		}
 	};
 
 	return (
 		<>
+			<button className="close-modal-btn" onClick={handleClose}>
+				<i className="ri-close-line"></i>
+			</button>
+
 			<div className="modal-heading">
 				<h1 className="modal-title">Add Consumable Stock</h1>
 				<div className="modal-date-time">
@@ -256,6 +273,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<input
 									className={formErrors[index]?.reorder ? "invalid-input" : ""}
 									type="number"
+									min="0"
 									value={form.reorder}
 									onChange={(e) =>
 										handleFormChange(index, "reorder", Number(e.target.value))
@@ -321,6 +339,30 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 					Save
 				</button>
 			</div>
+
+			{/* Save Confirmation Dialog */}
+			<ConfirmationPopup
+				isOpen={showSaveConfirmation}
+				onClose={() => setShowSaveConfirmation(false)}
+				onConfirm={handleConfirmSave}
+				title="Confirm Save"
+				message="Are you sure you want to save these stock items?"
+				confirmText="Save"
+				cancelText="Cancel"
+				variant="success"
+			/>
+
+			{/* Close Without Saving Dialog */}
+			<ConfirmationPopup
+				isOpen={showCloseConfirmation}
+				onClose={() => setShowCloseConfirmation(false)}
+				onConfirm={onClose}
+				title="Unsaved Changes"
+				message="You have unsaved changes. Are you sure you want to close without saving?"
+				confirmText="Close Without Saving"
+				cancelText="Continue Editing"
+				variant="warning"
+			/>
 		</>
 	);
 }
