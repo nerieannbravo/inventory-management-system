@@ -46,7 +46,7 @@ const Sidebar: React.FC = () => {
     return (
         // <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} shadow-lg`} id="sidebar">
         <div className="sidebar shadow-lg" id="sidebar">
-            <div>
+            <div className="sidebar-content">
                 <div className="logo-img">
                     <img src="/logo.png" alt="logo" />
                 </div>
@@ -116,13 +116,13 @@ const Sidebar: React.FC = () => {
                         <span>Bus Management</span>
                     </Link>
                 </div>
-            </div>
 
-            <div className="logout">
-                <a href="#">
-                    <i className="ri-logout-box-r-line" />
-                    <span>Logout</span>
-                </a>
+                <div className="logout">
+                    <a href="#">
+                        <i className="ri-logout-box-r-line" />
+                        <span>Logout</span>
+                    </a>
+                </div>
             </div>
 
             {/* <div className="toggle-btn" onClick={toggleSidebar}>
