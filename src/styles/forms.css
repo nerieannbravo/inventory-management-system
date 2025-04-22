@@ -225,3 +225,9 @@
     font-size: 12px;
     color: var(--error-color);
 }
+
+.edit-stock-form .edit-error-message {
+    margin: 5px;
+    font-size: 12px;
+    color: var(--error-color);
+}
