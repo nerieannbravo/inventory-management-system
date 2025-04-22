@@ -27,8 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </head>
 
             <body>
-                {/* <div className={`app-wrapper ${isCollapsed ? 'collapsed' : ''}`}> */}
-                    {/* <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} /> */}
+                {/* <div className={`app-wrapper ${isCollapsed ? 'collapsed' : ''}`}>
+                    <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} /> */}
+                    
                 <div className="app-wrapper">
                     <Sidebar />
                     
