@@ -350,7 +350,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				onClose={() => setShowSaveConfirmation(false)}
 				onConfirm={handleConfirmSave}
 				title="Confirm Save"
-				message="Are you sure you want to save these stock items?"
+				message="Are you sure you want to save these stock items? You can view the generated receipt here [link]."
 				confirmText="Save"
 				cancelText="Cancel"
 				variant="success"
