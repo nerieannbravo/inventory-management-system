@@ -229,6 +229,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<input
 									className={formErrors[index]?.usable ? "invalid-input" : ""}
 									type="number"
+									step="0.1"
 									min="0"
 									value={form.usable}
 									onChange={(e) =>
@@ -243,6 +244,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<input
 									className={formErrors[index]?.defective ? "invalid-input" : ""}
 									type="number"
+									step="0.1"
 									min="0"
 									value={form.defective}
 									onChange={(e) =>
@@ -257,6 +259,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<input
 									className={formErrors[index]?.missing ? "invalid-input" : ""}
 									type="number"
+									step="0.1"
 									min="0"
 									value={form.missing}
 									onChange={(e) =>
@@ -273,6 +276,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<input
 									className={formErrors[index]?.reorder ? "invalid-input" : ""}
 									type="number"
+									step="0.1"
 									min="0"
 									value={form.reorder}
 									onChange={(e) =>
