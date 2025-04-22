@@ -109,7 +109,7 @@
 
 /* ----- MAIN BUTTON STYLING ----- */
 .main-btn {
-    width: 135px;
+    width: 160px;
     height: 35px;
     display: flex;
     justify-content: center;
@@ -127,6 +127,23 @@
     background-color: var(--primary-hover-color);
 }
 
+.print-btn {
+    width: 160px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    border-radius: 8px;
+    background-color: var(--secondary-color);
+    color: var(--foreground-color);
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+
+
 
 /* ----- OUTER TABLE WRAPPER: for radius + shadow ----- */
 .table-wrapper {
@@ -135,9 +152,11 @@
     box-shadow: var(--box-shadow);
     background: var(--foreground-color);
     width: 100%;
-    max-width: 1050px;
-    height: calc(100% - (100% * 4.8 / 19));
-    min-height: 387px;
+    /* max-width: 1050px; */
+    /* height: calc(100% - (100% * 4.8 / 19));
+    min-height: 387px; */
+    height: 100%;
+    max-height: calc(100% - (100% * 4.8 / 19));
     margin-bottom: 10px;
     border: 1px solid var(--border-color);
     display: flex;

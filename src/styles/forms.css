@@ -1,7 +1,7 @@
 /* ----- MODAL FORMS STYLING: ADD AND EDIT ----- */
 .modal-content.add .add-stock-form,
 .modal-content.edit .edit-stock-form {
-    width: 600px;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-self: center;
