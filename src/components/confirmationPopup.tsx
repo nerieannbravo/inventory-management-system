@@ -42,7 +42,7 @@ export default function ConfirmationPopup({
 			case "info":
 			default:
 				return {
-					icon: "info ri-information-line",
+					icon: "info ri-information-2-line",
 				};
 		}
 	};

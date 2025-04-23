@@ -1,9 +1,9 @@
 import React from "react";
 import Modal from "@/components/modal";
-import AddStockModal from "./addStockModal";
-import ViewStockModal from "./viewStockModal";
-import EditStockModal from "./editStockModal";
-import DeleteStockModal from "./deleteStockModal";
+import AddStockModal from "../app/(pages)/(stocks)/consumables/addStockModal";
+import ViewStockModal from "../app/(pages)/(stocks)/consumables/viewStockModal";
+import EditStockModal from "../app/(pages)/(stocks)/consumables/editStockModal";
+import DeleteStockModal from "../app/(pages)/(stocks)/consumables/deleteStockModal";
 
 interface ModalManagerProps {
   isOpen: boolean;

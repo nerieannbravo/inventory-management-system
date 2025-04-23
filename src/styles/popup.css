@@ -13,22 +13,24 @@
 }
 
 .popup {
-    animation: popup-fade-in 0.2s ease-out;
-    max-height: calc(100% * 10 / 14);
-    max-width: calc(100% * 4 / 11);
+    animation: popup-pop-in 0.2s ease-out;
     background-color: var(--foreground-color);
     padding: 32px;
     border-radius: 8px;
+    max-height: calc(100% * 10 / 14);
+    max-width: calc(100% * 4 / 11);
     position: relative;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .popup-heading {
+    margin-top: -65px;
     margin-bottom: 15px;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
+    justify-content: center;
 	align-items: center;
-	gap: 10px;
+	gap: 15px;
 }
 
 .popup-title {
@@ -37,23 +39,43 @@
 }
 
 .popup-icon.warning {
-    font-size: 26px;
-    color: var(--warning-color);
+    height: 68px;
+    width: 68px;
+    line-height: 1.04;
+    background-color: var(--warning-color);
+    border-radius: 100%;
+    font-size: 65px;
+    color: var(--foreground-color);
 }
 
 .popup-icon.success {
-    font-size: 26px;
-    color: var(--success-color);
+    height: 68px;
+    width: 68px;
+    line-height: 1.04;
+    background-color: var(--success-color);
+    border-radius: 100%;
+    font-size: 65px;
+    color: var(--foreground-color);
 }
 
 .popup-icon.error {
-    font-size: 26px;
-    color: var(--error-color);
+    height: 68px;
+    width: 68px;
+    line-height: 1.04;
+    background-color: var(--error-color);
+    border-radius: 100%;
+    font-size: 65px;
+    color: var(--foreground-color);
 }
 
 .popup-icon.info {
-    font-size: 26px;
-    color: var(--info-color);
+    height: 68px;
+    width: 68px;
+    line-height: 1.04;
+    background-color: var(--info-color);
+    border-radius: 100%;
+    font-size: 65px;
+    color: var(--foreground-color);
 }
 
 .popup-content {
@@ -101,16 +123,17 @@
     background-color: var(--table-header-hover-color);
 }
 
-/* ----- ANIMATIONS ----- */
-@keyframes popup-fade-in {
-    from {
+/* ----- ANIMATION ----- */
+@keyframes popup-pop-in {
+    0% {
+        transform: scale(0.5);
         opacity: 0;
-        transform: translateY(-20px);
     }
-
-    to {
+    60% {
+        transform: scale(1.2);
         opacity: 1;
-        transform: translateY(0);
+    }
+    100% {
+        transform: scale(1);
     }
 }
-

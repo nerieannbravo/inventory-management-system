@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import MoreMenu from "@/components/moreMenu";
-import ModalManager from "@/components/consumables/modalManager";
+import ModalManager from "@/components/modalManager";
 
 const hardcodedData = [
     {
