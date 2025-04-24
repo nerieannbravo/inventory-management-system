@@ -299,14 +299,15 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									}
 								/>
 								{/* <p className="add-error-message">{formErrors[index]?.missing}</p> */}
-								<p className="add-error-message"></p>
 							</div>
 						</div>
 
 						{/* Quantity Error Message */}
-						{formErrors[index]?.sum && (
-							<p className="add-error-message quantity">{formErrors[index].sum}</p>
-						)}
+						<div className="form-group">
+							{formErrors[index]?.sum && (
+								<p className="add-error-message quantity">{formErrors[index].sum}</p>
+							)}
+						</div>
 
 						<div className="form-row">
 							{/* Reorder Level Input */}
