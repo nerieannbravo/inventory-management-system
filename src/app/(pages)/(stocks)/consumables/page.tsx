@@ -42,6 +42,14 @@ const hardcodedData = [
         status: "maintenance",
         reorder: 8,
     },
+    {
+        id: 5,
+        name: "Example Item E",
+        stock: 16,
+        unit: "pcs",
+        status: "expired",
+        reorder: 3,
+    },
 ];
 
 export default function Consumables() {
@@ -63,6 +71,8 @@ export default function Consumables() {
                 return "Low Stock";
             case "maintenance":
                 return "Under Maintenance";
+            case "expired":
+                return "Expired";
             default:
                 return status;
         }
@@ -118,7 +128,6 @@ export default function Consumables() {
 
                     <div className="filter">
                         <select className="status-filter">
-                            <option value="by-date">Order by Date</option>
                             <option value="by-name">Order by Name</option>
                             <option value="by-quantity">Order by Quantity</option>
                         </select>
@@ -128,6 +137,7 @@ export default function Consumables() {
                             <option value="out-of-stock">Out of Stock</option>
                             <option value="low-stock">Low Stock</option>
                             <option value="maintenance">Under Maintenance</option>
+                            <option value="expired">Expired</option>
                         </select>
                     </div>
 

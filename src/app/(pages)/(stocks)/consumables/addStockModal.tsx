@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationPopup from "../../../../components/confirmationPopup";
-import { PdfPreviewModal, useStockReceiptPDF } from "./stockReceiptPDF"; 
+import { PdfPreviewModal, useStockReceiptPDF } from "./stockReceiptPDF";
 
 import "@/styles/forms.css";
 
@@ -85,20 +85,20 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		const errors = stockForms.map((form) => {
 			const errorObj: Record<string, string> = {};
 
-			if (!form.name.trim()) errorObj.name = "Item name is required";
-			if (form.quantity <= 0)
-				errorObj.quantity = "Quantity must be greater than 0";
+			if (!form.name.trim()) {
+				errorObj.name = "Item name is required";
+			} else if (form.name.length > 50) {
+				errorObj.name = "Item name cannot exceed 50 characters";
+			}
+
+			if (form.quantity <= 0) errorObj.quantity = "Quantity must be greater than 0";
 			if (!form.unit) errorObj.unit = "Unit measure is required";
 			if (form.price <= 0) errorObj.price = "Price must be greater than 0";
 			if (form.usable < 0) errorObj.usable = "Usable quantity must be 0 or more";
-			if (form.defective < 0)
-				errorObj.defective = "Defective quantity must be 0 or more";
-			if (form.usable > form.quantity)
-				errorObj.usable = "Usable quantity cannot exceed total quantity";
-			if (form.defective > form.quantity)
-				errorObj.defective = "Defective quantity cannot exceed total quantity";
-			if (form.missing > form.quantity)
-				errorObj.missing = "Missing quantity cannot exceed total quantity";
+			if (form.defective < 0) errorObj.defective = "Defective quantity must be 0 or more";
+			if (form.usable > form.quantity) errorObj.usable = "Usable quantity cannot exceed total quantity";
+			if (form.defective > form.quantity) errorObj.defective = "Defective quantity cannot exceed total quantity";
+			if (form.missing > form.quantity) errorObj.missing = "Missing quantity cannot exceed total quantity";
 			if (form.missing < 0) errorObj.missing = "Missing quantity must be 0 or more";
 			if (form.reorder < 1) errorObj.reorder = "Reorder level must be greater than 0";
 			if (form.reorder > form.quantity) errorObj.reorder = "Reorder level cannot exceed total quantity";
