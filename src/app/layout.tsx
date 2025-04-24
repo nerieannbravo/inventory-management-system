@@ -9,10 +9,10 @@ import "@/styles/index.css";
 import "@/styles/sidebar.css";
 import "@/styles/topbar.css";
 import "@/styles/modal.css";
+import "@/styles/pdfModal.css";
 import "@/styles/moreMenu.css";
 import "@/styles/forms.css";
 import "@/styles/popup.css";
-
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

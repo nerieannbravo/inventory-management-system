@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationPopup from "../../../../components/confirmationPopup";
+import { PdfPreviewModal, useStockReceiptPDF } from "./stockReceiptPDF"; // Import the new components
 
 interface StockForm {
 	name: string;
@@ -37,6 +38,13 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	const [stockForms, setStockForms] = useState<StockForm[]>([initialFormState]);
 	const [formErrors, setFormErrors] = useState<Record<string, string>[]>([{}]);
 	const [isFormDirty, setIsFormDirty] = useState(false);
+
+	// Use the custom PDF hook
+	const {
+		showPdfPreview,
+		handlePreviewReceipt,
+		handleClosePdfPreview
+	} = useStockReceiptPDF(stockForms);
 
 	// Confirmation dialog states
 	const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
@@ -126,7 +134,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		const isValid = validateForm();
 		if (!isValid) return;
 
-		// Show save confirmation instead of saving immediately
+		// Show save confirmation
 		setShowSaveConfirmation(true);
 	};
 
@@ -139,6 +147,14 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			setShowCloseConfirmation(true);
 		} else {
 			onClose();
+		}
+	};
+
+	// Modified preview handler to validate form first
+	const handlePreviewClick = () => {
+		const isValid = validateForm();
+		if (isValid) {
+			handlePreviewReceipt();
 		}
 	};
 
@@ -330,27 +346,34 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				</div>
 			))}
 
-			<div className="modal-actions">
-				<button
-					type="button"
-					className="add-another-btn"
-					onClick={handleAddAnotherStock}
-				>
+			<div className="modal-actions add">
+				<button type="button" className="add-another-btn" onClick={handleAddAnotherStock}>
 					<i className="ri-add-line" /> Add Another Stock
 				</button>
 
+				<button type="button" className="preview-btn" onClick={handlePreviewClick}>
+					<i className="ri-receipt-line" /> Preview Receipt
+				</button>
+
 				<button type="submit" className="submit-btn" onClick={handleSubmit}>
-					Save
+					<i className="ri-save-3-line" /> Save
 				</button>
 			</div>
 
-			{/* Save Confirmation Dialog */}
+			{/* PDF Preview Modal - now using react-pdf */}
+			<PdfPreviewModal
+				isOpen={showPdfPreview}
+				onClose={handleClosePdfPreview}
+				stockForms={stockForms}
+			/>
+
+			{/* Save Confirmation Dialog - simplified message */}
 			<ConfirmationPopup
 				isOpen={showSaveConfirmation}
 				onClose={() => setShowSaveConfirmation(false)}
 				onConfirm={handleConfirmSave}
 				title="Confirm Save"
-				message="Are you sure you want to save these stock items? You can view the generated receipt here [link]."
+				message="Are you sure you want to save these stock items?"
 				confirmText="Save"
 				cancelText="Cancel"
 				variant="success"

@@ -197,7 +197,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 
 			<div className="modal-actions">
 				<button type="submit" className="submit-btn" form="edit-stock-form">
-					Update
+					<i className="ri-save-3-line" /> Update
 				</button>
 			</div>
 
