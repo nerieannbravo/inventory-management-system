@@ -104,13 +104,19 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			if (form.reorder > form.quantity) errorObj.reorder = "Reorder level cannot exceed total quantity";
 
 			// Sum check for total quantity
+			// const sum = form.usable + form.defective + form.missing;
+			// if (sum > form.quantity || sum != form.quantity) {
+			// 	errorObj.usable = "Sum of these quantities cannot exceed and must be equal total quantity";
+			// 	errorObj.defective = "Sum of these quantities cannot exceed and must be equal total quantity";
+			// 	errorObj.missing = "Sum of these quantities cannot exceed and must be equal total quantity";
+			// }
+
+			// Sum check for total quantity - show one unified error
 			const sum = form.usable + form.defective + form.missing;
-			if (sum > form.quantity || sum != form.quantity) {
-				errorObj.usable = "Sum of these quantities cannot exceed and must be equal total quantity";
-				errorObj.defective =
-					"Sum of these quantities cannot exceed and must be equal total quantity";
-				errorObj.missing = "Sum of these quantities cannot exceed and must be equal total quantity";
+			if (sum !== form.quantity) {
+				errorObj.sum = "The combined total of usable, defective, and missing must equal the total quantity";
 			}
+
 
 			// Expiration date is optional, but if filled, must not be in the past
 			if (form.expiration) {
@@ -177,6 +183,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			{stockForms.map((form, index) => (
 				<div className="modal-content add" key={index}>
 					<form className="add-stock-form" id={`add-stock-form-${index}`}>
+
+						{/* Item Name Input */}
 						<div className="form-group">
 							<label>Item Name</label>
 							<input
@@ -190,6 +198,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						<div className="form-row">
+							{/* Total Quantity Input */}
 							<div className="form-group">
 								<label>Total Quantity</label>
 								<input
@@ -204,6 +213,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<p className="add-error-message">{formErrors[index]?.quantity}</p>
 							</div>
 
+							{/* Unit Measure Input */}
 							<div className="form-group">
 								<label>Unit Measure</label>
 								<select
@@ -225,6 +235,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<p className="add-error-message">{formErrors[index]?.unit}</p>
 							</div>
 
+							{/* Unit Price Input */}
 							<div className="form-group">
 								<label>Unit Price</label>
 								<input
@@ -242,6 +253,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						<div className="form-row">
+							{/* Usable Quanity Input */}
 							<div className="form-group">
 								<label>Usable Quantity</label>
 								<input
@@ -254,9 +266,10 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 										handleFormChange(index, "usable", Number(e.target.value))
 									}
 								/>
-								<p className="add-error-message">{formErrors[index]?.usable}</p>
+								{/* <p className="add-error-message">{formErrors[index]?.usable}</p> */}
 							</div>
 
+							{/* Defective Quanity Input */}
 							<div className="form-group">
 								<label>Defective Quantity</label>
 								<input
@@ -269,9 +282,10 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 										handleFormChange(index, "defective", Number(e.target.value))
 									}
 								/>
-								<p className="add-error-message">{formErrors[index]?.defective}</p>
+								{/* <p className="add-error-message">{formErrors[index]?.defective}</p> */}
 							</div>
 
+							{/* Missing Quanity Input */}
 							<div className="form-group">
 								<label>Missing Quantity</label>
 								<input
@@ -284,11 +298,17 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 										handleFormChange(index, "missing", Number(e.target.value))
 									}
 								/>
-								<p className="add-error-message">{formErrors[index]?.missing}</p>
+								{/* <p className="add-error-message">{formErrors[index]?.missing}</p> */}
 							</div>
 						</div>
 
+						{/* Quantity Error Message */}
+						{formErrors[index]?.sum && (
+							<p className="add-error-message quantity">{formErrors[index].sum}</p>
+						)}
+
 						<div className="form-row">
+							{/* Reorder Level Input */}
 							<div className="form-group">
 								<label>Reorder Level</label>
 								<input
@@ -304,6 +324,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<p className="add-error-message">{formErrors[index]?.reorder}</p>
 							</div>
 
+							{/* Status Input */}
 							<div className="form-group">
 								<label>Status</label>
 								<select disabled
@@ -320,6 +341,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							</div>
 						</div>
 
+						{/* Expiration Date Input */}
 						<div className="form-group">
 							<label>Expiration Date</label>
 							<input
@@ -334,6 +356,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 					</form>
 
+					{/* Remove Stock Button */}
 					{stockForms.length > 1 && (
 						<div className="remove-btn-wrapper">
 							<button

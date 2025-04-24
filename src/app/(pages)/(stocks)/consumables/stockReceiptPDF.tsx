@@ -109,7 +109,7 @@ const StockReceiptDocument: React.FC<{
                 {/* Total */}
                 <View style={styles.totalRow}>
                     <Text style={styles.totalLabel}>Total Value:</Text>
-                    <Text style={styles.totalValue}>${totalValue.toFixed(2)}</Text>
+                    <Text style={styles.totalValue}>Php {totalValue.toFixed(2)}</Text>
                 </View>
 
                 {/* Footer */}
@@ -142,7 +142,7 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
 
                     <div className="pdf-modal-actions">
                         <button className="close-btn" onClick={onClose}>Close</button>
-                        <PDFDownloadLink
+                        {/* <PDFDownloadLink
                             document={<StockReceiptDocument stockForms={stockForms} receiptNumber={receiptNumber} />}
                             fileName={`stock-receipt-${new Date().toISOString().slice(0, 10)}.pdf`}
                             className="download-btn"
@@ -152,7 +152,7 @@ export const PdfPreviewModal: React.FC<PdfPreviewModalProps> = ({
                                     'Preparing document...' :
                                     <><i className="ri-file-download-line" /> Download PDF</>
                             }
-                        </PDFDownloadLink>
+                        </PDFDownloadLink> */}
                     </div>
                 </div>
             </div>

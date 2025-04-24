@@ -192,7 +192,7 @@ export default function Consumables() {
                 {/* Pagination */}
                 <div className="pagination">
                     <button className="page-btn">
-                        <i className="ri-arrow-left-double-line"></i>
+                        <i className="ri-arrow-left-s-line"></i>
                     </button>
                     <button className="page-btn active">1</button>
                     <button className="page-btn">2</button>
@@ -200,7 +200,7 @@ export default function Consumables() {
                     <button className="page-btn">4</button>
                     <button className="page-btn">5</button>
                     <button className="page-btn">
-                        <i className="ri-arrow-right-double-line"></i>
+                        <i className="ri-arrow-right-s-line"></i>
                     </button>
                 </div>
             </div>

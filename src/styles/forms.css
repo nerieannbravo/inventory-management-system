@@ -83,6 +83,7 @@
     border-color: var(--primary-text-color);
 }
 
+
 /* ----- MODAL FORMS STYLING: VIEW ----- */
 .modal-content.view {
     display: flex;
@@ -147,6 +148,11 @@
     margin: 5px;
     font-size: 12px;
     color: var(--error-color);
+}
+
+.add-stock-form .add-error-message.quantity {
+    margin-top: 0;
+    margin-bottom: 5px;
 }
 
 .edit-stock-form .edit-error-message {

@@ -80,19 +80,33 @@ export const styles = StyleSheet.create({
         fontSize: 10,
     },
     itemName: {
-        flex: 3,
+        flex: 2,
+        paddingRight: 8,
+        paddingLeft: 8,
     },
     quantity: {
         flex: 1,
+        paddingRight: 8,
+        paddingLeft: 8,
+        textAlign: 'center',
     },
     unit: {
         flex: 1,
+        paddingRight: 8,
+        paddingLeft: 8,
+        textAlign: 'center',
     },
     price: {
         flex: 1,
+        paddingRight: 8,
+        paddingLeft: 8,
+        textAlign: 'right',
     },
     totalPrice: {
         flex: 1,
+        paddingRight: 8,
+        paddingLeft: 8,
+        textAlign: 'right',
     },
     totalRow: {
         flexDirection: 'row',
