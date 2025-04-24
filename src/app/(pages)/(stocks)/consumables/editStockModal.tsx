@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationPopup from "../../../../components/confirmationPopup";
+import "@/styles/forms.css";
 
 interface EditStockModalProps {
 	item: {

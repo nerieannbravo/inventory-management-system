@@ -9,6 +9,8 @@ import {
     PDFDownloadLink
 } from '@react-pdf/renderer';
 
+import "@/styles/pdfModal.css";
+
 // Interface definitions
 interface StockForm {
     name: string;

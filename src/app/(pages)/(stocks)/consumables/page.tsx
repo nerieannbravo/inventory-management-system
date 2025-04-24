@@ -1,7 +1,13 @@
 "use client";
+
 import React, { useState } from "react";
 import MoreMenu from "@/components/moreMenu";
 import ModalManager from "@/components/modalManager";
+
+import "@/styles/filters.css"
+import "@/styles/tables.css"
+import "@/styles/chips.css"
+import "@/styles/pagination.css"
 
 const hardcodedData = [
     {

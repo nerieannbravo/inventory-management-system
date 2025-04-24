@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
+import "@/styles/popup.css";
+
 interface ConfirmationPopupProps {
 	isOpen: boolean;
 	onClose: () => void;

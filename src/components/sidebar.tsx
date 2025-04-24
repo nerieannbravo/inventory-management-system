@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import "@/styles/sidebar.css";
 
 // interface SidebarProps {
 //     isCollapsed: boolean;

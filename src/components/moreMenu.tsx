@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 
+import "@/styles/moreMenu.css";
+
 interface MoreMenuProps {
     onView: () => void;
     onEdit: () => void;

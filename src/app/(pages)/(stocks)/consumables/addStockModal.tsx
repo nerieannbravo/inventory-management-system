@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationPopup from "../../../../components/confirmationPopup";
-import { PdfPreviewModal, useStockReceiptPDF } from "./stockReceiptPDF"; // Import the new components
+import { PdfPreviewModal, useStockReceiptPDF } from "./stockReceiptPDF"; 
+
+import "@/styles/forms.css";
 
 interface StockForm {
 	name: string;

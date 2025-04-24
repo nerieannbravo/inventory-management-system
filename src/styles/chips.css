@@ -1,0 +1,28 @@
+/* ----- CHIPS STYLING ----- */
+.chip {
+    /* width: 130px; */
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.chip.available {
+    background-color: var(--success-chip-bg-color);
+    color: var(--success-chip-text-color);
+}
+
+.chip.out-of-stock {
+    background-color: var(--error-chip-bg-color);
+    color: var(--error-chip-text-color);
+}
+
+.chip.maintenance {
+    background-color: var(--info-chip-bg-color);
+    color: var(--info-chip-text-color);
+}
+
+.chip.low-stock {
+    background-color: var(--warning-chip-bg-color);
+    color: var(--warning-chip-text-color);
+}
