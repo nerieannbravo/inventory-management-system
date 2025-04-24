@@ -5,7 +5,6 @@ import {
     Page,
     Text,
     View,
-    Image,
     PDFViewer,
     PDFDownloadLink
 } from '@react-pdf/renderer';
