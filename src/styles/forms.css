@@ -151,7 +151,7 @@
 }
 
 .add-stock-form .add-error-message.quantity {
-    margin-top: 0;
+    margin-top: -15px;
     margin-bottom: 5px;
 }
 
