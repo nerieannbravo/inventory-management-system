@@ -97,10 +97,10 @@ const StockReceiptDocument: React.FC<{
                                 {item.unit}
                             </Text>
                             <Text style={styles.price}>
-                                Php {item.price.toFixed(2)}
+                                Php {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </Text>
                             <Text style={styles.totalPrice}>
-                                Php {(item.quantity * item.price).toFixed(2)}
+                                Php {(item.quantity * item.price).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </Text>
                         </View>
                     ))}
@@ -109,7 +109,10 @@ const StockReceiptDocument: React.FC<{
                 {/* Total */}
                 <View style={styles.totalRow}>
                     <Text style={styles.totalLabel}>Total Value:</Text>
-                    <Text style={styles.totalValue}>Php {totalValue.toFixed(2)}</Text>
+                    <Text style={styles.totalValue}>
+                        Php {totalValue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Text>
+
                 </View>
 
                 {/* Footer */}
