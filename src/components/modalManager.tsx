@@ -1,11 +1,11 @@
 import React from "react";
 
 import Modal from "@/components/modal";
-import AddStockModal from "../app/(pages)/stocks/addStockModal";
-import ViewStockModal from "../app/(pages)/stocks/viewStockModal";
-import EditStockModal from "../app/(pages)/stocks/editStockModal";
-import DeleteStockModal from "../app/(pages)/stocks/deleteStockModal";
-import { StockForm } from "../app/(pages)/stocks/addStockModal";
+import AddStockModal from "../app/(pages)/stock-management/addStockModal";
+import ViewStockModal from "../app/(pages)/stock-management/viewStockModal";
+import EditStockModal from "../app/(pages)/stock-management/editStockModal";
+import DeleteStockModal from "../app/(pages)/stock-management/deleteStockModal";
+import { StockForm } from "../app/(pages)/stock-management/addStockModal";
 
 interface ModalManagerProps {
 	isOpen: boolean;

@@ -24,7 +24,7 @@ const Sidebar: React.FC = () => {
         '/bus-management': 'bus-management',
     };
 
-    const stockSubItems = ['/consumables', '/machine-equipments'];
+    // const stockSubItems = ['/consumables', '/machine-equipments'];
 
     // Set activeItem only on route change
     useEffect(() => {
@@ -32,16 +32,16 @@ const Sidebar: React.FC = () => {
         setActiveItem(current);
     }, [pathname]);
 
-    const toggleSubMenu = (id: string) => {
-        setOpenSubMenu(prev => (prev === id ? null : id));
-    };
+    // const toggleSubMenu = (id: string) => {
+    //     setOpenSubMenu(prev => (prev === id ? null : id));
+    // };
 
     // const toggleSidebar = () => {
     //     setIsCollapsed(!isCollapsed);
     // };
 
     // Determine if a stock subitem is active
-    const isStockItemActive = stockSubItems.includes(pathname);
+    // const isStockItemActive = stockSubItems.includes(pathname);
 
     return (
         // <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} shadow-lg`} id="sidebar">
@@ -61,6 +61,35 @@ const Sidebar: React.FC = () => {
                         <span>Dashboard</span>
                     </Link>
 
+                    {/* Sidebar Sub-item */}
+                    {/* <div
+                        className={`nav-item module ${isStockItemActive ? 'active' : ''}`}
+                        onClick={() => toggleSubMenu('stock-submenu')}
+                    >
+                        <i className="ri-box-3-line" />
+                        <span>Stock Management</span>
+                        <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'stock-submenu' ? 'rotate' : ''}`} />
+                    </div>
+
+                    {openSubMenu === 'stock-submenu' && (
+                        <div className="sub-menu active">
+                            <Link
+                                href="/consumables"
+                                className={`sub-item ${activeItem === 'consumables' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('consumables')}
+                            >
+                                Consumable Stocks
+                            </Link>
+                            <Link
+                                href="/machine-equipments"
+                                className={`sub-item ${activeItem === 'machines' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('machines')}
+                            >
+                                Machines and Equipments
+                            </Link>
+                        </div>
+                    )} */}
+                    
                     <Link
                         href="/stock-management"
                         className={`nav-item ${activeItem === 'stock-management' ? 'active' : ''}`}

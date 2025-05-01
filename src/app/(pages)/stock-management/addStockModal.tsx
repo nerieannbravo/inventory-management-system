@@ -128,11 +128,11 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							onChange={(e) => handleFormChange("name", e.target.value)}
 						>
 							<option value="" disabled>Select an item</option>
-							<option value="Alcohol">Alcohol</option>
-							<option value="Syringe">Syringe</option>
-							<option value="Bandage">Bandage</option>
-							<option value="Gloves">Gloves</option>
-							<option value="Face Mask">Face Mask</option>
+							<option value="1">Item 1</option>
+							<option value="2">Item 2</option>
+							<option value="3">Item 3</option>
+							<option value="4">Item 4</option>
+							<option value="5 Mask">Item 5</option>
 						</select>
 						<p className="add-error-message">{formErrors.name}</p>
 					</div>
