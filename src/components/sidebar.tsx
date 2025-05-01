@@ -18,7 +18,7 @@ const Sidebar: React.FC = () => {
 
     const routeToItem: { [key: string]: string } = {
         '/': 'dashboard',
-        '/stocks': 'stocks',
+        '/stock-management': 'stock-management',
         '/request-management': 'request-management',
         '/order-management': 'order-management',
         '/bus-management': 'bus-management',
@@ -62,9 +62,9 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     <Link
-                        href="/stocks"
-                        className={`nav-item ${activeItem === 'stocks' ? 'active' : ''}`}
-                        onClick={() => setActiveItem('stocks')}
+                        href="/stock-management"
+                        className={`nav-item ${activeItem === 'stock-management' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('stock-management')}
                     >
                         <i className="ri-box-3-line" />
                         <span>Stock Management</span>

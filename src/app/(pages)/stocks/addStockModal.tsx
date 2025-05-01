@@ -68,7 +68,6 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		if (form.reorder > form.quantity) errors.reorder = "Reorder level cannot exceed total quantity";
 		if (!form.category) errors.category = "Item category is required";
 		
-
 		const sum = form.usable + form.defective + form.missing;
 		if (sum !== form.quantity) {
 			errors.sum = "The combined total of usable, defective, and missing must equal the total quantity";

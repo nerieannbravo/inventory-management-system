@@ -1,4 +1,3 @@
-// components/Snackbar.tsx
 import React, { useEffect } from "react";
 import "@/styles/snackbar.css";
 

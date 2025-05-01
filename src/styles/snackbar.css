@@ -29,7 +29,8 @@
   margin-right: 5px;
 }
 
-/* ----- SIDEBAR TYPES STYLING ----- */
+
+/* ----- SNACKBAR TYPES STYLING ----- */
 .snackbar.success {
     background-color: var(--success-color);
 }

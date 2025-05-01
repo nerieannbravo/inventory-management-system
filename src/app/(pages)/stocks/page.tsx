@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import MoreMenu from "@/components/moreMenu";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
-
-// Import the StockForm interface
 import { StockForm } from "./addStockModal";
 
 import "@/styles/filters.css"

@@ -62,7 +62,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 			errors.name = "Item name is required";
 		} else if (formData.name.length > 50) {
 			errors.name = "Item name cannot exceed 50 characters";
-		}
+		} 
 
 		// Validate reorder level
 		if (formData.reorder < 1) {

@@ -1,11 +1,10 @@
 import React from "react";
+
 import Modal from "@/components/modal";
 import AddStockModal from "../app/(pages)/stocks/addStockModal";
 import ViewStockModal from "../app/(pages)/stocks/viewStockModal";
 import EditStockModal from "../app/(pages)/stocks/editStockModal";
 import DeleteStockModal from "../app/(pages)/stocks/deleteStockModal";
-
-// Import the StockForm interface
 import { StockForm } from "../app/(pages)/stocks/addStockModal";
 
 interface ModalManagerProps {
