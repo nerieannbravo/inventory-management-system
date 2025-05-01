@@ -3,17 +3,22 @@
 import React, { useState } from "react";
 import MoreMenu from "@/components/moreMenu";
 import ModalManager from "@/components/modalManager";
+import Snackbar from "@/components/snackbar";
+
+// Import the StockForm interface
+import { StockForm } from "./addStockModal";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/pagination.css"
+import "@/styles/snackbar.css"
 
 const hardcodedData = [
     {
         id: 1,
         name: "Example Item A",
-        stock: 50,
+        quantity: 50,
         unit: "pcs",
         status: "available",
         reorder: 10,
@@ -21,7 +26,7 @@ const hardcodedData = [
     {
         id: 2,
         name: "Example Item B",
-        stock: 0,
+        quantity: 0,
         unit: "pcs",
         status: "out-of-stock",
         reorder: 5,
@@ -29,7 +34,7 @@ const hardcodedData = [
     {
         id: 3,
         name: "Example Item C",
-        stock: 20,
+        quantity: 20,
         unit: "pcs",
         status: "low-stock",
         reorder: 8,
@@ -37,7 +42,7 @@ const hardcodedData = [
     {
         id: 4,
         name: "Example Item D",
-        stock: 20,
+        quantity: 20,
         unit: "pcs",
         status: "maintenance",
         reorder: 8,
@@ -45,19 +50,23 @@ const hardcodedData = [
     {
         id: 5,
         name: "Example Item E",
-        stock: 16,
+        quantity: 16,
         unit: "pcs",
         status: "expired",
         reorder: 3,
     },
 ];
 
-export default function Consumables() {
+export default function StocksManagement() {
     // for modal
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<"add" | "view" | "edit" | "delete" | null>(null);
     const [activeRow, setActiveRow] = useState<any>(null);
+
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarType, setSnackbarType] = useState<"success" | "error" | "info" | "warning">("info");
 
 
     // for items status formatting
@@ -91,10 +100,19 @@ export default function Consumables() {
         setActiveRow(null);
     };
 
-    const handleAddStock = (stockForms: any[]) => {
-        console.log("Saving forms:", stockForms);
-        // Logic to add stocks to the data
+    // snackbar
+    const showSnackbar = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
+        setSnackbarMessage(message);
+        setSnackbarType(type);
+        setSnackbarVisible(true);
+    };
+
+    // Updated to accept a single StockForm object
+    const handleAddStock = (stockForm: StockForm) => {
+        console.log("Saving form:", stockForm);
+        // Logic to add stock to the data
         // In a real app, this would likely be an API call
+        showSnackbar("Stock added successfully!", "success");
         closeModal();
     };
 
@@ -114,7 +132,7 @@ export default function Consumables() {
 
     return (
         <div className="card">
-            <h1 className="title">Consumable Stocks</h1>
+            <h1 className="title">Stock Management</h1>
 
             {/* Search Engine and Status Filters */}
             <div className="elements">
@@ -167,7 +185,7 @@ export default function Consumables() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.name}</td>
-                                        <td>{item.stock}</td>
+                                        <td>{item.quantity}</td>
                                         <td>{item.unit}</td>
                                         <td>
                                             <span className={`chip ${item.status}`}>
@@ -216,6 +234,15 @@ export default function Consumables() {
                 onSaveEdit={handleEditStock}
                 onDeleteConfirm={handleDeleteConfirm}
             />
+
+            {/* Snackbar */}
+            <Snackbar
+                message={snackbarMessage}
+                isVisible={snackbarVisible}
+                onClose={() => setSnackbarVisible(false)}
+                type={snackbarType}
+            />
+
         </div>
     );
 }

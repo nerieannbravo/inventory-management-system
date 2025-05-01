@@ -6,7 +6,7 @@ interface ViewStockModalProps {
 	item: {
 		id: number;
 		name: string;
-		stock: number;
+		quantity: number;
 		unit: string;
 		status: string;
 		reorder: number;
@@ -32,7 +32,7 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 					<div className="form-row">
 						<div className="form-group">
 							<label>Quantity</label>
-							<p>{item.stock}</p>
+							<p>{item.quantity}</p>
 						</div>
 
 						<div className="form-group">
@@ -41,15 +41,15 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 						</div>
 
 						<div className="form-group">
-							<label>Unit Price</label>
-							<p>Php 100.00</p>
+							<label>Reorder Level</label>
+							<p>{item.reorder}</p>
 						</div>
 					</div>
 
 					<div className="form-row">
 						<div className="form-group">
-							<label>Reorder Level</label>
-							<p>{item.reorder}</p>
+							<label>Category</label>
+							<p>Consumable</p>
 						</div>
 
 						<div className="form-group">

@@ -18,8 +18,7 @@ const Sidebar: React.FC = () => {
 
     const routeToItem: { [key: string]: string } = {
         '/': 'dashboard',
-        '/consumables': 'consumables',
-        '/machine-equipments': 'machines',
+        '/stocks': 'stocks',
         '/request-management': 'request-management',
         '/order-management': 'order-management',
         '/bus-management': 'bus-management',
@@ -62,33 +61,14 @@ const Sidebar: React.FC = () => {
                         <span>Dashboard</span>
                     </Link>
 
-                    <div
-                        className={`nav-item module ${isStockItemActive ? 'active' : ''}`}
-                        onClick={() => toggleSubMenu('stock-submenu')}
+                    <Link
+                        href="/stocks"
+                        className={`nav-item ${activeItem === 'stocks' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('stocks')}
                     >
                         <i className="ri-box-3-line" />
                         <span>Stock Management</span>
-                        <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'stock-submenu' ? 'rotate' : ''}`} />
-                    </div>
-
-                    {openSubMenu === 'stock-submenu' && (
-                        <div className="sub-menu active">
-                            <Link
-                                href="/consumables"
-                                className={`sub-item ${activeItem === 'consumables' ? 'active' : ''}`}
-                                onClick={() => setActiveItem('consumables')}
-                            >
-                                Consumable Stocks
-                            </Link>
-                            <Link
-                                href="/machine-equipments"
-                                className={`sub-item ${activeItem === 'machines' ? 'active' : ''}`}
-                                onClick={() => setActiveItem('machines')}
-                            >
-                                Machines and Equipments
-                            </Link>
-                        </div>
-                    )}
+                    </Link>
 
                     <Link
                         href="/request-management"

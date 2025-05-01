@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import ConfirmationPopup from "../../../../components/confirmationPopup";
+
+import ConfirmationPopup from "@/components/confirmationPopup";
+
 import "@/styles/forms.css";
 
 interface EditStockModalProps {
 	item: {
 		id: number;
 		name: string;
-		stock: number;
+		quantity: number;
 		unit: string;
 		status: string;
 		reorder: number;
@@ -20,7 +22,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	const [formData, setFormData] = useState({
 		id: item.id,
 		name: item.name,
-		stock: item.stock,
+		quantity: item.quantity,
 		unit: item.unit,
 		price: 0, // Default value, would be populated from item in a real app
 		reorder: item.reorder,
@@ -67,7 +69,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 			errors.reorder = "Reorder level must be greater than 0";
 		}
 
-		if (formData.reorder > formData.stock) {
+		if (formData.reorder > formData.quantity) {
 			errors.reorder = "Reorder level cannot exceed total quantity";
 		}
 
@@ -100,11 +102,12 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	return (
 		<>
 			<div className="modal-heading">
-				<h1 className="modal-title">Edit Consumable Stock</h1>
+				<h1 className="modal-title">Edit Stock</h1>
 				<div className="modal-date-time">
 					<p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
 					<p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
 				</div>
+
 				<button className="close-modal-btn" onClick={handleClose}>
 					<i className="ri-close-line"></i>
 				</button>
@@ -128,8 +131,8 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 							<label>Quantity</label>
 							<input disabled
 								type="number"
-								value={formData.stock}
-								onChange={(e) => handleChange("stock", Number(e.target.value))}
+								value={formData.quantity}
+								onChange={(e) => handleChange("quantity", Number(e.target.value))}
 							/>
 						</div>
 
