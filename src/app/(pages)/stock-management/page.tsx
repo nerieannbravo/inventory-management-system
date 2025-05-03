@@ -105,12 +105,18 @@ export default function StocksManagement() {
         setSnackbarVisible(true);
     };
 
-    // Updated to accept a single StockForm object
-    const handleAddStock = (stockForm: StockForm) => {
-        console.log("Saving form:", stockForm);
-        // Logic to add stock to the data
+    // Updated to accept an array of StockForm objects
+    const handleAddStock = (stockForms: StockForm[]) => {
+        console.log("Saving forms:", stockForms);
+        // Logic to add multiple stock items to the data
         // In a real app, this would likely be an API call
-        showSnackbar("Stock added successfully!", "success");
+        
+        const itemCount = stockForms.length;
+        const message = itemCount === 1 
+            ? "Stock item added successfully!" 
+            : `${itemCount} stock items added successfully!`;
+            
+        showSnackbar(message, "success");
         closeModal();
     };
 

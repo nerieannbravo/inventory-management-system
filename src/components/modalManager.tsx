@@ -1,11 +1,12 @@
 import React from "react";
-
 import Modal from "@/components/modal";
-import AddStockModal from "../app/(pages)/stock-management/addStockModal";
-import ViewStockModal from "../app/(pages)/stock-management/viewStockModal";
-import EditStockModal from "../app/(pages)/stock-management/editStockModal";
-import DeleteStockModal from "../app/(pages)/stock-management/deleteStockModal";
-import { StockForm } from "../app/(pages)/stock-management/addStockModal";
+import AddStockModal from "@/app/(pages)/stock-management/addStockModal";
+import ViewStockModal from "@/app/(pages)/stock-management/viewStockModal";
+import EditStockModal from "@/app/(pages)/stock-management/editStockModal";
+import DeleteStockModal from "@/app/(pages)/stock-management/deleteStockModal";
+
+// Import the StockForm interface
+// import { StockForm } from "@/app/(pages)/stock-management/addStockModal";
 
 interface ModalManagerProps {
 	isOpen: boolean;
@@ -13,7 +14,7 @@ interface ModalManagerProps {
 	modalMode: "add" | "view" | "edit" | "delete" | null;
 	activeRow: any;
 	formatStatus: (status: string) => string;
-	onSaveAdd: (stockForm: StockForm) => void;  // Changed from stockForms: any[] to stockForm: StockForm
+	onSaveAdd: (stockForms: any) => void;  // Changed from stockForms: any[] to stockForm: StockForm
 	onSaveEdit: (updatedItem: any) => void;
 	onDeleteConfirm: () => void;
 }
