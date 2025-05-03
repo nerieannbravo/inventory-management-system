@@ -29,10 +29,6 @@ export default function ConfirmationPopup({
 	// Get variant-specific styles
 	const getVariantClasses = () => {
 		switch (variant) {
-			case "warning":
-				return {
-					icon: "warning ri-error-warning-line",
-				};
 			case "success":
 				return {
 					icon: "success ri-checkbox-circle-line",
@@ -40,6 +36,10 @@ export default function ConfirmationPopup({
 			case "error":
 				return {
 					icon: "error ri-close-circle-line",
+				};
+			case "warning":
+				return {
+					icon: "warning ri-error-warning-line",
 				};
 			case "info":
 			default:

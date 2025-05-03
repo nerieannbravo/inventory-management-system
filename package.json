@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "prisma": {
+    "seed": "ts-node --project tsconfig-seed.json prisma/seed.ts"
+  },
   "dependencies": {
+    "@prisma/client": "^6.6.0",
     "@react-pdf/renderer": "^4.3.0",
     "next": "15.3.0",
     "react": "^19.0.0",
@@ -17,12 +21,14 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.17.31",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "prisma": "^6.6.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

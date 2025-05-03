@@ -1,0 +1,53 @@
+/* ----- SNACKBAR STYLING ----- */
+.snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    padding: 8px;
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    transform: translateX(120%);
+    transition: transform 0.3s ease, visibility 0.3s ease;
+    z-index: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: var(--foreground-color);
+    font-size: 14px;
+}
+
+.snackbar.show {
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.snackbar-icon {
+  font-size: 24px;
+  margin-right: 5px;
+}
+
+
+/* ----- SNACKBAR TYPES STYLING ----- */
+.snackbar.success {
+    background-color: var(--success-color);
+}
+
+.snackbar.error {
+    background-color: var(--error-color);
+}
+
+.snackbar.info {
+    background-color: var(--info-color);
+}
+
+.snackbar.warning {
+    background-color: var(--warning-color);
+    color: var(--primary-text-color);
+}
+
+.snackbar.warning .snackbar-icon {
+    color: var(--primary-text-color);
+}

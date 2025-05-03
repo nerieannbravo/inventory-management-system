@@ -3,9 +3,9 @@ import React, { useState, useRef, useEffect } from "react";
 import "@/styles/moreMenu.css";
 
 interface MoreMenuProps {
-    onView: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
+    onView?: () => void;
+    onEdit?: () => void;
+    onDelete?: () => void;
 }
 
 const MoreMenu = ({ onView, onEdit, onDelete }: MoreMenuProps) => {
@@ -32,15 +32,21 @@ const MoreMenu = ({ onView, onEdit, onDelete }: MoreMenuProps) => {
             </button>
             {open && (
                 <div className="menu-dropdown">
-                    <button className="menu-item" onClick={onView}>
-                        <i className="ri-eye-line"></i> View
-                    </button>
-                    <button className="menu-item" onClick={onEdit}>
-                        <i className="ri-edit-2-line"></i> Edit
-                    </button>
-                    <button className="menu-item delete" onClick={onDelete}>
-                        <i className="ri-delete-bin-line"></i> Delete
-                    </button>
+                    {onView && (
+                        <button className="menu-item" onClick={onView}>
+                            <i className="ri-eye-line"></i> View
+                        </button>
+                    )}
+                    {onEdit && (
+                        <button className="menu-item" onClick={onEdit}>
+                            <i className="ri-edit-2-line"></i> Edit
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button className="menu-item delete" onClick={onDelete}>
+                            <i className="ri-delete-bin-line"></i> Delete
+                        </button>
+                    )}
                 </div>
             )}
         </div>

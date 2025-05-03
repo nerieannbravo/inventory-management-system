@@ -1,0 +1,235 @@
+import React, { useState, useEffect } from "react";
+
+import ConfirmationPopup from "@/components/confirmationPopup";
+
+import "@/styles/forms.css";
+
+interface EditStockModalProps {
+	item: {
+		id: number;
+		name: string;
+		quantity: number;
+		unit: string;
+		status: string;
+		reorder: number;
+		// Additional fields would be included in a real application
+	};
+	onSave: (updatedItem: any) => void;
+	onClose: () => void;
+}
+
+export default function EditStockModal({ item, onSave, onClose }: EditStockModalProps) {
+	const [formData, setFormData] = useState({
+		id: item.id,
+		name: item.name,
+		quantity: item.quantity,
+		unit: item.unit,
+		price: 0, // Default value, would be populated from item in a real app
+		reorder: item.reorder,
+		status: item.status,
+		expiration: "" // Default value, would be populated from item in a real app
+	});
+
+	// State to track if form is dirty (has changes)
+	const [isFormDirty, setIsFormDirty] = useState(false);
+	const [originalData] = useState({ ...formData });
+
+	// Add formErrors state similar to AddStockModal
+	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+	// Confirmation dialog states
+	const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
+	const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+
+	// Check if form data has changed from original
+	useEffect(() => {
+		const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
+		setIsFormDirty(hasChanges);
+	}, [formData, originalData]);
+
+	const handleChange = (field: string, value: any) => {
+		setFormData(prev => ({
+			...prev,
+			[field]: value
+		}));
+	};
+
+	const validateForm = (): boolean => {
+		const errors: Record<string, string> = {};
+
+		// Validate name
+		if (!formData.name.trim()) {
+			errors.name = "Item name is required";
+		} else if (formData.name.length > 50) {
+			errors.name = "Item name cannot exceed 50 characters";
+		} 
+
+		// Validate reorder level
+		if (formData.reorder < 1) {
+			errors.reorder = "Reorder level must be greater than 0";
+		}
+
+		if (formData.reorder > formData.quantity) {
+			errors.reorder = "Reorder level cannot exceed total quantity";
+		}
+
+		setFormErrors(errors);
+		return Object.keys(errors).length === 0;
+	};
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+
+		const isValid = validateForm();
+		if (!isValid) return;
+
+		// Show update confirmation instead of updating immediately
+		setShowUpdateConfirmation(true);
+	};
+
+	const handleConfirmUpdate = () => {
+		onSave(formData);
+	};
+
+	const handleClose = () => {
+		if (isFormDirty) {
+			setShowCloseConfirmation(true);
+		} else {
+			onClose();
+		}
+	};
+
+	return (
+		<>
+			<div className="modal-heading">
+				<h1 className="modal-title">Edit Stock</h1>
+				<div className="modal-date-time">
+					<p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+					<p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
+				</div>
+
+				<button className="close-modal-btn" onClick={handleClose}>
+					<i className="ri-close-line"></i>
+				</button>
+			</div>
+
+			<div className="modal-content edit">
+				<form className="edit-stock-form" id="edit-stock-form" onSubmit={handleSubmit}>
+					<div className="form-group">
+						<label>Item Name</label>
+						<input disabled
+							className={formErrors?.name ? "invalid-input" : ""}
+							type="text"
+							value={formData.name}
+							onChange={(e) => handleChange("name", e.target.value)}
+						/>
+						<p className="edit-error-message">{formErrors?.name}</p>
+					</div>
+
+					<div className="form-row">
+						<div className="form-group">
+							<label>Quantity</label>
+							<input disabled
+								type="number"
+								value={formData.quantity}
+								onChange={(e) => handleChange("quantity", Number(e.target.value))}
+							/>
+						</div>
+
+						<div className="form-group">
+							<label>Unit Measure</label>
+							<select disabled
+								value={formData.unit}
+								onChange={(e) => handleChange("unit", e.target.value)}
+							>
+								<option value="" disabled>Select...</option>
+								<option value="pcs">pcs (pieces)</option>
+								<option value="kg">kg (kilograms)</option>
+								<option value="l">L (liters)</option>
+								<option value="m">m (meters)</option>
+								<option value="box">box/es</option>
+								<option value="pack">pack/s</option>
+								<option value="roll">roll/s</option>
+							</select>
+						</div>
+
+						<div className="form-group">
+							<label>Unit Price</label>
+							<input disabled
+								type="number"
+								step="0.01"
+								value={formData.price}
+								onChange={(e) => handleChange("price", Number(e.target.value))}
+							/>
+						</div>
+					</div>
+
+					<div className="form-row">
+						<div className="form-group">
+							<label>Reorder Level</label>
+							<input
+								className={formErrors?.reorder ? "invalid-input" : ""}
+								type="number"
+								value={formData.reorder}
+								onChange={(e) => handleChange("reorder", Number(e.target.value))}
+							/>
+							<p className="edit-error-message">{formErrors?.reorder}</p>
+						</div>
+
+						<div className="form-group">
+							<label>Status</label>
+							<select
+								value={formData.status}
+								onChange={(e) => handleChange("status", e.target.value)}
+							>
+								<option value="available">Available</option>
+								<option value="out-of-stock">Out of Stock</option>
+								<option value="low-stock">Low Stock</option>
+								<option value="maintenance">Under Maintenance</option>
+							</select>
+						</div>
+					</div>
+
+					<div className="form-group">
+						<label>Expiration Date</label>
+						<input disabled
+							type="date"
+							value={formData.expiration}
+							onChange={(e) => handleChange("expiration", e.target.value)}
+						/>
+					</div>
+				</form>
+			</div>
+
+			<div className="modal-actions">
+				<button type="submit" className="submit-btn" form="edit-stock-form">
+					<i className="ri-save-3-line" /> Update
+				</button>
+			</div>
+
+			{/* Update Confirmation Dialog */}
+			<ConfirmationPopup
+				isOpen={showUpdateConfirmation}
+				onClose={() => setShowUpdateConfirmation(false)}
+				onConfirm={handleConfirmUpdate}
+				title="Confirm Update"
+				message={`Are you sure you want to update the stock details for "${formData.name}"?`}
+				confirmText="Update"
+				cancelText="Cancel"
+				variant="success"
+			/>
+
+			{/* Close Without Saving Dialog */}
+			<ConfirmationPopup
+				isOpen={showCloseConfirmation}
+				onClose={() => setShowCloseConfirmation(false)}
+				onConfirm={onClose}
+				title="Unsaved Changes"
+				message="You have unsaved changes. Are you sure you want to close without updating?"
+				confirmText="Close Without Saving"
+				cancelText="Continue Editing"
+				variant="warning"
+			/>
+		</>
+	);
+}
