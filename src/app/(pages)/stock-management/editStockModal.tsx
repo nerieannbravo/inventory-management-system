@@ -117,7 +117,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 				<form className="edit-stock-form" id="edit-stock-form" onSubmit={handleSubmit}>
 					<div className="form-group">
 						<label>Item Name</label>
-						<input
+						<input disabled
 							className={formErrors?.name ? "invalid-input" : ""}
 							type="text"
 							value={formData.name}
