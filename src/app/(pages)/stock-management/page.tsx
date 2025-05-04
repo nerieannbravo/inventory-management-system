@@ -4,6 +4,10 @@ import React, { useState } from "react";
 import MoreMenu from "@/components/moreMenu";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
+import AddStockModal from "./addStockModal";
+import ViewStockModal from "./viewStockModal";
+import EditStockModal from "./editStockModal";
+import DeleteStockModal from "./deleteStockModal";
 import { StockForm } from "./addStockModal";
 
 import "@/styles/filters.css"
@@ -59,8 +63,8 @@ export default function StocksManagement() {
     // for modal
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState<"add" | "view" | "edit" | "delete" | null>(null);
     const [activeRow, setActiveRow] = useState<any>(null);
+    const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -86,15 +90,49 @@ export default function StocksManagement() {
     };
 
     // for the modals of add, view, edit, and delete
-    const openModal = (mode: "add" | "view" | "edit" | "delete", rowData?: any) => {
-        setModalMode(mode);
+    const openModal = (mode: "add-stock" | "view-stock" | "edit-stock" | "delete-stock", rowData?: any) => {
+        let content;
+
+        switch (mode) {
+            case "add-stock":
+                content = <AddStockModal
+                    onSave={handleAddStock}
+                    onClose={closeModal}
+                />;
+                break;
+            case "view-stock":
+                content = <ViewStockModal
+                    item={rowData}
+                    formatStatus={formatStatus}
+                    onClose={closeModal}
+                />;
+                break;
+            case "edit-stock":
+                content = <EditStockModal
+                    item={rowData}
+                    onSave={handleEditStock}
+                    onClose={closeModal}
+                />;
+                break;
+            case "delete-stock":
+                content = <DeleteStockModal
+                    item={rowData}
+                    onConfirm={handleDeleteConfirm}
+                    onCancel={closeModal}
+                />;
+                break;
+            default:
+                content = null;
+        }
+
+        setModalContent(content);
         setActiveRow(rowData || null);
         setIsModalOpen(true);
     };
 
     const closeModal = () => {
         setIsModalOpen(false);
-        setModalMode(null);
+        setModalContent(null);
         setActiveRow(null);
     };
 
@@ -105,21 +143,22 @@ export default function StocksManagement() {
         setSnackbarVisible(true);
     };
 
-    // Updated to accept an array of StockForm objects
+    // Handle add stocks
     const handleAddStock = (stockForms: StockForm[]) => {
         console.log("Saving forms:", stockForms);
         // Logic to add multiple stock items to the data
         // In a real app, this would likely be an API call
-        
+
         const itemCount = stockForms.length;
-        const message = itemCount === 1 
-            ? "Stock item added successfully!" 
+        const message = itemCount === 1
+            ? "Stock item added successfully!"
             : `${itemCount} stock items added successfully!`;
-            
+
         showSnackbar(message, "success");
         closeModal();
     };
 
+    // Handle edit stocks
     const handleEditStock = (updatedItem: any) => {
         console.log("Updating item:", updatedItem);
         // Logic to update the item in the data
@@ -127,6 +166,7 @@ export default function StocksManagement() {
         closeModal();
     };
 
+    // Hadle delete stocks
     const handleDeleteConfirm = () => {
         console.log("Deleted row with id:", activeRow?.id);
         // Logic to delete the item from the data
@@ -148,22 +188,20 @@ export default function StocksManagement() {
                         </button>
                     </div>
 
+                    {/* Filter Button */}
                     <div className="filter">
-                        <select className="status-filter">
-                            <option value="by-name">Order by Name</option>
-                            <option value="by-quantity">Order by Quantity</option>
-                        </select>
-                        <select className="status-filter">
-                            <option value="all">All Status</option>
-                            <option value="available">Available</option>
-                            <option value="out-of-stock">Out of Stock</option>
-                            <option value="low-stock">Low Stock</option>
-                            <option value="maintenance">Under Maintenance</option>
-                            <option value="expired">Expired</option>
-                        </select>
+                        <button className="filter-btn">
+                            <i className="ri-equalizer-line" /> Filter
+                        </button>
                     </div>
 
-                    <button className="main-btn" onClick={() => openModal("add")}>
+                    {/* Generate Report Button */}
+                    <button type="button" className="generate-btn">
+                        <i className="ri-receipt-line" /> Generate Report
+                    </button>
+
+                    {/* Add Stocks Button */}
+                    <button className="main-btn" onClick={() => openModal("add-stock")}>
                         <i className="ri-add-line" /> Add Stocks
                     </button>
                 </div>
@@ -199,9 +237,9 @@ export default function StocksManagement() {
                                         <td>{item.reorder}</td>
                                         <td>
                                             <MoreMenu
-                                                onView={() => openModal("view", item)}
-                                                onEdit={() => openModal("edit", item)}
-                                                onDelete={() => openModal("delete", item)}
+                                                onView={() => openModal("view-stock", item)}
+                                                onEdit={() => openModal("edit-stock", item)}
+                                                onDelete={() => openModal("delete-stock", item)}
                                             />
                                         </td>
                                     </tr>
@@ -227,16 +265,11 @@ export default function StocksManagement() {
                 </div>
             </div>
 
-            {/* Modal Manager */}
+            {/* Dynamic Modal Manager */}
             <ModalManager
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                modalMode={modalMode}
-                activeRow={activeRow}
-                formatStatus={formatStatus}
-                onSaveAdd={handleAddStock}
-                onSaveEdit={handleEditStock}
-                onDeleteConfirm={handleDeleteConfirm}
+                modalContent={modalContent}
             />
 
             {/* Snackbar */}
