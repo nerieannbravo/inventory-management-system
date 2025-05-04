@@ -285,7 +285,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							</div>
 						</div>
 
-						{/* Expiration */}
+						{/* Expiration Date */}
 						{form.category === "consumable" && (
 							<div className="form-group">
 								<label>Expiration Date</label>

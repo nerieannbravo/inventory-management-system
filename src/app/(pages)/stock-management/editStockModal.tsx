@@ -187,6 +187,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 					</div>
 
 					{/* Expiration Date */}
+					{/* {formData.category === "consumable" && ( */}
 						<div className="form-group expiration">
 							<label>Expiration Date</label>
 							<input disabled
@@ -195,6 +196,8 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 								onChange={(e) => handleChange("expiration", e.target.value)}
 							/>
 						</div>
+					{/* )} */}
+
 				</form>
 			</div>
 
