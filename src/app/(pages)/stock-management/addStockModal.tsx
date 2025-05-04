@@ -62,12 +62,12 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		if (formErrors[index] && formErrors[index][field]) {
 			const newErrors = [...formErrors];
 			delete newErrors[index][field];
-			
+
 			// Also clear sum error if quantity-related fields are changed
 			if (["usable", "defective", "missing", "quantity"].includes(field)) {
 				delete newErrors[index]["sum"];
 			}
-			
+
 			setFormErrors(newErrors);
 		}
 	};
@@ -90,7 +90,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			if (form.reorder < 0) errorObj.reorder = "Reorder level must be 0 or more";
 			if (form.reorder > form.quantity) errorObj.reorder = "Reorder level cannot exceed total quantity";
 			if (!form.category) errorObj.category = "Item category is required";
-			
+
 			const sum = form.usable + form.defective + form.missing;
 			if (sum !== form.quantity) {
 				errorObj.sum = "The combined total of usable, defective, and missing must equal the total quantity";
@@ -115,7 +115,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		
+
 		const isValid = validateForm();
 		if (isValid) {
 			setShowSaveConfirmation(true);
@@ -142,12 +142,13 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 					<p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
 					<p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
 				</div>
-				
+
 				<button className="close-modal-btn" onClick={handleClose}>
 					<i className="ri-close-line"></i>
 				</button>
 			</div>
 
+			{/* Add Stock Form - allows adding multiple stocks */}
 			{stockForms.map((form, index) => (
 				<div className="modal-content add" key={index}>
 					<form className="add-stock-form" id={`add-stock-form-${index}`}>
@@ -159,7 +160,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								value={form.name}
 								onChange={(e) => handleFormChange(index, "name", e.target.value)}
 							>
-								<option value="" disabled>Select an item</option>
+								<option value="" disabled>Select an item...</option>
 								<option value="1">Item 1</option>
 								<option value="2">Item 2</option>
 								<option value="3">Item 3</option>
@@ -173,21 +174,18 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							{/* Quantity */}
 							<div className="form-group">
 								<label>Total Quantity</label>
-								<input
-									disabled
+								<input disabled
 									type="number"
+									step="0.1"
 									min="0"
 									value={form.quantity}
 								/>
 							</div>
 
-							{/* Unit */}
+							{/* Unit Measure */}
 							<div className="form-group">
 								<label>Unit Measure</label>
-								<select
-									disabled
-									value={form.unit}
-								>
+								<select disabled value={form.unit}>
 									<option value="pcs">pcs (pieces)</option>
 									<option value="kg">kg (kilograms)</option>
 									<option value="l">L (liters)</option>
@@ -268,7 +266,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									value={form.category}
 									onChange={(e) => handleFormChange(index, "category", e.target.value)}
 								>
-									<option value="" disabled>Select...</option>
+									<option value="" disabled>Select category...</option>
 									<option value="consumable">Consumable</option>
 									<option value="mach-equip">Machine/Equipment</option>
 								</select>
@@ -288,16 +286,19 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						{/* Expiration */}
-						<div className="form-group">
-							<label>Expiration Date</label>
-							<input
-								className={formErrors[index]?.expiration ? "invalid-input" : ""}
-								type="date"
-								value={form.expiration}
-								onChange={(e) => handleFormChange(index, "expiration", e.target.value)}
-							/>
-							<p className="add-error-message">{formErrors[index]?.expiration}</p>
-						</div>
+						{form.category === "consumable" && (
+							<div className="form-group">
+								<label>Expiration Date</label>
+								<input
+									className={formErrors[index]?.expiration ? "invalid-input" : ""}
+									type="date"
+									value={form.expiration}
+									onChange={(e) => handleFormChange(index, "expiration", e.target.value)}
+								/>
+								<p className="add-error-message">{formErrors[index]?.expiration}</p>
+							</div>
+						)}
+
 					</form>
 
 					{/* Remove Stock Button - Only show if there's more than one form */}

@@ -17,7 +17,7 @@ const hardcodedData = [
         id: 1,
         name: "Example Item A",
         quantity: 50,
-        unit: "pcs",
+        unit: "kg",
         status: "available",
         reorder: 10,
     },
