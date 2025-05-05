@@ -91,7 +91,8 @@
     gap: 8px;
     border-radius: 8px;
     background-color: var(--table-header-color);
-    color: var(--primary-text-color);
+    border: 1px solid var(--border-color);
+    color: var(--secondary-text-color);
     font-size: 14px;
     transition: all 0.3s ease-in-out;
     cursor: pointer;
