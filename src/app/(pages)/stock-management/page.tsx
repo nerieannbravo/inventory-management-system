@@ -99,8 +99,9 @@ export default function StocksManagement() {
             options: [
                 { id: "available", label: "Available" },
                 { id: "out-of-stock", label: "Out of Stock" },
-                { id: "maintenance", label: "Maintenance" },
-                { id: "low-stock", label: "Low Stocks" }
+                { id: "maintenance", label: "Under Maintenance" },
+                { id: "low-stock", label: "Low Stock" },
+                { id: "expired", label: "Expired" }
             ]
         },
         {
