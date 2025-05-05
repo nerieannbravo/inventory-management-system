@@ -264,7 +264,7 @@ export default function StocksManagement() {
         <div className="card">
             <h1 className="title">Stock Management</h1>
 
-            {/* Search Engine and Status Filters */}
+            {/* Search Engine and Filters */}
             <div className="elements">
                 <div className="entries">
                     <div className="search">
@@ -281,7 +281,6 @@ export default function StocksManagement() {
                             onApply={handleApplyFilters}
                         />
                     </div>
-
 
                     {/* Generate Report Button */}
                     <button type="button" className="generate-btn">
