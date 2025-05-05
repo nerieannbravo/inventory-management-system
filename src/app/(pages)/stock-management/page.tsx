@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import MoreMenu from "@/components/moreMenu";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
+import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
+
 import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
 import EditStockModal from "./editStockModal";
@@ -70,6 +72,89 @@ export default function StocksManagement() {
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarType, setSnackbarType] = useState<"success" | "error" | "info" | "warning">("info");
 
+    // For filtering
+    const [filteredData, setFilteredData] = useState(hardcodedData);
+
+    // Filter sections
+    const filterSections: FilterSection[] = [
+        {
+            id: "dateRange",
+            title: "Date Range",
+            type: "dateRange",
+            defaultValue: { from: "", to: "" }
+        },
+        {
+            id: "categories",
+            title: "Categories",
+            type: "checkbox",
+            options: [
+                { id: "consumables", label: "Consumables" },
+                { id: "machine-equipment", label: "Machine & Equipments" }
+            ]
+        },
+        {
+            id: "status",
+            title: "Status",
+            type: "checkbox",
+            options: [
+                { id: "available", label: "Available" },
+                { id: "out-of-stock", label: "Out of Stock" },
+                { id: "maintenance", label: "Maintenance" },
+                { id: "low-stock", label: "Low Stocks" }
+            ]
+        },
+        {
+            id: "sortBy",
+            title: "Sort By",
+            type: "radio",
+            options: [
+                { id: "name", label: "Item Name" },
+                { id: "quantity", label: "Item Quantity" }
+            ],
+            defaultValue: "name"
+        },
+        {
+            id: "order",
+            title: "Order",
+            type: "radio",
+            options: [
+                { id: "asc", label: "Ascending" },
+                { id: "desc", label: "Descending" }
+            ],
+            defaultValue: "asc"
+        }
+    ];
+
+    // Handle filter application
+    const handleApplyFilters = (filterValues: Record<string, any>) => {
+        console.log("Applied filters:", filterValues);
+
+        // In a real application, you would filter your data based on these values
+        // For now, we'll just log them and keep the original data
+
+        // Example implementation for filtering and sorting:
+        let newData = [...hardcodedData];
+
+        // Filter by status if selected
+        if (filterValues.status && filterValues.status.length > 0) {
+            newData = newData.filter(item => filterValues.status.includes(item.status));
+        }
+
+        // Sort by name or quantity
+        if (filterValues.sortBy === "name") {
+            newData.sort((a, b) => {
+                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                return a.name.localeCompare(b.name) * sortOrder;
+            });
+        } else if (filterValues.sortBy === "quantity") {
+            newData.sort((a, b) => {
+                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                return (a.quantity - b.quantity) * sortOrder;
+            });
+        }
+
+        setFilteredData(newData);
+    };
 
     // for items status formatting
     const formatStatus = (status: string) => {
@@ -188,12 +273,14 @@ export default function StocksManagement() {
                         </button>
                     </div>
 
-                    {/* Filter Button */}
+                    {/* Filter Button with Dropdown */}
                     <div className="filter">
-                        <button className="filter-btn">
-                            <i className="ri-equalizer-line" /> Filter
-                        </button>
+                        <FilterDropdown
+                            sections={filterSections}
+                            onApply={handleApplyFilters}
+                        />
                     </div>
+
 
                     {/* Generate Report Button */}
                     <button type="button" className="generate-btn">
@@ -221,7 +308,7 @@ export default function StocksManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {hardcodedData.map(item => (
+                                {filteredData.map(item => (
                                     <tr
                                         key={item.id}
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
