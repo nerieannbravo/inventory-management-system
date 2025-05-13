@@ -7,17 +7,20 @@
     display: inline-block;
 }
 
-.chip.available {
+.chip.available,
+.chip.returned {
     background-color: var(--success-chip-bg-color);
     color: var(--success-chip-text-color);
 }
 
-.chip.out-of-stock {
+.chip.out-of-stock,
+.chip.not-returned {
     background-color: var(--error-chip-bg-color);
     color: var(--error-chip-text-color);
 }
 
-.chip.maintenance {
+.chip.maintenance,
+.chip.consumed {
     background-color: var(--info-chip-bg-color);
     color: var(--info-chip-text-color);
 }

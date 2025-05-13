@@ -124,7 +124,7 @@
 
 /* add another stock button */
 .modal-actions .add-another-btn {
-    width: 170px;
+    width: 200px;
     height: 35px;
     display: flex;
     justify-content: center;
@@ -148,13 +148,14 @@
 
 /* remove stock button */
 .remove-btn-wrapper {
-    margin-top: 16px;
+    margin-top: 12px;
     display: flex;
     flex-direction: row;
     justify-content: right;
 }
 
-.remove-btn-wrapper .remove-stock-btn {
+.remove-btn-wrapper .remove-stock-btn,
+.remove-btn-wrapper .remove-request-btn {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -169,7 +170,8 @@
     cursor: pointer;
 }
 
-.remove-btn-wrapper .remove-stock-btn:hover {
+.remove-btn-wrapper .remove-stock-btn:hover,
+.remove-btn-wrapper .remove-request-btn:hover {
     background-color: var(--table-header-hover-color);
 }
 
