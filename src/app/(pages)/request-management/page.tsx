@@ -259,7 +259,7 @@ export default function RequestManagement() {
         // Logic to delete the item from the data
         // In a real app, this would likely be an API call
         setShowDeleteConfirmation(false);
-        showSnackbar(`${activeRow.itemName} has been deleted.`, "success");
+        showSnackbar(`Request for ${activeRow.itemName} has been deleted.`, "success");
     };
 
     return (
