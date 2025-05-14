@@ -58,6 +58,20 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 				delete newErrors[0].empName;
 				setFormErrors(newErrors);
 			}
+		} else if (field === "type") {
+			// Clear reqStatus when type changes
+			setRequestForms((prev) =>
+				prev.map((form, i) =>
+					i === index ? { ...form, [field]: value, reqStatus: "" } : form
+				)
+			);
+
+			// Clear the error for that field
+			if (formErrors[index]?.[field]) {
+				const newErrors = [...formErrors];
+				delete newErrors[index][field];
+				setFormErrors(newErrors);
+			}
 		} else {
 			// Update field for specific form
 			setRequestForms((prev) =>
@@ -142,6 +156,28 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		}
 	};
 
+	// Helper function to get status options based on request type
+	const getStatusOptions = (type: string) => {
+		if (type === "borrow") {
+			return (
+				<>
+					<option value="" disabled>Select status...</option>
+					{/* <option value="returned">Returned</option> */}
+					<option value="not-returned">Not Returned</option>
+				</>
+			);
+		} else if (type === "consume") {
+			return (
+				<>
+					<option value="" disabled>Select status...</option>
+					<option value="consumed">Consumed</option>
+				</>
+			);
+		} else {
+			return <option value="" disabled>Select status...</option>;
+		}
+	};
+
 	return (
 		<>
 			<div className="modal-heading">
@@ -198,18 +234,16 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								<p className="add-error-message">{formErrors[index]?.type}</p>
 							</div>
 
-							{/* Status */}
+							{/* Status - Dynamic options based on request type */}
 							<div className="form-group">
 								<label>Status</label>
 								<select
 									className={formErrors[index]?.reqStatus ? "invalid-input" : ""}
 									value={form.reqStatus}
 									onChange={(e) => handleFormChange(index, "reqStatus", e.target.value)}
+									disabled={!form.type} // Disable if no type is selected
 								>
-									<option value="" disabled>Select status...</option>
-									<option value="returned">Returned</option>
-									<option value="not-returned">Not Returned</option>
-									<option value="consumed">Consumed</option>
+									{getStatusOptions(form.type)}
 								</select>
 								<p className="add-error-message">{formErrors[index]?.reqStatus}</p>
 							</div>
