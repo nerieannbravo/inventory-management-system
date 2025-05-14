@@ -23,7 +23,7 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 		id: item.id,
 		empName: item.empName,
 		type: item.type,
-		reqStatus: "", // Default value, would be populated from item in a real app
+		reqStatus: item.reqStatus,
 		itemName: item.itemName,
 		reqQuantity: 0, // Default value, would be populated from item in a real app
 		purpose: "", // Default value, would be populated from item in a real app
@@ -120,13 +120,12 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 						{/* Request Type */}
 						<div className="form-group">
 							<label>Request Type</label>
-							<select disabled
+							<input disabled
+								className={formErrors?.type ? "invalid-input" : ""}
+								type="text"
 								value={formData.type}
 								onChange={(e) => handleChange("type", e.target.value)}
-							>
-								<option value="borrow">Borrow</option>
-								<option value="consume">Consume</option>
-							</select>
+							/>
 							<p className="edit-error-message"></p>
 						</div>
 
@@ -134,6 +133,7 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 						<div className="form-group">
 							<label>Status</label>
 							<select
+								className={formErrors?.reqStatus ? "invalid-input" : ""}
 								value={formData.reqStatus}
 								onChange={(e) => handleChange("reqStatus", e.target.value)}
 							>
@@ -141,7 +141,7 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 								<option value="not-returned">Not Returned</option>
 								{/* <option value="consumed">Consumed</option> */}
 							</select>
-							<p className="edit-error-message"></p>
+							<p className="edit-error-message">{formErrors?.reqStatus}</p>
 						</div>
 					</div>
 
@@ -162,6 +162,7 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 						<div className="form-group">
 							<label>Quantity</label>
 							<input disabled
+								className={formErrors?.reqQuantity ? "invalid-input" : ""}
 								type="number"
 								min="0"
 								value={formData.reqQuantity}
