@@ -250,6 +250,7 @@ export default function RequestManagement() {
         console.log("Updating item:", updatedItem);
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
+        showSnackbar(`Request detail has been updated.`, "success");
         closeModal();
     };
 
@@ -327,7 +328,7 @@ export default function RequestManagement() {
                                         <td>
                                             <MoreMenu
                                                 onView={() => openModal("view-request", item)}
-                                                onEdit={() => openModal("edit-request", item)}
+                                                onEdit={item.reqStatus === "not-returned" ? () => openModal("edit-request", item) : undefined}
                                                 onDelete={() => openModal("delete-request", item)}
                                             />
                                         </td>
