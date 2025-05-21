@@ -10,8 +10,8 @@ interface EditStockModalProps {
 		name: string;
 		quantity: number;
 		unit: string;
-		reorder: number;
 		status: string;
+		reorder: number;
 		// Additional fields would be included in a real application
 	};
 	onSave: (updatedItem: any) => void;
@@ -188,14 +188,14 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 
 					{/* Expiration Date */}
 					{/* {formData.category === "consumable" && ( */}
-						<div className="form-group expiration">
-							<label>Expiration Date</label>
-							<input disabled
-								type="date"
-								value={formData.expiration}
-								onChange={(e) => handleChange("expiration", e.target.value)}
-							/>
-						</div>
+					<div className="form-group expiration">
+						<label>Expiration Date</label>
+						<input disabled
+							type="date"
+							value={formData.expiration}
+							onChange={(e) => handleChange("expiration", e.target.value)}
+						/>
+					</div>
 					{/* )} */}
 
 				</form>

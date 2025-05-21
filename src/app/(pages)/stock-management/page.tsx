@@ -5,11 +5,11 @@ import MoreMenu from "@/components/moreMenu";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
+import ConfirmationPopup from "@/components/confirmationPopup";
 
 import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
 import EditStockModal from "./editStockModal";
-import DeleteStockModal from "./deleteStockModal";
 import { StockForm } from "./addStockModal";
 
 import "@/styles/filters.css"
@@ -68,6 +68,9 @@ export default function StocksManagement() {
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
+    // for delete confirmation popup
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
     // for snackbar
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -90,7 +93,7 @@ export default function StocksManagement() {
             type: "checkbox",
             options: [
                 { id: "consumables", label: "Consumables" },
-                { id: "machine-equipment", label: "Machine & Equipments" }
+                { id: "mach-equip", label: "Machine & Equipments" }
             ]
         },
         {
@@ -202,12 +205,11 @@ export default function StocksManagement() {
                 />;
                 break;
             case "delete-stock":
-                content = <DeleteStockModal
-                    item={rowData}
-                    onConfirm={handleDeleteConfirm}
-                    onCancel={closeModal}
-                />;
-                break;
+                // Instead of rendering DeleteStockModal directly, just store the active row
+                // and show the confirmation popup
+                setActiveRow(rowData);
+                setShowDeleteConfirmation(true);
+                return; // Return early to avoid opening the modal
             default:
                 content = null;
         }
@@ -258,14 +260,15 @@ export default function StocksManagement() {
         console.log("Deleted row with id:", activeRow?.id);
         // Logic to delete the item from the data
         // In a real app, this would likely be an API call
-        closeModal();
+        setShowDeleteConfirmation(false);
+        showSnackbar(`${activeRow.name} has been deleted.`, "success");
     };
 
     return (
         <div className="card">
             <h1 className="title">Stock Management</h1>
 
-            {/* Search Engine and Filters */}
+            {/* Search Engine and Status Filters */}
             <div className="elements">
                 <div className="entries">
                     <div className="search">
@@ -358,6 +361,18 @@ export default function StocksManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Delete Confirmation */}
+            <ConfirmationPopup
+                isOpen={showDeleteConfirmation}
+                onClose={() => setShowDeleteConfirmation(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Confirm Deletion"
+                message={`Are you sure you want to delete ${activeRow?.name}? You will not be able to undo this.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="error"
             />
 
             {/* Snackbar */}

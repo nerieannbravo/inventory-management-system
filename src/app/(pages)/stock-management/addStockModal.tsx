@@ -165,7 +165,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<option value="2">Item 2</option>
 								<option value="3">Item 3</option>
 								<option value="4">Item 4</option>
-								<option value="5 Mask">Item 5</option>
+								<option value="5">Item 5</option>
 							</select>
 							<p className="add-error-message">{formErrors[index]?.name}</p>
 						</div>
@@ -285,7 +285,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							</div>
 						</div>
 
-						{/* Expiration Date */}
+						{/* Expiration */}
 						{form.category === "consumable" && (
 							<div className="form-group">
 								<label>Expiration Date</label>
