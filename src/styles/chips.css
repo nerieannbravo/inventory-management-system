@@ -8,24 +8,30 @@
 }
 
 .chip.available,
-.chip.returned {
+.chip.returned,
+.chip.approved,
+.chip.active {
     background-color: var(--success-chip-bg-color);
     color: var(--success-chip-text-color);
 }
 
 .chip.out-of-stock,
-.chip.not-returned {
+.chip.not-returned,
+.chip.decommissioned {
     background-color: var(--error-chip-bg-color);
     color: var(--error-chip-text-color);
 }
 
 .chip.maintenance,
-.chip.consumed {
+.chip.consumed,
+.chip.completed {
     background-color: var(--info-chip-bg-color);
     color: var(--info-chip-text-color);
 }
 
-.chip.low-stock {
+.chip.low-stock,
+.chip.pending,
+.chip.under-maintenance {
     background-color: var(--warning-chip-bg-color);
     color: var(--warning-chip-text-color);
 }

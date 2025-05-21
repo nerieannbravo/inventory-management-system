@@ -3,8 +3,14 @@
 .modal-content.edit .edit-stock-form,
 .modal-content.view .view-stock-form,
 .modal-content.add .add-request-form,
+.modal-content.edit .edit-request-form,
 .modal-content.view .view-request-form,
-.modal-content.edit .edit-request-form {
+.modal-content.add .add-order-form,
+.modal-content.edit .edit-order-form,
+.modal-content.view .view-order-form,
+.modal-content.add .add-bus-form,
+.modal-content.edit .edit-bus-form,
+.modal-content.view .view-bus-form {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -17,6 +23,13 @@
     flex-direction: column;
     flex: 1;
     width: 100%;
+}
+
+.form-column {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .form-row {
@@ -50,6 +63,13 @@
     padding: 6px 12px;
     width: 500px;
     height: 80px;
+    resize: none;
+}
+
+.form-group textarea.order {
+    padding: 6px 12px;
+    width: 300px;
+    height: 100%;
     resize: none;
 }
 
@@ -113,12 +133,16 @@
 }
 
 .view-stock-form .form-group,
-.view-request-form .form-group {
+.view-request-form .form-group,
+.view-order-form .form-group,
+.view-bus-form .form-group {
     margin-bottom: 5px;
 }
 
 .view-stock-form .form-group p,
-.view-request-form .form-group p {
+.view-request-form .form-group p,
+.view-order-form .form-group p,
+.view-bus-form .form-group p {
     margin-top: 5px;
     padding: 6px 12px;
     background-color: var(--foreground-color);
@@ -170,7 +194,11 @@
 .add-stock-form .add-error-message,
 .edit-stock-form .edit-error-message,
 .add-request-form .add-error-message,
-.edit-request-form .edit-error-message {
+.edit-request-form .edit-error-message,
+.add-order-form .add-error-message,
+.edit-order-form .edit-error-message,
+.add-bus-form .add-error-message,
+.edit-bus-form .edit-error-message {
     margin: 5px;
     font-size: 12px;
     color: var(--error-color);
