@@ -66,17 +66,20 @@ export default function ViewRequestModal({ item, formatStatus, onClose }: ViewRe
 						<p>{item.reqDate}</p>
 					</div>
 
-					<div className="form-row">
-						<div className="form-group">
-							<label>Expected Return Date</label>
-							<p>11/22/2025</p>
-						</div>
+					{item.type === "Borrow" && (
+						<div className="form-row">
+							<div className="form-group">
+								<label>Expected Return Date</label>
+								<p>11/22/2025</p>
+							</div>
 
-						<div className="form-group">
-							<label>Actual Return Date</label>
-							<p>11/22/2025</p>
+							<div className="form-group">
+								<label>Actual Return Date</label>
+								<p>11/22/2025</p>
+							</div>
 						</div>
-					</div>
+					)}
+
 				</div>
 			</div>
 		</>
