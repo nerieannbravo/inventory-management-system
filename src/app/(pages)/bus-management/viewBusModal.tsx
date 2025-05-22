@@ -40,14 +40,14 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
                         <div className="form-group">
                             <label>Body Number</label>
-                            <p>{item.bodyNumber}</p>
+                            <p>302508C</p>
                         </div>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
                             <label>Body Builder</label>
-                            <p>{item.bodyBuilder}</p>
+                            <p>Agila</p>
                         </div>
 
                         <div className="form-group">
