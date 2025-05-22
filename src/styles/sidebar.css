@@ -51,9 +51,9 @@
 
 .sidebar.collapsed .nav-item span,
 .sidebar.collapsed .sub-menu,
-.sidebar.collapsed .dropdown-arrow, 
+.sidebar.collapsed .dropdown-arrow,
 .sidebar.collapsed .logout a span,
-.sidebar.collapsed .nav-item:hover::before, 
+.sidebar.collapsed .nav-item:hover::before,
 .sidebar.collapsed .nav-item.active::before {
     display: none;
 }
