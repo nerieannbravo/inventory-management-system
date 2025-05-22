@@ -2,6 +2,7 @@
 .modal-content.add .add-stock-form,
 .modal-content.edit .edit-stock-form,
 .modal-content.view .view-stock-form,
+.modal-content.view-expired .view-stock-form,
 .modal-content.add .add-request-form,
 .modal-content.edit .edit-request-form,
 .modal-content.view .view-request-form,
@@ -125,11 +126,20 @@
 
 /* ----- MODAL FORMS STYLING: VIEW ----- */
 .modal-content.view {
-    width: 500px;
+    width: 550px;
     display: flex;
     justify-content: space-between;
     gap: 15px;
-    margin: 10px 0;
+    margin: 15px 0;
+}
+
+.modal-content.view-expired {
+    background-color: var(--error-chip-bg-color);
+    width: 550px;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 15px 0;
 }
 
 .view-stock-form .form-group,

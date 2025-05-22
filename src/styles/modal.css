@@ -71,6 +71,13 @@
 	font-weight: 700;
 }
 
+.modal-subtitle {
+	font-size: 18px;
+	font-weight: 700;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
 .modal-date-time {
 	display: flex;
 	flex-direction: row;
