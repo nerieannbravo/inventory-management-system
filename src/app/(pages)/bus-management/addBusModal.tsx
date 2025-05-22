@@ -79,7 +79,9 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         if (!busForm.route) errors.route = "Route is required";
         if (busForm.purchasePrice <= 0) errors.purchasePrice = "Purchase price must be more than 0";
 
-        if (busForm.purchaseDate) {
+        if (!busForm.purchaseDate) {
+            errors.purchaseDate = "Purchase date is required";
+        } else {
             const today = new Date();
             const selectedDate = new Date(busForm.purchaseDate);
             today.setHours(0, 0, 0, 0);
