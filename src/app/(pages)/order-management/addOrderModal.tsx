@@ -24,7 +24,7 @@ export default function AddOrderModal({ onSave, onClose }: AddOrderModalProps) {
     const [orderForm, setOrderForm] = useState<OrderForm>({
         itemName: "",
         ordQuantity: 0,
-        ordStatus: "",
+        ordStatus: "pending",
         ordReason: "",
     });
 
@@ -129,12 +129,7 @@ export default function AddOrderModal({ onSave, onClose }: AddOrderModalProps) {
                             {/* Status */}
                             <div className="form-group">
                                 <label>Status</label>
-                                <select
-                                    className={formErrors?.ordStatus ? "invalid-input" : ""}
-                                    value={orderForm.ordStatus}
-                                    onChange={(e) => handleChange("ordStatus", e.target.value)}
-                                >
-                                    <option value="" disabled>Select status...</option>
+                                <select disabled value={orderForm.ordStatus}>
                                     <option value="completed">Completed</option>
                                     <option value="approved">Approved</option>
                                     <option value="pending">Pending</option>
