@@ -25,6 +25,8 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 				<h1 className="modal-title">{item.name}</h1>
 			</div>
 
+			<h1 className="modal-subtitle">Overview</h1>
+
 			<div className="modal-content view">
 				<div className="view-stock-form">
 					<div className="form-row">
@@ -55,8 +57,61 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 							<p>{formatStatus(item.status)}</p>
 						</div>
 					</div>
+				</div>
+			</div>
 
+			<h1 className="modal-subtitle">Batches</h1>
+
+			<div className="modal-content view">
+				<div className="view-stock-form">
 					<div className="form-row">
+						<div className="form-group">
+							<label>Quantity</label>
+							<p>20</p>
+						</div>
+
+						<div className="form-group">
+							<label>Expiration Date</label>
+							<p>March 2, 2027</p>
+						</div>
+
+						<div className="form-group">
+							<label>Date Added</label>
+							<p>April 22, 2025</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="modal-content view-expired">
+				<div className="view-stock-form">
+					<div className="form-row">
+						<div className="form-group">
+							<label>Quantity</label>
+							<p>50</p>
+						</div>
+
+						<div className="form-group">
+							<label>Expiration Date</label>
+							<p>May 23, 2025</p>
+						</div>
+
+						<div className="form-group">
+							<label>Date Added</label>
+							<p>February 9, 2025</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="modal-content view">
+				<div className="view-stock-form">
+					<div className="form-row">
+						<div className="form-group">
+							<label>Quantity</label>
+							<p>20</p>
+						</div>
+
 						<div className="form-group">
 							<label>Expiration Date</label>
 							<p>March 2, 2027</p>
