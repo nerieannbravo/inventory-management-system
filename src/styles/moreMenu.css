@@ -28,7 +28,7 @@ tr .menu-dropdown {
 }
 
 /* For rows 6–10: flip the dropdown above */
-tr:nth-child(n+8) .menu-dropdown {
+tr:nth-child(n+5) .menu-dropdown {
 	top: auto;
 	bottom: 50%;
 }
