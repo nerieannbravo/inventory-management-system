@@ -279,8 +279,8 @@ export default function OrderManagement() {
                                 <tr>
                                     <th>Item Name</th>
                                     <th>Quantity</th>
-                                    <th>Request Date</th>
                                     <th>Status</th>
+                                    <th>Request Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -292,12 +292,12 @@ export default function OrderManagement() {
                                     >
                                         <td>{item.itemName}</td>
                                         <td>{item.ordQuantity}</td>
-                                        <td>{item.ordReqDate}</td>
                                         <td>
                                             <span className={`chip ${item.ordStatus}`}>
                                                 {formatStatus(item.ordStatus)}
                                             </span>
                                         </td>
+                                        <td>{item.ordReqDate}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-order", item)}

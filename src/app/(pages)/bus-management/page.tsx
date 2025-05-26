@@ -300,8 +300,8 @@ export default function BusManagement() {
                                     <th>Body Number</th>
                                     <th>Body Builder</th>
                                     <th>Route</th>
-                                    <th>Bus Type</th>
                                     <th>Status</th>
+                                    <th>Bus Type</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -314,12 +314,12 @@ export default function BusManagement() {
                                         <td>{item.bodyNumber}</td>
                                         <td>{item.bodyBuilder}</td>
                                         <td>{item.route}</td>
-                                        <td>{item.busType}</td>
                                         <td>
                                             <span className={`chip ${item.busStatus}`}>
                                                 {formatStatus(item.busStatus)}
                                             </span>
                                         </td>
+                                        <td>{item.busType}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-bus", item)}
