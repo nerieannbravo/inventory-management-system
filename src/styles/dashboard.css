@@ -1,6 +1,6 @@
-/* === Dashboard Layout === */
+/* ----- DASHBOARD LAYOUT ----- */
 .dashboard-container {
-    padding: 1.5rem;
+    padding-bottom: 1.5rem;
     width: 100%;
     max-width: 1200px;
     margin: auto;
@@ -9,7 +9,8 @@
     gap: 2rem;
 }
 
-/* === Header Section === */
+
+/* ----- HEADER SECTION ----- */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
@@ -37,7 +38,7 @@
 .range {
     font-size: 12px;
     padding: 0.25rem 0.5rem;
-    color: var(--secondary-text-color, #333);
+    color: var(--secondary-text-color);
 }
 
 .range:focus {
@@ -45,7 +46,8 @@
     border-color: none;
 }
 
-/* === Summary Cards === */
+
+/* ----- SUMMARY CARDS ----- */
 .summary-groups {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -60,7 +62,7 @@
 }
 
 .dash-card {
-    background-color: #ffffff;
+    background-color: var(--foreground-color);
     padding: 1rem;
     border-radius: 8px;
     flex: 1;
@@ -75,10 +77,11 @@
 
 .dash-card span {
     font-size: 1.25rem;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-/* === Charts Section === */
+
+/* ----- CHARTS SECTION ----- */
 .charts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -86,7 +89,7 @@
 }
 
 .chart-box {
-    background-color: #ffffff;
+    background-color: var(--foreground-color);
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -100,7 +103,8 @@
     font-size: 16px;
 }
 
-/* === Chart Wrapper === */
+
+/* ----- CHART WRAPPER ----- */
 .placeholder {
     flex: 1;
     width: 100%;
@@ -111,7 +115,8 @@
     justify-content: center;
 }
 
-/* === Responsive Fixes === */
+
+/* ----- RESPONSIVENESS ----- */
 @media (max-width: 600px) {
     .dashboard-header {
         flex-direction: column;

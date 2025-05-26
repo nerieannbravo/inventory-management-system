@@ -90,7 +90,8 @@
     align-items: center;
     gap: 8px;
     border-radius: 8px;
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     border: 1px solid var(--border-color);
     color: var(--secondary-text-color);
     font-size: 14px;
@@ -99,7 +100,8 @@
 }
 
 .filter-btn:hover {
-    background-color: var(--table-header-hover-color);
+    /* background-color: var(--table-header-hover-color); */
+    background-color: var(--table-row-hover-color);
 }
 
 
@@ -113,7 +115,8 @@
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background: var(--foreground-color);
-    border: 1px solid var(--table-header-color);
+    /* border: 1px solid var(--table-header-color); */
+    border: 1px solid var(--table-row-color);
     color: var(--secondary-text-color);
     padding: 16px;
     font-size: 12px;
@@ -132,7 +135,8 @@
 }
 
 .filter-dropdown::-webkit-scrollbar-track {
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     border-radius: 8px;
 }
 
@@ -165,8 +169,10 @@
 .date-field input {
     flex: 1;
     padding: 6px 12px;
-    background-color: var(--table-header-color);
-    border: 1px solid var(--table-header-color);
+    /* background-color: var(--table-header-color);
+    border: 1px solid var(--table-header-color); */
+    background-color: var(--table-row-color);
+    border: 1px solid var(--table-row-color);
     border-radius: 4px;
     transition: all 0.2s ease;
 }
@@ -190,8 +196,10 @@
 
 .filter-option {
     padding: 6px 12px;
-    background-color: var(--table-header-color);
-    border: 1px solid var(--table-header-color);
+    /* background-color: var(--table-header-color);
+    border: 1px solid var(--table-header-color); */
+    background-color: var(--table-row-color);
+    border: 1px solid var(--table-row-color);
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -219,7 +227,8 @@
 .filter-actions .clear-btn {
     flex: 1;
     padding: 8px;
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     color: var(--primary-text-color);
     border-radius: 4px;
     cursor: pointer;
@@ -228,7 +237,8 @@
 }
 
 .filter-actions .clear-btn:hover {
-    background-color: var(--table-header-hover-color);
+    /* background-color: var(--table-header-hover-color); */
+    background-color: var(--table-row-hover-color);
 }
 
 .filter-actions .apply-btn {

@@ -35,7 +35,8 @@
 }
 
 .modal::-webkit-scrollbar-track {
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
 	border-radius: 0 12px 12px 0;
 }
 
@@ -54,7 +55,8 @@
 }
 
 .close-modal-btn:hover {
-	background-color: var(--table-header-color);
+	/* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
 }
 
 .modal-heading {
@@ -87,7 +89,8 @@
 }
 
 .modal-content {
-	background-color: var(--table-header-color);
+	/* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
 	padding: 16px;
 	margin: 10px 0;
 	margin-bottom: 20px;
@@ -138,7 +141,8 @@
     align-items: center;
     gap: 8px;
     border-radius: 8px;
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     font-size: 14px;
 	font-weight: 600;
     transition: all 0.3s ease-in-out;
@@ -146,7 +150,8 @@
 }
 
 .modal-actions .add-another-btn:hover {
-    background-color: var(--table-header-hover-color);
+    /* background-color: var(--table-header-hover-color); */
+    background-color: var(--table-row-hover-color);
 }
 
 .modal-actions .add-another-btn i {
@@ -179,7 +184,8 @@
 
 .remove-btn-wrapper .remove-stock-btn:hover,
 .remove-btn-wrapper .remove-request-btn:hover {
-    background-color: var(--table-header-hover-color);
+    /* background-color: var(--table-header-hover-color); */
+    background-color: var(--table-row-hover-color);
 }
 
 /* delete stock button */
@@ -204,7 +210,8 @@
     width: 120px;
     height: 35px;
     border-radius: 8px;
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     font-size: 14px;
     font-weight: 600;
     transition: all 0.3s ease-in-out;
@@ -212,7 +219,8 @@
 }
 
 .modal-actions.delete .cancel-btn:hover {
-    background-color: var(--table-header-hover-color);
+    /* background-color: var(--table-header-hover-color); */
+    background-color: var(--table-row-hover-color);
 }
 
 /* preview pdf button */

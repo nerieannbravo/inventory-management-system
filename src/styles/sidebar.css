@@ -186,7 +186,7 @@
 }
 
 .logout a {
-    background-color: var(--background-color);
+    background-color: var(--table-row-color);
     position: relative;
     display: flex;
     align-items: center;
@@ -199,7 +199,8 @@
 }
 
 .logout a:hover {
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-hover-color);
     color: var(--primary-color);
     font-weight: 600;
 }

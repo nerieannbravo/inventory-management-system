@@ -34,7 +34,8 @@
 }
 
 .pdf-modal::-webkit-scrollbar-track {
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     border-radius: 0 12px 12px 0;
 }
 
@@ -61,7 +62,8 @@
     width: 170px;
     height: 35px;
     border-radius: 8px;
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
     font-size: 14px;
     font-weight: 600;
     transition: all 0.3s ease-in-out;
@@ -69,7 +71,8 @@
 }
 
 .pdf-modal-actions .close-btn:hover {
-    background-color: var(--table-header-hover-color);
+    /* background-color: var(--table-header-hover-color); */
+    background-color: var(--table-row-hover-color);
 }
 
 .pdf-modal-actions .download-btn {

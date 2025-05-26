@@ -5,6 +5,7 @@
     align-items: center;
     gap: 8px;
     margin-top: 15px;
+    padding-bottom: 15px;
     font-size: 14px;
 }
 
@@ -23,7 +24,8 @@
 }
 
 .page-btn:hover {
-    background-color: var(--table-header-color);
+    /* background-color: var(--table-header-color); */
+    background-color: var(--table-row-color);
 }
 
 .page-btn.active {
