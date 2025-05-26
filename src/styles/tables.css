@@ -5,7 +5,7 @@
     box-shadow: var(--box-shadow);
     background-color: var(--foreground-color);
     width: 100%;
-    height: calc(100% * 15 / 21);
+    height: calc(100% * 16.5 / 21);
     /* max-height: calc(100% * 15 / 21); */
     margin-bottom: 10px;
     border: 1px solid var(--border-color);
@@ -17,7 +17,7 @@
 .table-container {
     width: 100%;
     height: 100%;
-    overflow-x: auto;
+    /* overflow-x: auto; */
 }
 
 .table-container::-webkit-scrollbar {
@@ -45,7 +45,7 @@
 }
 
 .table-heading {
-    height: 35px;
+    height: 30px;
     background-color: var(--table-header-color);
     color: var(--primary-text-color);
     font-weight: bold;
@@ -60,7 +60,7 @@
 }
 
 .table-body tr {
-    height: 35px;
+    height: 33px;
 }
 
 .table-heading th,
@@ -70,11 +70,11 @@
     white-space: nowrap;
 }
 
-.data-table td:first-child,
+/* .data-table td:first-child,
 .data-table th:first-child {
     width: 50px;
     text-align: center;
-}
+} */
 
 /* .data-table input[type="checkbox"] {
     margin-top: 3px;
