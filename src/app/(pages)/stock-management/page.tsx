@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import MoreMenu from "@/components/moreMenu";
+import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
@@ -308,7 +308,7 @@ export default function StocksManagement() {
                                     <th>Unit Measure</th>
                                     <th>Status</th>
                                     <th>Reorder Level</th>
-                                    <th></th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -327,7 +327,7 @@ export default function StocksManagement() {
                                         </td>
                                         <td>{item.reorder}</td>
                                         <td>
-                                            <MoreMenu
+                                            <ActionButtons
                                                 onView={() => openModal("view-stock", item)}
                                                 onEdit={() => openModal("edit-stock", item)}
                                                 onDelete={() => openModal("delete-stock", item)}

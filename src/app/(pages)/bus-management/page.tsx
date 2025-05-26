@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import MoreMenu from "@/components/moreMenu";
+import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
@@ -302,7 +302,7 @@ export default function BusManagement() {
                                     <th>Route</th>
                                     <th>Bus Type</th>
                                     <th>Status</th>
-                                    <th></th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -321,7 +321,7 @@ export default function BusManagement() {
                                             </span>
                                         </td>
                                         <td>
-                                            <MoreMenu
+                                            <ActionButtons
                                                 onView={() => openModal("view-bus", item)}
                                                 onEdit={() => openModal("edit-bus", item)}
                                             />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import MoreMenu from "@/components/moreMenu";
+import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
@@ -41,7 +41,7 @@ const hardcodedData = [
         type: "Consume",
         itemName: "Item Example B",
         reqDate: "4/27/2025",
-        reqStatus: "consumed",
+        reqStatus: "not-returned",
     },
     {
         id: 4,
@@ -50,6 +50,14 @@ const hardcodedData = [
         itemName: "Item Example A",
         reqDate: "3/19/2025",
         reqStatus: "not-returned",
+    },
+    {
+        id: 5,
+        empName: "Kristine Mae Cleofas",
+        type: "Consume",
+        itemName: "Item Example E",
+        reqDate: "5/6/2025",
+        reqStatus: "consumed",
     },
 ];
 
@@ -305,9 +313,9 @@ export default function RequestManagement() {
                                     <th>Employee Name</th>
                                     <th>Request Type</th>
                                     <th>Item Name</th>
-                                    <th>Request Date</th>
                                     <th>Status</th>
-                                    <th></th>
+                                    <th>Request Date</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -319,17 +327,18 @@ export default function RequestManagement() {
                                         <td>{item.empName}</td>
                                         <td>{item.type}</td>
                                         <td>{item.itemName}</td>
-                                        <td>{item.reqDate}</td>
                                         <td>
                                             <span className={`chip ${item.reqStatus}`}>
                                                 {formatStatus(item.reqStatus)}
                                             </span>
                                         </td>
+                                        <td>{item.reqDate}</td>
                                         <td>
-                                            <MoreMenu
+                                            <ActionButtons
                                                 onView={() => openModal("view-request", item)}
-                                                onEdit={item.reqStatus === "not-returned" ? () => openModal("edit-request", item) : undefined}
+                                                onEdit={() => openModal("edit-request", item)}
                                                 onDelete={() => openModal("delete-request", item)}
+                                                disableEdit={item.reqStatus === "not-returned"}
                                             />
                                         </td>
                                     </tr>

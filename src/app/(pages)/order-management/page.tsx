@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import MoreMenu from "@/components/moreMenu";
+import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
@@ -281,7 +281,7 @@ export default function OrderManagement() {
                                     <th>Quantity</th>
                                     <th>Request Date</th>
                                     <th>Status</th>
-                                    <th></th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
@@ -299,10 +299,11 @@ export default function OrderManagement() {
                                             </span>
                                         </td>
                                         <td>
-                                            <MoreMenu
+                                            <ActionButtons
                                                 onView={() => openModal("view-order", item)}
-                                                onEdit={item.ordStatus === "pending" ? () => openModal("edit-order", item) : undefined}
+                                                onEdit={() => openModal("edit-order", item)}
                                                 onDelete={() => openModal("delete-order", item)}
+                                                disableEdit={item.ordStatus === "pending"}
                                             />
                                         </td>
                                     </tr>
