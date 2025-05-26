@@ -4,7 +4,6 @@
     padding: 8px 8px;
     font-size: 14px;
     color: var(--secondary-text-color);
-    /* border-bottom: 1px solid var(--table-header-color); */
     border-bottom: 1px solid var(--table-row-color);
     margin: 0 5px;
 }
@@ -46,7 +45,6 @@
 }
 
 .activity-list::-webkit-scrollbar-track {
-    /* background-color: var(--table-header-color); */
     background-color: var(--table-row-color);
     border-radius: 8px;
 }
@@ -73,7 +71,6 @@
 }
 
 .report-list::-webkit-scrollbar-track {
-    /* background-color: var(--table-header-color); */
     background-color: var(--table-row-color);
     border-radius: 8px;
 }

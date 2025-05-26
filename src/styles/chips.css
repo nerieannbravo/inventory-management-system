@@ -37,7 +37,6 @@
 }
 
 .chip.expired {
-    /* background-color: var(--table-header-color); */
     background-color: var(--expired-chip-bg-color);
     color: var(--primary-text-color);
 }

@@ -24,7 +24,6 @@
 }
 
 .page-btn:hover {
-    /* background-color: var(--table-header-color); */
     background-color: var(--table-row-color);
 }
 

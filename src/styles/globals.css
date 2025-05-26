@@ -26,7 +26,6 @@
 
   /* Table Colors */
   --border-color: #B3B3B3;
-  /* --table-header-color: #ECECEC; */
   --table-header-color: #E0E0E0;
   --table-row-color: #ECECEC;
 
@@ -48,7 +47,6 @@
   --error-hover-color: #DE3939;
   --info-hover-color: #267BDB;
   --warning-hover-color: #fcc42a;
-  /* --table-header-hover-color: #DDDDDD; */
   --table-row-hover-color: #DDDDDD;
 
   /* Shadow */
@@ -61,7 +59,7 @@ body {
 }
 
 /* TEMPORARY LANGGGGG */
-.login-wrapper {
+/* .login-wrapper {
   display: flex;
   height: 100vh;
   width: 100%;
@@ -85,6 +83,4 @@ body {
 
 .login-btn:hover {
   background: var(--primary-hover-color);
-}
-
-
+} */

@@ -33,7 +33,6 @@
 }
 
 .content::-webkit-scrollbar-track {
-    /* background-color: var(--table-header-color); */
     background-color: var(--table-row-color);
     border-radius: 8px;
 }
@@ -41,9 +40,6 @@
 .page-content {
     width: calc(100% * 24 / 26);
     height: calc(100% * 19 / 21);
-    /* background-color: var(--foreground-color);
-    border-radius: 8px;
-    box-shadow: var(--box-shadow); */
 }
 
 .card {
