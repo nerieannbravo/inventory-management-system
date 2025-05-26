@@ -208,29 +208,6 @@
 }
 
 
-/* ----- FILTER DROPDOWN STYLING: INPUT & SELECT FIELDS ----- */
-.select-field select,
-.text-field input {
-    flex: 1;
-    padding: 6px 12px;
-    background-color: var(--table-header-color);
-    border: 1px solid var(--table-header-color);
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-
-.select-field select:hover,
-.text-field input:hover {
-    border: 1px solid var(--border-color);
-}
-
-.select-field select:focus,
-.text-field input:focus {
-    outline: none;
-    border-color: var(--primary-text-color);
-}
-
-
 /* ----- FILTER DROPDOWN STYLING: ACTION BUTTONS ----- */
 .filter-actions {
     display: flex;
