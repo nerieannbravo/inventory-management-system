@@ -51,8 +51,7 @@
     flex-direction: column;
     padding: 25px;
     overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none;
 }
 
 .card .title {
