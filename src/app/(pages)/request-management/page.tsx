@@ -279,10 +279,8 @@ export default function RequestManagement() {
             <div className="elements">
                 <div className="entries">
                     <div className="search">
-                        <input type="text" placeholder="Search" />
-                        <button>
-                            <i className="ri-search-line"></i>
-                        </button>
+                        <i className="ri-search-line" />
+                        <input type="text" placeholder="Search here..." />
                     </div>
 
                     {/* Filter Button with Dropdown */}
