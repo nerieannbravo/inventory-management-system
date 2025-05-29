@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
-import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 
 import AddBusModal from "./addBusModal";
@@ -15,7 +14,6 @@ import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/pagination.css"
-import "@/styles/snackbar.css"
 
 const hardcodedData = [
     {
@@ -67,11 +65,6 @@ export default function BusManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-
-    // for snackbar
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarType, setSnackbarType] = useState<"success" | "error" | "info" | "warning">("info");
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
@@ -233,19 +226,11 @@ export default function BusManagement() {
         setActiveRow(null);
     };
 
-    // snackbar
-    const showSnackbar = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
-        setSnackbarMessage(message);
-        setSnackbarType(type);
-        setSnackbarVisible(true);
-    };
-
     // Handle add bus
     const handleAddBus = (busForm: BusForm) => {
         console.log("Saving forms:", busForm);
         // Logic to add bus to the data
         // In a real app, this would likely be an API call
-        showSnackbar("Bus added successfully", "success");
         closeModal();
     };
 
@@ -254,7 +239,6 @@ export default function BusManagement() {
         console.log("Updating item:", updatedItem);
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
-        showSnackbar(`Bus detail has been updated.`, "success");
         closeModal();
     };
 
@@ -352,14 +336,6 @@ export default function BusManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
-            />
-
-            {/* Snackbar */}
-            <Snackbar
-                message={snackbarMessage}
-                isVisible={snackbarVisible}
-                onClose={() => setSnackbarVisible(false)}
-                type={snackbarType}
             />
 
         </div>

@@ -239,7 +239,7 @@ export default function RequestManagement() {
         const result = await showRequestDeleteConfirmation(rowData.itemName);
 
         if (result.isConfirmed) {
-            await showRequestDeletedSuccess(rowData.itemName);
+            await showRequestDeletedSuccess();
             console.log("Deleted row with id:", rowData.id);
             // Logic to delete the item from the data
             // In a real app, this would likely be an API call

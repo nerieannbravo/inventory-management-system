@@ -48,8 +48,6 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	const [stockForms, setStockForms] = useState<StockForm[]>([initialFormState]);
 	const [formErrors, setFormErrors] = useState<FormError[]>([{}]);
 	const [isDirty, setIsDirty] = useState(false);
-	const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
-	const [showClosingConfirmation, setShowClosingConfirmation] = useState(false);
 
 	// Track if any form has been modified
 	useEffect(() => {

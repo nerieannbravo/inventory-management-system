@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
-import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
-import ConfirmationPopup from "@/components/confirmationPopup";
+import { showOrderDeleteConfirmation, showOrderDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddOrderModal from "./addOrderModal";
 import ViewOrderModal from "./viewOrderModal";
@@ -16,7 +15,6 @@ import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/pagination.css"
-import "@/styles/snackbar.css"
 
 const hardcodedData = [
     {
@@ -55,14 +53,6 @@ export default function OrderManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-
-    // for delete confirmation popup
-    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-
-    // for snackbar
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarType, setSnackbarType] = useState<"success" | "error" | "info" | "warning">("info");
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
@@ -184,11 +174,8 @@ export default function OrderManagement() {
                 />;
                 break;
             case "delete-order":
-                // Instead of rendering DeleteOrderModal directly, just store the active row
-                // and show the confirmation popup
-                setActiveRow(rowData);
-                setShowDeleteConfirmation(true);
-                return; // Return early to avoid opening the modal
+                handleDeleteOrder(rowData);
+                return;
             default:
                 content = null;
         }
@@ -204,19 +191,11 @@ export default function OrderManagement() {
         setActiveRow(null);
     };
 
-    // snackbar
-    const showSnackbar = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
-        setSnackbarMessage(message);
-        setSnackbarType(type);
-        setSnackbarVisible(true);
-    };
-
     // Handle add order
     const handleAddOrder = (orderForm: OrderForm) => {
         console.log("Saving form:", orderForm);
         // Logic to add order to the data
         // In a real app, this would likely be an API call
-        showSnackbar("Order added successfully!", "success");
         closeModal();
     };
 
@@ -225,18 +204,20 @@ export default function OrderManagement() {
         console.log("Updating item:", updatedItem);
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
-        showSnackbar(`Order detail has been updated.`, "success");
         closeModal();
     };
 
-    // Hadle delete order
-    const handleDeleteConfirm = () => {
-        console.log("Deleted row with id:", activeRow?.id);
-        // Logic to delete the item from the data
-        // In a real app, this would likely be an API call
-        setShowDeleteConfirmation(false);
-        showSnackbar(`Order for ${activeRow.itemName} has been deleted.`, "success");
-    };
+    // Handle delete order
+        const handleDeleteOrder = async (rowData: any) => {
+            const result = await showOrderDeleteConfirmation(rowData.itemName);
+    
+            if (result.isConfirmed) {
+                await showOrderDeletedSuccess();
+                console.log("Deleted row with id:", rowData.id);
+                // Logic to delete the item from the data
+                // In a real app, this would likely be an API call
+            }
+        };
 
     return (
         <div className="card">
@@ -301,7 +282,7 @@ export default function OrderManagement() {
                                                 onView={() => openModal("view-order", item)}
                                                 onEdit={() => openModal("edit-order", item)}
                                                 onDelete={() => openModal("delete-order", item)}
-                                                disableEdit={item.ordStatus === "pending"}
+                                                disableEdit={item.ordStatus !== "pending" && item.ordStatus !== "approved"}
                                             />
                                         </td>
                                     </tr>
@@ -334,25 +315,6 @@ export default function OrderManagement() {
                 modalContent={modalContent}
             />
 
-            {/* Delete Confirmation */}
-            <ConfirmationPopup
-                isOpen={showDeleteConfirmation}
-                onClose={() => setShowDeleteConfirmation(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Confirm Deletion"
-                message={`Are you sure you want to delete the order for ${activeRow?.itemName}? You will not be able to undo this.`}
-                confirmText="Delete"
-                cancelText="Cancel"
-                variant="error"
-            />
-
-            {/* Snackbar */}
-            <Snackbar
-                message={snackbarMessage}
-                isVisible={snackbarVisible}
-                onClose={() => setSnackbarVisible(false)}
-                type={snackbarType}
-            />
         </div>
     );
 }

@@ -40,10 +40,6 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	// Add formErrors state similar to AddStockModal
 	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-	// Confirmation dialog states
-	const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
-	const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
-
 	// Check if form data has changed from original
 	useEffect(() => {
 		const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
@@ -76,7 +72,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 		const result = await showStockUpdateConfirmation(formData.name);
 		if (result.isConfirmed) {
 			onSave(formData);
-			await showStockUpdatedSuccess(formData.name);
+			await showStockUpdatedSuccess();
 		}
 	};
 

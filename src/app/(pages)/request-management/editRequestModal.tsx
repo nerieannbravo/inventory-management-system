@@ -39,10 +39,6 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 	// Add formErrors state
 	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-	// Confirmation dialog states
-	const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
-	const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
-
 	// Check if form data has changed from original
 	useEffect(() => {
 		const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
@@ -74,7 +70,7 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 		const result = await showRequestUpdateConfirmation(formData.itemName);
 		if (result.isConfirmed) {
 			onSave(formData);
-			await showRequestUpdatedSuccess(formData.itemName);
+			await showRequestUpdatedSuccess();
 		}
 	};
 

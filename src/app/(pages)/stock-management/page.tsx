@@ -15,7 +15,6 @@ import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/pagination.css"
-import "@/styles/snackbar.css"
 
 const hardcodedData = [
     {
@@ -234,7 +233,7 @@ export default function StocksManagement() {
             const result = await showStockDeleteConfirmation(rowData.name);
     
             if (result.isConfirmed) {
-                await showStockDeletedSuccess(rowData.name);
+                await showStockDeletedSuccess();
                 console.log("Deleted row with id:", rowData.id);
                 // Logic to delete the item from the data
                 // In a real app, this would likely be an API call

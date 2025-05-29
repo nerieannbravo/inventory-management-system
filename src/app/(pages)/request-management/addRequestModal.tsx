@@ -42,8 +42,6 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 	const [requestForms, setRequestForms] = useState<RequestForm[]>([initialFormState]);
 	const [formErrors, setFormErrors] = useState<FormError[]>([{}]);
 	const [isDirty, setIsDirty] = useState(false);
-	const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
-	const [showClosingConfirmation, setShowClosingConfirmation] = useState(false);
 
 	// Track if any form has been modified
 	useEffect(() => {

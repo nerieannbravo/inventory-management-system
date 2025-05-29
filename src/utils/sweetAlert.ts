@@ -100,10 +100,10 @@ export const showStockUpdateConfirmation = (itemName: string) => {
 };
 
 // ----- Edit Stock Success ----- //
-export const showStockUpdatedSuccess = (itemName: string) => {
+export const showStockUpdatedSuccess = () => {
     return Swal.fire({
         title: 'Updated!',
-        text: `Stock details of ${itemName} has been updated.`,
+        text: 'Stock details has been updated.',
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -133,10 +133,10 @@ export const showStockDeleteConfirmation = (itemName: string) => {
 };
 
 // ----- Delete Stock Success ----- //
-export const showStockDeletedSuccess = (itemName: string) => {
+export const showStockDeletedSuccess = () => {
     return Swal.fire({
         title: 'Deleted!',
-        text: `${itemName} has been deleted.`,
+        text: 'An item has been deleted.',
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -212,10 +212,10 @@ export const showRequestUpdateConfirmation = (itemName: string) => {
 };
 
 // ----- Edit Request Success ----- //
-export const showRequestUpdatedSuccess = (itemName: string) => {
+export const showRequestUpdatedSuccess = () => {
     return Swal.fire({
         title: 'Updated!',
-        text: `Request for ${itemName} has been updated.`,
+        text: 'Item request has been updated.',
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -245,10 +245,10 @@ export const showRequestDeleteConfirmation = (itemName: string) => {
 };
 
 // ----- Delete Request Success ----- //
-export const showRequestDeletedSuccess = (itemName: string) => {
+export const showRequestDeletedSuccess = () => {
     return Swal.fire({
         title: 'Deleted!',
-        text: `Request for ${itemName} has been deleted.`,
+        text: 'Item request has been deleted.',
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -259,6 +259,178 @@ export const showRequestDeletedSuccess = (itemName: string) => {
         }
     });
 };
+
+
+//-------------------- ORDER MANAGEMENT SPECIFIC -------------------//
+
+// ----- Add Order Confirmation ----- //
+export const showOrderSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this order request?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Order Success ----- //
+export const showOrderSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Order added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Order Confirmation ----- //
+export const showOrderUpdateConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the order details for <strong>${itemName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Order Success ----- //
+export const showOrderUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Order detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Delete Order Confirmation ----- //
+export const showOrderDeleteConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Deletion',
+        html: `<p>Are you sure you want to delete the order for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Delete Order Success ----- //
+export const showOrderDeletedSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        text: 'Order for has been deleted.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+
+//-------------------- BUS MANAGEMENT SPECIFIC -------------------//
+
+// ----- Add Bus Confirmation ----- //
+export const showBusSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this bus details?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Bus Success ----- //
+export const showBusSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Bus added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Confirmation ----- //
+export const showBusUpdateConfirmation = (bodyNumber: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the bus details for <strong>${bodyNumber}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Success ----- //
+export const showBusUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Bus detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 
 //-------------------- GENERATE REPORT SPECIFIC -------------------//
 export const showGenerateReportConfirmation = () => {

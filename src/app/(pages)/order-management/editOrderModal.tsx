@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 
-import ConfirmationPopup from "@/components/confirmationPopup";
+import {
+    showOrderUpdateConfirmation, showOrderUpdatedSuccess,
+    showCloseWithoutUpdatingConfirmation
+} from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
@@ -33,10 +36,6 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Confirmation dialog states
-    const [showUpdateConfirmation, setShowUpdateConfirmation] = useState(false);
-    const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
-
     // Check if form data has changed from original
     useEffect(() => {
         const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
@@ -60,24 +59,26 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
         return Object.keys(errors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const isValid = validateForm();
-        if (!isValid) return;
+        if (!validateForm()) return;
 
-        // Show update confirmation instead of updating immediately
-        setShowUpdateConfirmation(true);
+        const result = await showOrderUpdateConfirmation(formData.itemName);
+        if (result.isConfirmed) {
+            onSave(formData);
+            await showOrderUpdatedSuccess();
+        }
     };
 
-    const handleConfirmUpdate = () => {
-        onSave(formData);
-    };
+    const handleClose = async () => {
+        if (!isFormDirty) {
+            onClose();
+            return;
+        }
 
-    const handleClose = () => {
-        if (isFormDirty) {
-            setShowCloseConfirmation(true);
-        } else {
+        const result = await showCloseWithoutUpdatingConfirmation();
+        if (result.isConfirmed) {
             onClose();
         }
     };
@@ -164,29 +165,6 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
                 </button>
             </div>
 
-            {/* Update Confirmation Dialog */}
-            <ConfirmationPopup
-                isOpen={showUpdateConfirmation}
-                onClose={() => setShowUpdateConfirmation(false)}
-                onConfirm={handleConfirmUpdate}
-                title="Confirm Update"
-                message={`Are you sure you want to update the order details for "${formData.itemName}"?`}
-                confirmText="Update"
-                cancelText="Cancel"
-                variant="success"
-            />
-
-            {/* Close Without Saving Dialog */}
-            <ConfirmationPopup
-                isOpen={showCloseConfirmation}
-                onClose={() => setShowCloseConfirmation(false)}
-                onConfirm={onClose}
-                title="Unsaved Changes"
-                message="You have unsaved changes. Are you sure you want to close without updating?"
-                confirmText="Close Without Saving"
-                cancelText="Continue Editing"
-                variant="warning"
-            />
         </>
     );
 }

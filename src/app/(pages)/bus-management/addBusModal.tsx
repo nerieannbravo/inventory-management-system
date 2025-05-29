@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import ConfirmationPopup from "@/components/confirmationPopup";
+
+import {
+    showBusSaveConfirmation, showBusSavedSuccess,
+    showCloseWithoutSavingConfirmation
+} from "@/utils/sweetAlert";
+
 import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
@@ -46,8 +51,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
-    const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
-    const [showClosingConfirmation, setShowClosingConfirmation] = useState(false);
 
     // Track if any form has been modified
     useEffect(() => {
@@ -95,23 +98,26 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         return Object.keys(errors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const isValid = validateForm();
-        if (isValid) {
-            setShowSaveConfirmation(true);
+        if (!validateForm()) return;
+
+        const result = await showBusSaveConfirmation();
+        if (result.isConfirmed) {
+            onSave(busForm);
+            await showBusSavedSuccess();
         }
     };
 
-    const handleConfirmSave = () => {
-        onSave(busForm);
-    };
+    const handleClose = async () => {
+        if (!isDirty) {
+            onClose();
+            return;
+        }
 
-    const handleClose = () => {
-        if (isDirty) {
-            setShowClosingConfirmation(true);
-        } else {
+        const result = await showCloseWithoutSavingConfirmation();
+        if (result.isConfirmed) {
             onClose();
         }
     };
@@ -313,29 +319,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 </button>
             </div>
 
-            {/* Save Confirmation */}
-            <ConfirmationPopup
-                isOpen={showSaveConfirmation}
-                onClose={() => setShowSaveConfirmation(false)}
-                onConfirm={handleConfirmSave}
-                title="Confirm Save"
-                message="Are you sure you want to save this bus details?"
-                confirmText="Save"
-                cancelText="Cancel"
-                variant="success"
-            />
-
-            {/* Close Confirmation */}
-            <ConfirmationPopup
-                isOpen={showClosingConfirmation}
-                onClose={() => setShowClosingConfirmation(false)}
-                onConfirm={onClose}
-                title="Unsaved Changes"
-                message="You have unsaved changes. Are you sure you want to close without saving?"
-                confirmText="Close Without Saving"
-                cancelText="Continue Editing"
-                variant="warning"
-            />
         </>
     );
 }
