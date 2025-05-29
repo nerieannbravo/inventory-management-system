@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
-import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
-import ConfirmationPopup from "@/components/confirmationPopup";
+import { showStockDeleteConfirmation, showStockDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
@@ -67,14 +66,6 @@ export default function StocksManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-
-    // for delete confirmation popup
-    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-
-    // for snackbar
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarType, setSnackbarType] = useState<"success" | "error" | "info" | "warning">("info");
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
@@ -205,11 +196,8 @@ export default function StocksManagement() {
                 />;
                 break;
             case "delete-stock":
-                // Instead of rendering DeleteStockModal directly, just store the active row
-                // and show the confirmation popup
-                setActiveRow(rowData);
-                setShowDeleteConfirmation(true);
-                return; // Return early to avoid opening the modal
+                handleDeleteStock(rowData);
+                return;
             default:
                 content = null;
         }
@@ -225,25 +213,11 @@ export default function StocksManagement() {
         setActiveRow(null);
     };
 
-    // snackbar
-    const showSnackbar = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
-        setSnackbarMessage(message);
-        setSnackbarType(type);
-        setSnackbarVisible(true);
-    };
-
     // Handle add stocks
     const handleAddStock = (stockForms: StockForm[]) => {
         console.log("Saving forms:", stockForms);
         // Logic to add multiple stock items to the data
         // In a real app, this would likely be an API call
-
-        const itemCount = stockForms.length;
-        const message = itemCount === 1
-            ? "Stock item added successfully!"
-            : `${itemCount} stock items added successfully!`;
-
-        showSnackbar(message, "success");
         closeModal();
     };
 
@@ -255,14 +229,17 @@ export default function StocksManagement() {
         closeModal();
     };
 
-    // Hadle delete stocks
-    const handleDeleteConfirm = () => {
-        console.log("Deleted row with id:", activeRow?.id);
-        // Logic to delete the item from the data
-        // In a real app, this would likely be an API call
-        setShowDeleteConfirmation(false);
-        showSnackbar(`${activeRow.name} has been deleted.`, "success");
-    };
+   // Handle delete stocks
+        const handleDeleteStock = async (rowData: any) => {
+            const result = await showStockDeleteConfirmation(rowData.name);
+    
+            if (result.isConfirmed) {
+                await showStockDeletedSuccess(rowData.name);
+                console.log("Deleted row with id:", rowData.id);
+                // Logic to delete the item from the data
+                // In a real app, this would likely be an API call
+            }
+        };
 
     return (
         <div className="card">
@@ -359,26 +336,6 @@ export default function StocksManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
-            />
-
-            {/* Delete Confirmation */}
-            <ConfirmationPopup
-                isOpen={showDeleteConfirmation}
-                onClose={() => setShowDeleteConfirmation(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Confirm Deletion"
-                message={`Are you sure you want to delete ${activeRow?.name}? You will not be able to undo this.`}
-                confirmText="Delete"
-                cancelText="Cancel"
-                variant="error"
-            />
-
-            {/* Snackbar */}
-            <Snackbar
-                message={snackbarMessage}
-                isVisible={snackbarVisible}
-                onClose={() => setSnackbarVisible(false)}
-                type={snackbarType}
             />
 
         </div>

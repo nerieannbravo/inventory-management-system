@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
-import Snackbar from "@/components/snackbar";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
-import ConfirmationPopup from "@/components/confirmationPopup";
+import { showRequestDeleteConfirmation, showRequestDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddRequestModal from "./addRequestModal";
 import ViewRequestModal from "./viewRequestModal";
@@ -16,7 +15,6 @@ import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/pagination.css"
-import "@/styles/snackbar.css"
 
 const hardcodedData = [
     {
@@ -67,14 +65,6 @@ export default function RequestManagement() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-
-    // for delete confirmation popup
-    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-
-    // for snackbar
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarType, setSnackbarType] = useState<"success" | "error" | "info" | "warning">("info");
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
@@ -211,11 +201,8 @@ export default function RequestManagement() {
                 />;
                 break;
             case "delete-request":
-                // Instead of rendering DeleteRequestModal directly, just store the active row
-                // and show the confirmation popup
-                setActiveRow(rowData);
-                setShowDeleteConfirmation(true);
-                return; // Return early to avoid opening the modal
+                handleDeleteRequest(rowData);
+                return;
             default:
                 content = null;
         }
@@ -231,25 +218,11 @@ export default function RequestManagement() {
         setActiveRow(null);
     };
 
-    // snackbar
-    const showSnackbar = (message: string, type: "success" | "error" | "info" | "warning" = "info") => {
-        setSnackbarMessage(message);
-        setSnackbarType(type);
-        setSnackbarVisible(true);
-    };
-
     // Handle add request
     const handleAddRequest = (requestForms: RequestForm[]) => {
         console.log("Saving forms:", requestForms);
         // Logic to add multiple item requests to the data
         // In a real app, this would likely be an API call
-
-        const itemCount = requestForms.length;
-        const message = itemCount === 1
-            ? "Item request added successfully!"
-            : `${itemCount} item requests added successfully!`;
-
-        showSnackbar(message, "success");
         closeModal();
     };
 
@@ -258,17 +231,19 @@ export default function RequestManagement() {
         console.log("Updating item:", updatedItem);
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
-        showSnackbar(`Request detail has been updated.`, "success");
         closeModal();
     };
 
-    // Hadle delete request
-    const handleDeleteConfirm = () => {
-        console.log("Deleted row with id:", activeRow?.id);
-        // Logic to delete the item from the data
-        // In a real app, this would likely be an API call
-        setShowDeleteConfirmation(false);
-        showSnackbar(`Request for ${activeRow.itemName} has been deleted.`, "success");
+    // Handle delete requests
+    const handleDeleteRequest = async (rowData: any) => {
+        const result = await showRequestDeleteConfirmation(rowData.itemName);
+
+        if (result.isConfirmed) {
+            await showRequestDeletedSuccess(rowData.itemName);
+            console.log("Deleted row with id:", rowData.id);
+            // Logic to delete the item from the data
+            // In a real app, this would likely be an API call
+        }
     };
 
     return (
@@ -336,7 +311,7 @@ export default function RequestManagement() {
                                                 onView={() => openModal("view-request", item)}
                                                 onEdit={() => openModal("edit-request", item)}
                                                 onDelete={() => openModal("delete-request", item)}
-                                                disableEdit={item.reqStatus === "not-returned"}
+                                                disableEdit={item.reqStatus !== "not-returned"}
                                             />
                                         </td>
                                     </tr>
@@ -369,25 +344,6 @@ export default function RequestManagement() {
                 modalContent={modalContent}
             />
 
-            {/* Delete Confirmation */}
-            <ConfirmationPopup
-                isOpen={showDeleteConfirmation}
-                onClose={() => setShowDeleteConfirmation(false)}
-                onConfirm={handleDeleteConfirm}
-                title="Confirm Deletion"
-                message={`Are you sure you want to delete the request for ${activeRow?.itemName}? You will not be able to undo this.`}
-                confirmText="Delete"
-                cancelText="Cancel"
-                variant="error"
-            />
-
-            {/* Snackbar */}
-            <Snackbar
-                message={snackbarMessage}
-                isVisible={snackbarVisible}
-                onClose={() => setSnackbarVisible(false)}
-                type={snackbarType}
-            />
         </div>
     );
 }

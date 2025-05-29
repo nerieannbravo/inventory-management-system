@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import ConfirmationPopup from "@/components/confirmationPopup";
+
+import {
+	showRequestSaveConfirmation, showRequestSavedSuccess,
+	showCloseWithoutSavingConfirmation
+} from "@/utils/sweetAlert";
+
 import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
@@ -135,23 +140,26 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		return errors.every((err) => Object.keys(err).length === 0);
 	};
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		const isValid = validateForm();
-		if (isValid) {
-			setShowSaveConfirmation(true);
+		if (!validateForm()) return;
+
+		const result = await showRequestSaveConfirmation(requestForms.length);
+		if (result.isConfirmed) {
+			onSave(requestForms);
+			await showRequestSavedSuccess(requestForms.length);
 		}
 	};
 
-	const handleConfirmSave = () => {
-		onSave(requestForms);
-	};
+	const handleClose = async () => {
+		if (!isDirty) {
+			onClose();
+			return;
+		}
 
-	const handleClose = () => {
-		if (isDirty) {
-			setShowClosingConfirmation(true);
-		} else {
+		const result = await showCloseWithoutSavingConfirmation();
+		if (result.isConfirmed) {
 			onClose();
 		}
 	};
@@ -337,29 +345,6 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 				</button>
 			</div>
 
-			{/* Save Confirmation */}
-			<ConfirmationPopup
-				isOpen={showSaveConfirmation}
-				onClose={() => setShowSaveConfirmation(false)}
-				onConfirm={handleConfirmSave}
-				title="Confirm Save"
-				message="Are you sure you want to save these item requests?"
-				confirmText="Save"
-				cancelText="Cancel"
-				variant="success"
-			/>
-
-			{/* Close Confirmation */}
-			<ConfirmationPopup
-				isOpen={showClosingConfirmation}
-				onClose={() => setShowClosingConfirmation(false)}
-				onConfirm={onClose}
-				title="Unsaved Changes"
-				message="You have unsaved changes. Are you sure you want to close without saving?"
-				confirmText="Close Without Saving"
-				cancelText="Continue Editing"
-				variant="warning"
-			/>
 		</>
 	);
 }
