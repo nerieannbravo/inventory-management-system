@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
+import PaginationComponent from "@/components/pagination";
 import { showRequestDeleteConfirmation, showRequestDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddRequestModal from "./addRequestModal";
@@ -43,7 +44,7 @@ const hardcodedData = [
     },
     {
         id: 4,
-        empName: "Nerie Ann Bravo",
+        empName: "Sean Arjunell Cabarles",
         type: "Borrow",
         itemName: "Item Example A",
         reqDate: "3/19/2025",
@@ -51,11 +52,52 @@ const hardcodedData = [
     },
     {
         id: 5,
-        empName: "Kristine Mae Cleofas",
+        empName: "Kathleen Cleofas",
         type: "Consume",
         itemName: "Item Example E",
         reqDate: "5/6/2025",
         reqStatus: "consumed",
+    },
+    // Add more dummy data to test pagination
+    {
+        id: 6,
+        empName: "John Doe Smith",
+        type: "Borrow",
+        itemName: "Item Example F",
+        reqDate: "4/15/2025",
+        reqStatus: "returned",
+    },
+    {
+        id: 7,
+        empName: "Jane Marie Santos",
+        type: "Consume",
+        itemName: "Item Example G",
+        reqDate: "5/8/2025",
+        reqStatus: "consumed",
+    },
+    {
+        id: 8,
+        empName: "Mark Anthony Cruz",
+        type: "Borrow",
+        itemName: "Item Example H",
+        reqDate: "4/20/2025",
+        reqStatus: "not-returned",
+    },
+    {
+        id: 9,
+        empName: "Maria Clara Reyes",
+        type: "Consume",
+        itemName: "Item Example I",
+        reqDate: "5/12/2025",
+        reqStatus: "consumed",
+    },
+    {
+        id: 10,
+        empName: "Jose Rizal Garcia",
+        type: "Borrow",
+        itemName: "Item Example J",
+        reqDate: "3/25/2025",
+        reqStatus: "returned",
     },
 ];
 
@@ -68,6 +110,31 @@ export default function RequestManagement() {
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
+
+    // Calculate paginated data
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return filteredData.slice(startIndex, endIndex);
+    }, [filteredData, currentPage, pageSize]);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // Handle page size change
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to first page when changing page size
+    };
 
     // Filter sections
     const filterSections: FilterSection[] = [
@@ -159,6 +226,7 @@ export default function RequestManagement() {
         }
 
         setFilteredData(newData);
+        setCurrentPage(1); // Reset to first page when filters change
     };
 
     // for request status formatting
@@ -292,7 +360,7 @@ export default function RequestManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredData.map(item => (
+                                {paginatedData.map(item => (
                                     <tr
                                         key={item.id}
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
@@ -322,19 +390,13 @@ export default function RequestManagement() {
                 </div>
 
                 {/* Pagination */}
-                <div className="pagination">
-                    <button className="page-btn">
-                        <i className="ri-arrow-left-s-line"></i>
-                    </button>
-                    <button className="page-btn active">1</button>
-                    <button className="page-btn">2</button>
-                    <button className="page-btn">3</button>
-                    <button className="page-btn">4</button>
-                    <button className="page-btn">5</button>
-                    <button className="page-btn">
-                        <i className="ri-arrow-right-s-line"></i>
-                    </button>
-                </div>
+                <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                />
             </div>
 
             {/* Dynamic Modal Manager */}

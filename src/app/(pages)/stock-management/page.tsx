@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
-import PaginationComponent from "@/components/pagination"; // Import your pagination component
+import PaginationComponent from "@/components/pagination";
 import { showStockDeleteConfirmation, showStockDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddStockModal from "./addStockModal";
@@ -381,7 +381,7 @@ export default function StocksManagement() {
                     </div>
                 </div>
 
-                {/* Replace the old pagination with your PaginationComponent */}
+                {/* Pagination */}
                 <PaginationComponent
                     currentPage={currentPage}
                     totalPages={totalPages}

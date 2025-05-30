@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
+import PaginationComponent from "@/components/pagination";
 
 import AddBusModal from "./addBusModal";
 import ViewBusModal from "./viewBusModal";
@@ -69,6 +70,32 @@ export default function BusManagement() {
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
+
+    // Calculate paginated data
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return filteredData.slice(startIndex, endIndex);
+    }, [filteredData, currentPage, pageSize]);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // Handle page size change
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to first page when changing page size
+    };
+
+    // Filter sections
     const filterSections: FilterSection[] = [
         {
             id: "dateRange",
@@ -170,6 +197,7 @@ export default function BusManagement() {
         }
 
         setFilteredData(newData);
+        setCurrentPage(1); // Reset to first page when filters change
     };
 
     // for items busStatus formatting
@@ -288,7 +316,7 @@ export default function BusManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredData.map(item => (
+                                {paginatedData.map(item => (
                                     <tr
                                         key={item.id}
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
@@ -316,19 +344,13 @@ export default function BusManagement() {
                 </div>
 
                 {/* Pagination */}
-                <div className="pagination">
-                    <button className="page-btn">
-                        <i className="ri-arrow-left-s-line"></i>
-                    </button>
-                    <button className="page-btn active">1</button>
-                    <button className="page-btn">2</button>
-                    <button className="page-btn">3</button>
-                    <button className="page-btn">4</button>
-                    <button className="page-btn">5</button>
-                    <button className="page-btn">
-                        <i className="ri-arrow-right-s-line"></i>
-                    </button>
-                </div>
+                <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                />
             </div>
 
             {/* Dynamic Modal Manager */}
