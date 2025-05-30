@@ -14,7 +14,6 @@ import { BusForm } from "./addBusModal";
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
-import "@/styles/pagination.css"
 
 const hardcodedData = [
     {
