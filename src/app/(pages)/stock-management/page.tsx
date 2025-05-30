@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
+import PaginationComponent from "@/components/pagination"; // Import your pagination component
 import { showStockDeleteConfirmation, showStockDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddStockModal from "./addStockModal";
@@ -14,7 +15,6 @@ import { StockForm } from "./addStockModal";
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
-import "@/styles/pagination.css"
 
 const hardcodedData = [
     {
@@ -57,6 +57,47 @@ const hardcodedData = [
         status: "expired",
         reorder: 3,
     },
+    // Add more dummy data to test pagination
+    {
+        id: 6,
+        name: "Example Item F",
+        quantity: 30,
+        unit: "kg",
+        status: "available",
+        reorder: 12,
+    },
+    {
+        id: 7,
+        name: "Example Item G",
+        quantity: 5,
+        unit: "pcs",
+        status: "low-stock",
+        reorder: 15,
+    },
+    {
+        id: 8,
+        name: "Example Item H",
+        quantity: 0,
+        unit: "kg",
+        status: "out-of-stock",
+        reorder: 20,
+    },
+    {
+        id: 9,
+        name: "Example Item I",
+        quantity: 20,
+        unit: "pcs",
+        status: "maintenance",
+        reorder: 8,
+    },
+    {
+        id: 10,
+        name: "Example Item J",
+        quantity: 16,
+        unit: "pcs",
+        status: "expired",
+        reorder: 3,
+    },
 ];
 
 export default function StocksManagement() {
@@ -68,6 +109,31 @@ export default function StocksManagement() {
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5); // default number of rows per page
+
+    // Calculate paginated data
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return filteredData.slice(startIndex, endIndex);
+    }, [filteredData, currentPage, pageSize]);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    // Handle page size change
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to first page when changing page size
+    };
 
     // Filter sections
     const filterSections: FilterSection[] = [
@@ -149,6 +215,7 @@ export default function StocksManagement() {
         }
 
         setFilteredData(newData);
+        setCurrentPage(1); // Reset to first page when filters change
     };
 
     // for items status formatting
@@ -286,7 +353,7 @@ export default function StocksManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {filteredData.map(item => (
+                                {paginatedData.map(item => (
                                     <tr
                                         key={item.id}
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
@@ -314,20 +381,14 @@ export default function StocksManagement() {
                     </div>
                 </div>
 
-                {/* Pagination */}
-                <div className="pagination">
-                    <button className="page-btn">
-                        <i className="ri-arrow-left-s-line"></i>
-                    </button>
-                    <button className="page-btn active">1</button>
-                    <button className="page-btn">2</button>
-                    <button className="page-btn">3</button>
-                    <button className="page-btn">4</button>
-                    <button className="page-btn">5</button>
-                    <button className="page-btn">
-                        <i className="ri-arrow-right-s-line"></i>
-                    </button>
-                </div>
+                {/* Replace the old pagination with your PaginationComponent */}
+                <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    pageSize={pageSize}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                />
             </div>
 
             {/* Dynamic Modal Manager */}
