@@ -1,12 +1,3 @@
-:root {
-
-    /* Font size and spacing */
-    --pagination-font-size: 14px;
-    --pagination-radius: 0.3rem;
-    --pagination-button-size: 2em;
-    --pagination-padding: 0.3rem;
-}
-
 /* ----- PAGINATION CONTAINER ----- */
 .pagination-container {
     display: flex;
