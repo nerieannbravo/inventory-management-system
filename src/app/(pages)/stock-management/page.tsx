@@ -295,17 +295,17 @@ export default function StocksManagement() {
         closeModal();
     };
 
-   // Handle delete stocks
-        const handleDeleteStock = async (rowData: any) => {
-            const result = await showStockDeleteConfirmation(rowData.name);
-    
-            if (result.isConfirmed) {
-                await showStockDeletedSuccess();
-                console.log("Deleted row with id:", rowData.id);
-                // Logic to delete the item from the data
-                // In a real app, this would likely be an API call
-            }
-        };
+    // Handle delete stocks
+    const handleDeleteStock = async (rowData: any) => {
+        const result = await showStockDeleteConfirmation(rowData.name);
+
+        if (result.isConfirmed) {
+            await showStockDeletedSuccess();
+            console.log("Deleted row with id:", rowData.id);
+            // Logic to delete the item from the data
+            // In a real app, this would likely be an API call
+        }
+    };
 
     return (
         <div className="card">
@@ -338,6 +338,10 @@ export default function StocksManagement() {
                     </button>
                 </div>
 
+                {/* <div className="filter-results">
+                    Items from January 12, 2023 to December 12, 2024
+                </div> */}
+
                 {/* Table */}
                 <div className="table-wrapper">
                     <div className="table-container">
@@ -353,29 +357,36 @@ export default function StocksManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.name}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>{item.unit}</td>
-                                        <td>
-                                            <span className={`chip ${item.status}`}>
-                                                {formatStatus(item.status)}
-                                            </span>
-                                        </td>
-                                        <td>{item.reorder}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-stock", item)}
-                                                onEdit={() => openModal("edit-stock", item)}
-                                                onDelete={() => openModal("delete-stock", item)}
-                                            />
+                                {paginatedData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="no-records">
+                                            No records found.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    paginatedData.map(item => (
+                                        <tr
+                                            key={item.id}
+                                            className={selectedIds.includes(item.id) ? "selected" : ""}
+                                        >
+                                            <td>{item.name}</td>
+                                            <td>{item.quantity}</td>
+                                            <td>{item.unit}</td>
+                                            <td>
+                                                <span className={`chip ${item.status}`}>
+                                                    {formatStatus(item.status)}
+                                                </span>
+                                            </td>
+                                            <td>{item.reorder}</td>
+                                            <td>
+                                                <ActionButtons
+                                                    onView={() => openModal("view-stock", item)}
+                                                    onEdit={() => openModal("edit-stock", item)}
+                                                    onDelete={() => openModal("delete-stock", item)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )))}
                             </tbody>
                         </table>
                     </div>
