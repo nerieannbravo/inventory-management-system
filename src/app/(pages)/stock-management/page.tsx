@@ -11,6 +11,7 @@ import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
 import EditStockModal from "./editStockModal";
 import { StockForm } from "./addStockModal";
+import { StockReportPreviewModal, useStockReportPDF } from "./stockReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -22,6 +23,7 @@ const hardcodedData = [
         name: "Example Item A",
         quantity: 50,
         unit: "kg",
+        category: "Consumables",
         status: "available",
         reorder: 10,
     },
@@ -30,6 +32,7 @@ const hardcodedData = [
         name: "Example Item B",
         quantity: 0,
         unit: "pcs",
+        category: "Consumables",
         status: "out-of-stock",
         reorder: 5,
     },
@@ -38,6 +41,7 @@ const hardcodedData = [
         name: "Example Item C",
         quantity: 20,
         unit: "pcs",
+        category: "Consumables",
         status: "low-stock",
         reorder: 8,
     },
@@ -46,6 +50,7 @@ const hardcodedData = [
         name: "Example Item D",
         quantity: 20,
         unit: "pcs",
+        category: "Machine & Equipments",
         status: "maintenance",
         reorder: 8,
     },
@@ -54,6 +59,7 @@ const hardcodedData = [
         name: "Example Item E",
         quantity: 16,
         unit: "pcs",
+        category: "Consumables",
         status: "expired",
         reorder: 3,
     },
@@ -63,6 +69,7 @@ const hardcodedData = [
         name: "Example Item F",
         quantity: 30,
         unit: "kg",
+        category: "Consumables",
         status: "available",
         reorder: 12,
     },
@@ -71,6 +78,7 @@ const hardcodedData = [
         name: "Example Item G",
         quantity: 5,
         unit: "pcs",
+        category: "Consumables",
         status: "low-stock",
         reorder: 15,
     },
@@ -79,14 +87,16 @@ const hardcodedData = [
         name: "Example Item H",
         quantity: 0,
         unit: "kg",
+        category: "Consumables",
         status: "out-of-stock",
         reorder: 20,
     },
     {
         id: 9,
         name: "Example Item I",
-        quantity: 20,
+        quantity: 3,
         unit: "pcs",
+        category: "Machine & Equipments",
         status: "maintenance",
         reorder: 8,
     },
@@ -95,6 +105,7 @@ const hardcodedData = [
         name: "Example Item J",
         quantity: 16,
         unit: "pcs",
+        category: "Consumables",
         status: "expired",
         reorder: 3,
     },
@@ -113,6 +124,15 @@ export default function StocksManagement() {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Add the stock report PDF hook
+    const {
+        showReportPreview,
+        handlePreviewReport,
+        handleCloseReportPreview,
+        reportTitle,
+        setReportTitle
+    } = useStockReportPDF(filteredData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -307,6 +327,21 @@ export default function StocksManagement() {
         }
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // You can customize the report title based on current filters
+        let title = "Stock Management Report";
+        
+        // Add filter information to title if any filters are applied
+        const hasFilters = filteredData.length !== hardcodedData.length;
+        if (hasFilters) {
+            title += " (Filtered Results)";
+        }
+        
+        setReportTitle(title);
+        handlePreviewReport();
+    };
+
     return (
         <div className="card">
             <h1 className="title">Stock Management</h1>
@@ -328,7 +363,7 @@ export default function StocksManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button type="button" className="generate-btn">
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -351,6 +386,7 @@ export default function StocksManagement() {
                                     <th>Item Name</th>
                                     <th>Current Stock</th>
                                     <th>Unit Measure</th>
+                                    <th>Category</th>
                                     <th>Status</th>
                                     <th>Reorder Level</th>
                                     <th>Actions</th>
@@ -372,7 +408,8 @@ export default function StocksManagement() {
                                             <td>{item.name}</td>
                                             <td>{item.quantity}</td>
                                             <td>{item.unit}</td>
-                                            <td>
+                                            <td>{item.category}</td>
+                                            <td className="table-status">
                                                 <span className={`chip ${item.status}`}>
                                                     {formatStatus(item.status)}
                                                 </span>
@@ -407,6 +444,14 @@ export default function StocksManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Stock Report Preview Modal - Add this */}
+            <StockReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                stockData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>
