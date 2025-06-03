@@ -74,8 +74,12 @@
 
 .table-heading th,
 .table-body td {
-    padding: 0 15px;
+    padding: 5px 15px;
     text-overflow: ellipsis;
+}
+
+.table-body .table-status {
+    white-space: nowrap;
 }
 
 
