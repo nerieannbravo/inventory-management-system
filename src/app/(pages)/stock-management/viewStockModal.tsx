@@ -1,3 +1,4 @@
+import { showDeleteExpiredConfirmation, showDeleteExpiredSuccess } from "@/utils/sweetAlert";
 import "@/styles/forms.css";
 
 interface ViewStockModalProps {
@@ -15,6 +16,14 @@ interface ViewStockModalProps {
 }
 
 export default function ViewStockModal({ item, formatStatus, onClose }: ViewStockModalProps) {
+	const handleRemoveExpired = async () => {
+		const result = await showDeleteExpiredConfirmation();
+		if (result.isConfirmed) {
+			await showDeleteExpiredSuccess();
+			onClose();
+		}
+	};
+
 	return (
 		<>
 			<button className="close-modal-btn" onClick={onClose}>
@@ -83,22 +92,33 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 				</div>
 			</div>
 
+			{/* Expired Batch */}
 			<div className="modal-content view-expired">
 				<div className="view-stock-form">
 					<div className="form-row">
 						<div className="form-group">
 							<label>Quantity</label>
-							<p>50</p>
+							<p className="text-expired">50</p>
 						</div>
 
 						<div className="form-group">
 							<label>Expiration Date</label>
-							<p>May 23, 2025</p>
+							<p className="text-expired">May 23, 2025</p>
 						</div>
 
 						<div className="form-group">
 							<label>Date Added</label>
-							<p>February 9, 2025</p>
+							<p className="text-expired">February 9, 2025</p>
+						</div>
+
+						<div className="remove-btn-wrapper expired">
+							<button
+								type="button"
+								className="remove-stock-btn"
+								onClick={handleRemoveExpired}
+							>
+								<i className="ri-delete-bin-line" />
+							</button>
 						</div>
 					</div>
 				</div>

@@ -148,6 +148,38 @@ export const showStockDeletedSuccess = () => {
     });
 };
 
+// ----- Remove Expired Confirmation ----- //
+export const showDeleteExpiredConfirmation = () => {
+    return Swal.fire({
+        title: 'Remove Expired Item',
+        html: `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Expired Success ----- //
+export const showDeleteExpiredSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        text: 'An expired item has been deleted.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
 
 //-------------------- REQUEST MANAGEMENT SPECIFIC -------------------//
 
