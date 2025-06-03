@@ -20,7 +20,7 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 		const result = await showDeleteExpiredConfirmation();
 		if (result.isConfirmed) {
 			await showDeleteExpiredSuccess();
-			onClose();
+			// onClose();
 		}
 	};
 
