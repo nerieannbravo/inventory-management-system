@@ -116,22 +116,6 @@ export default function FilterDropdown({
         });
     };
 
-    // Handle text input changes
-    const handleTextChange = (sectionId: string, value: string) => {
-        setFilterValues({
-            ...filterValues,
-            [sectionId]: value
-        });
-    };
-
-    // Handle select changes
-    const handleSelectChange = (sectionId: string, value: string) => {
-        setFilterValues({
-            ...filterValues,
-            [sectionId]: value
-        });
-    };
-
     // Apply filters
     const handleApply = () => {
         onApply(filterValues);
@@ -214,7 +198,7 @@ export default function FilterDropdown({
     return (
         <div className={`filter ${className}`}>
             <button className="filter-btn" onClick={toggleDropdown}>
-                <i className="ri-equalizer-line" /> Filter
+                <i className="ri-equalizer-line" /> Filters
             </button>
 
             {isOpen && (
