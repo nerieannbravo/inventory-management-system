@@ -12,20 +12,19 @@ import {
 import "@/styles/pdfModal.css";
 
 // Interface definitions
-interface StockItem {
-    id: number;
-    name: string;
-    quantity: number;
-    unit: string;
-    category: string;
-    reorder: number;
-    status: string;
+interface BusItem {
+    id: number,
+    bodyNumber: string,
+    bodyBuilder: string,
+    route: string,
+    busType: string,
+    busStatus: string,
 }
 
-interface StockReportPDFProps {
+interface BusReportPDFProps {
     isOpen: boolean;
     onClose: () => void;
-    stockData: StockItem[];
+    busData: BusItem[];
     reportTitle?: string;
 }
 
@@ -117,22 +116,22 @@ const reportStyles = StyleSheet.create({
     alternateRow: {
         backgroundColor: '#F3F2F9',
     },
-    itemName: {
-        flex: 3,
-        textAlign: 'center',
-        paddingRight: 8,
-    },
-    currentStock: {
-        flex: 1.5,
-        textAlign: 'center',
-        paddingRight: 8,
-    },
-    category: {
+    bodyNumber: {
         flex: 2,
         textAlign: 'center',
         paddingRight: 8,
     },
-    reorder: {
+    bodyBuilder: {
+        flex: 2,
+        textAlign: 'center',
+        paddingRight: 8,
+    },
+    route: {
+        flex: 3,
+        textAlign: 'center',
+        paddingRight: 8,
+    },
+    busType: {
         flex: 2,
         textAlign: 'center',
         paddingRight: 8,
@@ -140,7 +139,6 @@ const reportStyles = StyleSheet.create({
     status: {
         flex: 2,
         textAlign: 'center',
-        paddingRight: 8,
     },
     statusChip: {
         padding: 3,
@@ -148,25 +146,17 @@ const reportStyles = StyleSheet.create({
         fontSize: 8,
         textAlign: 'center',
     },
-    statusAvailable: {
+    statusActive: {
         backgroundColor: '#D1F7D1',
         color: '#23915F',
     },
-    statusOutOfStock: {
+    statusDecommissioned: {
         backgroundColor: '#FFDDDD',
         color: '#A50000',
-    },
-    statusLowStock: {
-        backgroundColor: '#FFF5C2',
-        color: '#85643B',
     },
     statusMaintenance: {
         backgroundColor: '#D6E4FF',
         color: '#0050B3',
-    },
-    statusExpired: {
-        backgroundColor: '#D9D9D9',
-        color: 'black',
     },
     footer: {
         position: 'absolute',
@@ -189,52 +179,42 @@ const reportStyles = StyleSheet.create({
 });
 
 // PDF Document Component
-const StockReportDocument: React.FC<{
-    stockData: StockItem[],
+const BusReportDocument: React.FC<{
+    busData: BusItem[],
     reportTitle?: string
-}> = ({ stockData, reportTitle = "Stock Management Report" }) => {
+}> = ({ busData, reportTitle = "Bus Management Report" }) => {
 
     const today = new Date();
 
     // Calculate summary statistics
-    const totalItems = stockData.length;
-    const availableItems = stockData.filter(item => item.status === 'available').length;
-    const outOfStockItems = stockData.filter(item => item.status === 'out-of-stock').length;
-    const lowStockItems = stockData.filter(item => item.status === 'low-stock').length;
-    const maintenanceItems = stockData.filter(item => item.status === 'maintenance').length;
-    const expiredItems = stockData.filter(item => item.status === 'expired').length;
+    const totalBus = busData.length;
+    const activeBus = busData.filter(item => item.busStatus === 'active').length;
+    const decommissionedBus = busData.filter(item => item.busStatus === 'decommissioned').length;
+    const maintenanceBus = busData.filter(item => item.busStatus === 'under-maintenance').length;
 
     // Format status for display
-    const formatStatus = (status: string) => {
-        switch (status) {
-            case "available":
-                return "Available";
-            case "out-of-stock":
-                return "Out of Stock";
-            case "low-stock":
-                return "Low Stock";
-            case "maintenance":
+    const formatStatus = (busStatus: string) => {
+        switch (busStatus) {
+            case "active":
+                return "Active";
+            case "decommissioned":
+                return "Decommissioned";
+            case "under-maintenance":
                 return "Under Maintenance";
-            case "expired":
-                return "Expired";
             default:
-                return status;
+                return busStatus;
         }
     };
 
     // Get status style
-    const getStatusStyle = (status: string) => {
-        switch (status) {
-            case "available":
-                return [reportStyles.statusChip, reportStyles.statusAvailable];
-            case "out-of-stock":
-                return [reportStyles.statusChip, reportStyles.statusOutOfStock];
-            case "low-stock":
-                return [reportStyles.statusChip, reportStyles.statusLowStock];
-            case "maintenance":
+    const getStatusStyle = (busStatus: string) => {
+        switch (busStatus) {
+            case "active":
+                return [reportStyles.statusChip, reportStyles.statusActive];
+            case "decommissioned":
+                return [reportStyles.statusChip, reportStyles.statusDecommissioned];
+            case "under-maintenance":
                 return [reportStyles.statusChip, reportStyles.statusMaintenance];
-            case "expired":
-                return [reportStyles.statusChip, reportStyles.statusExpired];
             default:
                 return [reportStyles.statusChip];
         }
@@ -248,18 +228,18 @@ const StockReportDocument: React.FC<{
                     <Text style={reportStyles.companyName}>Agila Bus Transport Corp.</Text>
                     <Text style={reportStyles.title}>{reportTitle}</Text>
                     <Text style={reportStyles.dateTime}>
-                        Generated on {today.toLocaleDateString('en-US', { 
-                            month: 'long', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                        })} at {today.toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: 'numeric', 
-                            hour12: true 
+                        Generated on {today.toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                        })} at {today.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true
                         })}
                     </Text>
                     <Text style={reportStyles.reportInfo}>
-                        Total Items: {totalItems}
+                        Total Item Requests: {totalBus}
                     </Text>
                 </View>
 
@@ -269,24 +249,16 @@ const StockReportDocument: React.FC<{
                 {/* Summary Section */}
                 <View style={reportStyles.summarySection}>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{availableItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Available</Text>
+                        <Text style={reportStyles.summaryNumber}>{activeBus}</Text>
+                        <Text style={reportStyles.summaryLabel}>Active Bus</Text>
                     </View>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{lowStockItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Low Stock</Text>
+                        <Text style={reportStyles.summaryNumber}>{decommissionedBus}</Text>
+                        <Text style={reportStyles.summaryLabel}>Decommissioned Bus</Text>
                     </View>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{outOfStockItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Out of Stock</Text>
-                    </View>
-                    <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{maintenanceItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Maintenance</Text>
-                    </View>
-                    <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{expiredItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Expired</Text>
+                        <Text style={reportStyles.summaryNumber}>{maintenanceBus}</Text>
+                        <Text style={reportStyles.summaryLabel}>Under Maintenance Bus</Text>
                     </View>
                 </View>
 
@@ -294,37 +266,37 @@ const StockReportDocument: React.FC<{
                 <View style={reportStyles.table}>
                     {/* Table Header */}
                     <View style={reportStyles.tableHeader}>
-                        <Text style={reportStyles.itemName}>Item Name</Text>
-                        <Text style={reportStyles.currentStock}>Current Stock</Text>
-                        <Text style={reportStyles.category}>Category</Text>
-                        <Text style={reportStyles.reorder}>Reorder Level</Text>
+                        <Text style={reportStyles.bodyNumber}>Body Number</Text>
+                        <Text style={reportStyles.bodyBuilder}>Body Builder</Text>
+                        <Text style={reportStyles.route}>Route</Text>
+                        <Text style={reportStyles.busType}>Bus Type</Text>
                         <Text style={reportStyles.status}>Status</Text>
                     </View>
 
                     {/* Table Rows */}
-                    {stockData.map((item, index) => (
-                        <View 
-                            key={item.id} 
+                    {busData.map((item, index) => (
+                        <View
+                            key={item.id}
                             style={[
-                                reportStyles.tableRow, 
+                                reportStyles.tableRow,
                                 index % 2 === 1 ? reportStyles.alternateRow : {}
                             ]}
                         >
-                            <Text style={reportStyles.itemName}>
-                                {item.name}
+                            <Text style={reportStyles.bodyNumber}>
+                                {item.bodyNumber}
                             </Text>
-                            <Text style={reportStyles.currentStock}>
-                                {item.quantity} {item.unit}
+                            <Text style={reportStyles.bodyBuilder}>
+                                {item.bodyBuilder}
                             </Text>
-                            <Text style={reportStyles.category}>
-                                {item.category}
+                            <Text style={reportStyles.route}>
+                                {item.route}
                             </Text>
-                            <Text style={reportStyles.reorder}>
-                                {item.reorder}
+                            <Text style={reportStyles.busType}>
+                                {item.busType}
                             </Text>
                             <View style={reportStyles.status}>
-                                <Text style={getStatusStyle(item.status)}>
-                                    {formatStatus(item.status)}
+                                <Text style={getStatusStyle(item.busStatus)}>
+                                    {formatStatus(item.busStatus)}
                                 </Text>
                             </View>
                         </View>
@@ -346,10 +318,10 @@ const StockReportDocument: React.FC<{
 };
 
 // PDF Preview Modal Component
-export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
+export const BusReportPreviewModal: React.FC<BusReportPDFProps> = ({
     isOpen,
     onClose,
-    stockData,
+    busData,
     reportTitle
 }) => {
     if (!isOpen) return null;
@@ -357,7 +329,7 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
     const generateFileName = () => {
         const today = new Date();
         const dateStr = today.toISOString().slice(0, 10);
-        return `stock-report-${dateStr}.pdf`;
+        return `bus-report-${dateStr}.pdf`;
     };
 
     return (
@@ -366,8 +338,8 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
                 <div className="pdf-modal-content">
                     <div className="pdf-container">
                         <PDFViewer width="100%" height="100%">
-                            <StockReportDocument 
-                                stockData={stockData} 
+                            <BusReportDocument
+                                busData={busData}
                                 reportTitle={reportTitle}
                             />
                         </PDFViewer>
@@ -377,8 +349,8 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
                         <button className="close-btn" onClick={onClose}>Close</button>
                         <PDFDownloadLink
                             document={
-                                <StockReportDocument 
-                                    stockData={stockData} 
+                                <BusReportDocument
+                                    busData={busData}
                                     reportTitle={reportTitle}
                                 />
                             }
@@ -398,10 +370,10 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
     );
 };
 
-// Custom hook for stock report PDF functionality
-export const useStockReportPDF = (stockData: StockItem[]) => {
+// Custom hook for bus report PDF functionality
+export const useBusReportPDF = (busData: BusItem[]) => {
     const [showReportPreview, setShowReportPreview] = useState(false);
-    const [reportTitle, setReportTitle] = useState("Stock Management Report");
+    const [reportTitle, setReportTitle] = useState("Bus Management Report");
 
     const handlePreviewReport = () => {
         setShowReportPreview(true);

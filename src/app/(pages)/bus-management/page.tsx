@@ -10,6 +10,7 @@ import AddBusModal from "./addBusModal";
 import ViewBusModal from "./viewBusModal";
 import EditBusModal from "./editBusModal";
 import { BusForm } from "./addBusModal";
+import { BusReportPreviewModal, useBusReportPDF } from "./busReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -18,7 +19,7 @@ import "@/styles/chips.css"
 const hardcodedData = [
     {
         id: 1,
-        bodyNumber: 1001,
+        bodyNumber: "1001A",
         bodyBuilder: "Agila",
         route: "Sapang Palay - PITX",
         busType: "Airconditioned",
@@ -26,7 +27,7 @@ const hardcodedData = [
     },
     {
         id: 2,
-        bodyNumber: 1002,
+        bodyNumber: "1002B",
         bodyBuilder: "DARJ",
         route: "Sapang Palay - PITX",
         busType: "Ordinary",
@@ -34,7 +35,7 @@ const hardcodedData = [
     },
     {
         id: 3,
-        bodyNumber: 1003,
+        bodyNumber: "1003C",
         bodyBuilder: "Hilltop",
         route: "Sapang Palay - Santa Cruz",
         busType: "Airconditioned",
@@ -42,7 +43,7 @@ const hardcodedData = [
     },
     {
         id: 4,
-        bodyNumber: 1004,
+        bodyNumber: "1002A",
         bodyBuilder: "Agila",
         route: "Sapang Palay - Santa Cruz",
         busType: "Airconditioned",
@@ -51,7 +52,7 @@ const hardcodedData = [
     },
     {
         id: 5,
-        bodyNumber: 1005,
+        bodyNumber: "1005D",
         bodyBuilder: "RBM",
         route: "Sapang Palay - PITX",
         busType: "Ordinary",
@@ -68,6 +69,15 @@ export default function BusManagement() {
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
+
+    // Add the bus report PDF hook
+    const {
+        showReportPreview,
+        handlePreviewReport,
+        handleCloseReportPreview,
+        reportTitle,
+        setReportTitle
+    } = useBusReportPDF(filteredData);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -142,6 +152,16 @@ export default function BusManagement() {
             ]
         },
         {
+            id: "sortBy",
+            title: "Sort By",
+            type: "radio",
+            options: [
+                { id: "bodyNumber", label: "Body Number" },
+                { id: "bodyBuilder", label: "Body Builder" }
+            ],
+            defaultValue: "bodyNumber"
+        },
+        {
             id: "order",
             title: "Order",
             type: "radio",
@@ -186,12 +206,16 @@ export default function BusManagement() {
             );
         }
 
-        // Sort by bodyNumber
+        // Sort by bodyNumber or bodyBuilder
         if (filterValues.sortBy === "bodyNumber") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.bodyNumber - b.bodyNumber) * sortOrder;
-
+                return a.bodyNumber.localeCompare(b.bodyNumber) * sortOrder;
+            });
+        } else if (filterValues.sortBy === "bodyBuilder") {
+            newData.sort((a, b) => {
+                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                return a.bodyBuilder.localeCompare(b.bodyBuilder) * sortOrder;
             });
         }
 
@@ -269,6 +293,21 @@ export default function BusManagement() {
         closeModal();
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // You can customize the report title based on current filters
+        let title = "Bus Management Report";
+
+        // Add filter information to title if any filters are applied
+        const hasFilters = filteredData.length !== hardcodedData.length;
+        if (hasFilters) {
+            title += " (Filtered Results)";
+        }
+
+        setReportTitle(title);
+        handlePreviewReport();
+    };
+
     return (
         <div className="card">
             <h1 className="title">Bus Management</h1>
@@ -290,7 +329,7 @@ export default function BusManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button type="button" className="generate-btn">
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -357,6 +396,14 @@ export default function BusManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Bus Report Preview Modal */}
+            <BusReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                busData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>
