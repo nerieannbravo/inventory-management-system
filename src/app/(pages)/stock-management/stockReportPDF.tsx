@@ -1,4 +1,3 @@
-// stockReportPDF.tsx
 import React, { useState } from "react";
 import {
     Document,
@@ -18,6 +17,7 @@ interface StockItem {
     name: string;
     quantity: number;
     unit: string;
+    category: string;
     status: string;
     reorder: number;
 }
@@ -54,7 +54,7 @@ const reportStyles = StyleSheet.create({
         marginBottom: 5,
     },
     dateTime: {
-        color: '#555',
+        color: '#404040',
         fontSize: 10,
         fontStyle: 'italic',
         textAlign: 'center',
@@ -63,32 +63,32 @@ const reportStyles = StyleSheet.create({
     reportInfo: {
         fontSize: 10,
         textAlign: 'center',
-        color: '#666',
+        color: '#404040',
     },
     divider: {
         borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        borderBottomColor: '#B3B3B3',
         marginVertical: 15,
     },
     summarySection: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginBottom: 20,
-        backgroundColor: '#f8f9fa',
-        padding: 15,
+        marginBottom: 15,
+        backgroundColor: '#F3F2F9',
+        padding: 10,
         borderRadius: 5,
     },
     summaryItem: {
         alignItems: 'center',
     },
     summaryNumber: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: 'bold',
-        color: '#333',
+        color: 'black',
     },
     summaryLabel: {
         fontSize: 10,
-        color: '#666',
+        color: '#404040',
         marginTop: 2,
     },
     table: {
@@ -96,34 +96,38 @@ const reportStyles = StyleSheet.create({
     },
     tableHeader: {
         flexDirection: 'row',
-        backgroundColor: '#343a40',
+        backgroundColor: '#404040',
         padding: 10,
         fontWeight: 'bold',
         fontSize: 10,
         color: 'white',
+        alignItems: 'center',
+        minHeight: 30,
     },
     tableRow: {
         flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#B3B3B3',
         padding: 10,
         fontSize: 9,
         backgroundColor: 'white',
+        alignItems: 'center',
+        minHeight: 40,
     },
     alternateRow: {
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#F3F2F9',
     },
     itemName: {
         flex: 3,
         paddingRight: 8,
     },
-    quantity: {
+    currentStock: {
         flex: 1.5,
         textAlign: 'center',
         paddingRight: 8,
     },
-    unit: {
-        flex: 1.5,
+    category: {
+        flex: 2,
         textAlign: 'center',
         paddingRight: 8,
     },
@@ -133,7 +137,7 @@ const reportStyles = StyleSheet.create({
         paddingRight: 8,
     },
     reorder: {
-        flex: 1.5,
+        flex: 2,
         textAlign: 'center',
     },
     statusChip: {
@@ -143,28 +147,28 @@ const reportStyles = StyleSheet.create({
         textAlign: 'center',
     },
     statusAvailable: {
-        backgroundColor: '#d4edda',
-        color: '#155724',
+        backgroundColor: '#D1F7D1',
+        color: '#23915F',
     },
     statusOutOfStock: {
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
+        backgroundColor: '#FFDDDD',
+        color: '#A50000',
     },
     statusLowStock: {
-        backgroundColor: '#fff3cd',
-        color: '#856404',
+        backgroundColor: '#FFF5C2',
+        color: '#85643B',
     },
     statusMaintenance: {
-        backgroundColor: '#d1ecf1',
-        color: '#0c5460',
+        backgroundColor: '#D6E4FF',
+        color: '#0050B3',
     },
     statusExpired: {
-        backgroundColor: '#f5c6cb',
-        color: '#721c24',
+        backgroundColor: '#D9D9D9',
+        color: 'black',
     },
     footer: {
         position: 'absolute',
-        bottom: 50,
+        bottom: 40,
         left: 0,
         right: 0,
         textAlign: 'center',
@@ -173,7 +177,7 @@ const reportStyles = StyleSheet.create({
     },
     pageNumber: {
         position: 'absolute',
-        bottom: 30,
+        bottom: 20,
         left: 0,
         right: 25,
         textAlign: 'right',
@@ -289,10 +293,10 @@ const StockReportDocument: React.FC<{
                     {/* Table Header */}
                     <View style={reportStyles.tableHeader}>
                         <Text style={reportStyles.itemName}>Item Name</Text>
-                        <Text style={reportStyles.quantity}>Current Stock</Text>
-                        <Text style={reportStyles.unit}>Unit Measure</Text>
-                        <Text style={reportStyles.status}>Status</Text>
+                        <Text style={reportStyles.currentStock}>Current Stock</Text>
+                        <Text style={reportStyles.category}>Category</Text>
                         <Text style={reportStyles.reorder}>Reorder Level</Text>
+                        <Text style={reportStyles.status}>Status</Text>
                     </View>
 
                     {/* Table Rows */}
@@ -307,20 +311,20 @@ const StockReportDocument: React.FC<{
                             <Text style={reportStyles.itemName}>
                                 {item.name}
                             </Text>
-                            <Text style={reportStyles.quantity}>
-                                {item.quantity}
+                            <Text style={reportStyles.currentStock}>
+                                {item.quantity} {item.unit}
                             </Text>
-                            <Text style={reportStyles.unit}>
-                                {item.unit}
+                            <Text style={reportStyles.category}>
+                                {item.category}
+                            </Text>
+                            <Text style={reportStyles.reorder}>
+                                {item.reorder}
                             </Text>
                             <View style={reportStyles.status}>
                                 <Text style={getStatusStyle(item.status)}>
                                     {formatStatus(item.status)}
                                 </Text>
                             </View>
-                            <Text style={reportStyles.reorder}>
-                                {item.reorder}
-                            </Text>
                         </View>
                     ))}
                 </View>

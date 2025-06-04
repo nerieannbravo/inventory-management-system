@@ -50,7 +50,7 @@ const hardcodedData = [
         name: "Example Item D",
         quantity: 20,
         unit: "pcs",
-        category: "Machine & Equipments",
+        category: "Equipment",
         status: "maintenance",
         reorder: 8,
     },
@@ -59,8 +59,8 @@ const hardcodedData = [
         name: "Example Item E",
         quantity: 16,
         unit: "pcs",
-        category: "Consumables",
-        status: "expired",
+        category: "Tool",
+        status: "available",
         reorder: 3,
     },
     // Add more dummy data to test pagination
@@ -70,7 +70,7 @@ const hardcodedData = [
         quantity: 30,
         unit: "kg",
         category: "Consumables",
-        status: "available",
+        status: "expired",
         reorder: 12,
     },
     {
@@ -85,10 +85,10 @@ const hardcodedData = [
     {
         id: 8,
         name: "Example Item H",
-        quantity: 0,
-        unit: "kg",
-        category: "Consumables",
-        status: "out-of-stock",
+        quantity: 3,
+        unit: "pcs",
+        category: "Machine",
+        status: "maintenance",
         reorder: 20,
     },
     {
@@ -96,8 +96,8 @@ const hardcodedData = [
         name: "Example Item I",
         quantity: 3,
         unit: "pcs",
-        category: "Machine & Equipments",
-        status: "maintenance",
+        category: "Machine",
+        status: "available",
         reorder: 8,
     },
     {
@@ -320,7 +320,7 @@ export default function StocksManagement() {
         const result = await showStockDeleteConfirmation(rowData.name);
 
         if (result.isConfirmed) {
-            await showStockDeletedSuccess();
+            await showStockDeletedSuccess(rowData.name);
             console.log("Deleted row with id:", rowData.id);
             // Logic to delete the item from the data
             // In a real app, this would likely be an API call
