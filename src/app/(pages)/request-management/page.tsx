@@ -11,6 +11,7 @@ import AddRequestModal from "./addRequestModal";
 import ViewRequestModal from "./viewRequestModal";
 import EditRequestModal from "./editRequestModal";
 import { RequestForm } from "./addRequestModal";
+import { RequestReportPreviewModal, useRequestReportPDF } from "./requestReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -109,6 +110,15 @@ export default function RequestManagement() {
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
+
+    // Add the request report PDF hook
+    const {
+        showReportPreview,
+        handlePreviewReport,
+        handleCloseReportPreview,
+        reportTitle,
+        setReportTitle
+    } = useRequestReportPDF(filteredData);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -313,6 +323,21 @@ export default function RequestManagement() {
         }
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // You can customize the report title based on current filters
+        let title = "Request Management Report";
+
+        // Add filter information to title if any filters are applied
+        const hasFilters = filteredData.length !== hardcodedData.length;
+        if (hasFilters) {
+            title += " (Filtered Results)";
+        }
+
+        setReportTitle(title);
+        handlePreviewReport();
+    };
+
     return (
         <div className="card">
             <h1 className="title">Request Management</h1>
@@ -334,7 +359,7 @@ export default function RequestManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button type="button" className="generate-btn">
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -367,7 +392,7 @@ export default function RequestManagement() {
                                         <td>{item.empName}</td>
                                         <td>{item.type}</td>
                                         <td>{item.itemName}</td>
-                                        <td>
+                                        <td className="table-status">
                                             <span className={`chip ${item.reqStatus}`}>
                                                 {formatStatus(item.reqStatus)}
                                             </span>
@@ -403,6 +428,14 @@ export default function RequestManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Request Report Preview Modal - Add this */}
+            <RequestReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                requestData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>

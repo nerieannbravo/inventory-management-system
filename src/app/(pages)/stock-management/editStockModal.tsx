@@ -13,6 +13,7 @@ interface EditStockModalProps {
 		name: string;
 		quantity: number;
 		unit: string;
+		category: string;
 		status: string;
 		reorder: number;
 		// Additional fields would be included in a real application
@@ -28,7 +29,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 		quantity: item.quantity,
 		unit: item.unit,
 		reorder: item.reorder,
-		category: "", // Default value, would be populated from item in a real app
+		category: item.category,
 		status: item.status,
 		expiration: "" // Default value, would be populated from item in a real app
 	});
@@ -165,13 +166,12 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						{/* Category */}
 						<div className="form-group category">
 							<label>Category</label>
-							<select disabled
+							<input disabled
+								className={formErrors?.category ? "invalid-input" : ""}
+								type="text"
 								value={formData.category}
 								onChange={(e) => handleChange("category", e.target.value)}
-							>
-								<option value="consumable">Consumable</option>
-								<option value="mach-equip">Machine/Equipment</option>
-							</select>
+							/>
 						</div>
 
 						{/* Status */}
@@ -188,16 +188,16 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 					</div>
 
 					{/* Expiration Date */}
-					{/* {formData.category === "consumable" && ( */}
-					<div className="form-group expiration">
-						<label>Expiration Date</label>
-						<input disabled
-							type="date"
-							value={formData.expiration}
-							onChange={(e) => handleChange("expiration", e.target.value)}
-						/>
-					</div>
-					{/* )} */}
+					{formData.category === "Consumables" && (
+						<div className="form-group expiration">
+							<label>Expiration Date</label>
+							<input disabled
+								type="date"
+								value={formData.expiration}
+								onChange={(e) => handleChange("expiration", e.target.value)}
+							/>
+						</div>
+					)}
 
 				</form>
 			</div>

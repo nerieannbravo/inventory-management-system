@@ -206,12 +206,10 @@ export const showStockDeletedSuccess = (item_name: string) => {
 };
 
 // ----- Remove Expired Confirmation ----- //
-export const showDeleteExpiredConfirmation = (batch_id: string) => {
+export const showDeleteExpiredConfirmation = () => {
     return Swal.fire({
         title: 'Remove Expired Item',
-        html: 
-            `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>
-            <span id="hidden-batch-id" style="display: none;">${batch_id}</span>`,
+        html: `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Delete',
@@ -225,11 +223,10 @@ export const showDeleteExpiredConfirmation = (batch_id: string) => {
 };
 
 // ----- Remove Expired Success ----- //
-export const showDeleteExpiredSuccess = (batch_id: string) => {
+export const showDeleteExpiredSuccess = () => {
     return Swal.fire({
         title: 'Deleted!',
-        html: `<p>An expired item has been deleted.</p>
-                <span id="hidden-batch-id" style="display: none;">${batch_id}</span>`,
+        html: `<p>An expired item has been deleted.</p>`,
         icon: 'success',
         background: 'white',
         timer: 2000,

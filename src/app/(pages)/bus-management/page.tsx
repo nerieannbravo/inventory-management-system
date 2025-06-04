@@ -323,7 +323,7 @@ export default function BusManagement() {
                                         <td>{item.bodyNumber}</td>
                                         <td>{item.bodyBuilder}</td>
                                         <td>{item.route}</td>
-                                        <td>
+                                        <td className="table-status">
                                             <span className={`chip ${item.busStatus}`}>
                                                 {formatStatus(item.busStatus)}
                                             </span>

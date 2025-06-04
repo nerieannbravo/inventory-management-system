@@ -7,6 +7,7 @@ interface ViewStockModalProps {
 		name: string;
 		quantity: number;
 		unit: string;
+		category: string;
 		status: string;
 		reorder: number;
 		// Additional fields would be included in a real application
@@ -58,7 +59,7 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 					<div className="form-row">
 						<div className="form-group">
 							<label>Category</label>
-							<p>Consumable</p>
+							<p>{item.category}</p>
 						</div>
 
 						<div className="form-group">
