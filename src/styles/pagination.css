@@ -48,8 +48,13 @@
     background-color: transparent;
     cursor: pointer;
     font-size: 14px;
-    color: var(--secondary-text-color);
+    color: var(--border-color);
     transition: all 0.3s ease-in-out;
+}
+
+.pagination-button-prevnext {
+    color: var(--secondary-text-color);
+    opacity: 0.6;
 }
 
 .pagination-button:hover,
