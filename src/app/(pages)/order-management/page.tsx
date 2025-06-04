@@ -11,6 +11,7 @@ import AddOrderModal from "./addOrderModal";
 import ViewOrderModal from "./viewOrderModal";
 import EditOrderModal from "./editOrderModal";
 import { OrderForm } from "./addOrderModal";
+import { OrderReportPreviewModal, useOrderReportPDF } from "./orderReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -56,6 +57,15 @@ export default function OrderManagement() {
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
+
+    // Add the order report PDF hook
+    const {
+        showReportPreview,
+        handlePreviewReport,
+        handleCloseReportPreview,
+        reportTitle,
+        setReportTitle
+    } = useOrderReportPDF(filteredData);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -245,6 +255,21 @@ export default function OrderManagement() {
         }
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // You can customize the report title based on current filters
+        let title = "Order Management Report";
+
+        // Add filter information to title if any filters are applied
+        const hasFilters = filteredData.length !== hardcodedData.length;
+        if (hasFilters) {
+            title += " (Filtered Results)";
+        }
+
+        setReportTitle(title);
+        handlePreviewReport();
+    };
+
     return (
         <div className="card">
             <h1 className="title">Order Management</h1>
@@ -266,7 +291,7 @@ export default function OrderManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button type="button" className="generate-btn">
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -333,6 +358,14 @@ export default function OrderManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Order Report Preview Modal */}
+            <OrderReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                orderData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>
