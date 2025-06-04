@@ -1,5 +1,5 @@
 import Swal from 'sweetalert2';
-import "@/styles/popup.css"
+import "@/styles/popup.css";
 
 //-------------------- GENERAL ALERTS -------------------//
 
@@ -82,11 +82,53 @@ export const showStockSavedSuccess = (count: number) => {
     });
 };
 
+// ----- Duplicate Item Error ----- //
+export const showDuplicateItemError = () => {
+    return Swal.fire({
+        title: 'Duplicate Item',
+        text: 'This item is already selected in another form. Please select a different item.',
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Stock Save Error ----- //
+export const showStockSaveError = (errorMessage?: string) => {
+    return Swal.fire({
+        title: 'Error',
+        html: errorMessage || 'Failed to save stock items. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Partial Success Warning ----- //
+export const showPartialSuccessWarning = () => {
+    return Swal.fire({
+        title: 'Partial Success',
+        text: 'Some items were saved successfully, but others failed. Please check the results.',
+        icon: 'warning',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 // ----- Edit Stock Confirmation ----- //
-export const showStockUpdateConfirmation = (itemName: string) => {
+export const showStockUpdateConfirmation = (item_name: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the stock details for <strong>${itemName}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the stock details for <strong>${item_name}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -116,10 +158,10 @@ export const showStockUpdatedSuccess = () => {
 };
 
 // ----- Delete Stock Confirmation ----- //
-export const showStockDeleteConfirmation = (itemName: string) => {
+export const showStockDeleteConfirmation = (item_name: string) => {
     return Swal.fire({
         title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
+        html: `<p>Are you sure you want to delete <strong>${item_name}</strong>? You will not be able to undo this.</p>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Delete',
@@ -132,11 +174,26 @@ export const showStockDeleteConfirmation = (itemName: string) => {
     });
 };
 
+// ----- Stock Save Error ----- //
+export const showDeleteError = (item_name: string, current_stock: number) => {
+    return Swal.fire({
+        title: 'Delete Action Denied',
+        html: `<p>Cannot delete <strong>${item_name}</strong>, it still has ${current_stock} items. 
+        Please reduce the stock to 0 before deleting this item.</p>`,
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 // ----- Delete Stock Success ----- //
-export const showStockDeletedSuccess = () => {
+export const showStockDeletedSuccess = (item_name: string) => {
     return Swal.fire({
         title: 'Deleted!',
-        text: 'An item has been deleted.',
+        html: `<p><strong>${item_name}</strong> has been deleted.</p>`,
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -149,10 +206,12 @@ export const showStockDeletedSuccess = () => {
 };
 
 // ----- Remove Expired Confirmation ----- //
-export const showDeleteExpiredConfirmation = () => {
+export const showDeleteExpiredConfirmation = (batch_id: string) => {
     return Swal.fire({
         title: 'Remove Expired Item',
-        html: `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>`,
+        html: 
+            `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>
+            <span id="hidden-batch-id" style="display: none;">${batch_id}</span>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Delete',
@@ -166,10 +225,11 @@ export const showDeleteExpiredConfirmation = () => {
 };
 
 // ----- Remove Expired Success ----- //
-export const showDeleteExpiredSuccess = () => {
+export const showDeleteExpiredSuccess = (batch_id: string) => {
     return Swal.fire({
         title: 'Deleted!',
-        text: 'An expired item has been deleted.',
+        html: `<p>An expired item has been deleted.</p>
+                <span id="hidden-batch-id" style="display: none;">${batch_id}</span>`,
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -180,6 +240,8 @@ export const showDeleteExpiredSuccess = () => {
         }
     });
 };
+
+
 
 //-------------------- REQUEST MANAGEMENT SPECIFIC -------------------//
 
