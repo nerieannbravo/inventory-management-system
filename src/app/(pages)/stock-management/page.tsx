@@ -446,7 +446,7 @@ export default function StocksManagement() {
                 modalContent={modalContent}
             />
 
-            {/* Stock Report Preview Modal - Add this */}
+            {/* Stock Report Preview Modal */}
             <StockReportPreviewModal
                 isOpen={showReportPreview}
                 onClose={handleCloseReportPreview}
