@@ -239,7 +239,7 @@ const BusReportDocument: React.FC<{
                         })}
                     </Text>
                     <Text style={reportStyles.reportInfo}>
-                        Total Item Requests: {totalBus}
+                        Total Bus: {totalBus}
                     </Text>
                 </View>
 
