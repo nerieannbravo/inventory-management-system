@@ -1,0 +1,134 @@
+/* ----- PAGINATION CONTAINER ----- */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ----- PAGINATION DROPDOWN ----- */
+.pagination-dropdown {
+    max-width: max-content;
+    padding: 6px;
+    color: var(--secondary-text-color);
+    background-color: var(--foreground-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination-dropdown:focus {
+    outline: none;
+    border-color: var(--primary-text-color);
+}
+
+/* ----- PAGINATION BUTTONS ----- */
+.pagination-button-container {
+    display: flex;
+    width: 40%;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.pagination-button,
+.pagination-button-prevnext {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    border: none;
+    border-radius: 50%;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--border-color);
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination-button-prevnext {
+    color: var(--secondary-text-color);
+    opacity: 0.6;
+}
+
+.pagination-button:hover,
+.pagination-button-prevnext:hover {
+    background-color: var(--table-row-color);
+}
+
+.pagination-button-prevnext {
+    font-size: 18px;
+}
+
+.pagination-button.active {
+    background-color: var(--primary-color);
+    color: var(--foreground-color);
+    font-weight: 600;
+}
+
+.pagination-button-prevnext:disabled {
+    background-color: transparent;
+    color: var(--border-color);
+    cursor: not-allowed;
+}
+
+/* Ellipsis for skipped pages */
+.pagination-ellipsis {
+    padding: 0 8px;
+    color: #6C757D;
+}
+
+/* ----- PAGINATION GO TO SECTION ----- */
+.pagination-goto-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.pagination-go-to {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: var(--secondary-text-color);
+}
+
+.pagination-input {
+    width: max-content;
+    max-width: 80px;
+    padding: 4px;
+    color: var(--secondary-text-color);
+    background-color: var(--foreground-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination-input:focus {
+    outline: none;
+    border-color: var(--primary-text-color);
+}
+
+.pagination-go-button {
+    padding: 4.5px 8px;
+    background-color: var(--border-color);
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination-go-button:hover {
+    background-color: var(--table-header-color);
+}
