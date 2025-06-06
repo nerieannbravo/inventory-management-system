@@ -521,38 +521,3 @@ export const showBusUpdatedSuccess = () => {
         }
     });
 };
-
-
-//-------------------- GENERATE REPORT SPECIFIC -------------------//
-export const showGenerateReportConfirmation = () => {
-    return Swal.fire({
-        title: 'Generate Report',
-        html: '<p>Are you sure you want to download a report with the current data?</p>',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Generate Report',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        confirmButtonColor: '#961C1E',
-        cancelButtonColor: '#ECECEC',
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-export const showReportGeneratedSuccess = () => {
-    return Swal.fire({
-        icon: 'success',
-        title: 'Report Generated!',
-        text: 'Your report has been dowloaded successfully.',
-        confirmButtonColor: '#961C1E',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
