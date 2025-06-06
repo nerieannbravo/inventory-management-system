@@ -17,7 +17,7 @@ interface ViewBusModalProps {
 export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusModalProps) {
     return (
         <>
-            <button className="close-modal-btn" onClick={onClose}>
+            <button className="close-modal-btn view" onClick={onClose}>
                 <i className="ri-close-line"></i>
             </button>
 

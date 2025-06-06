@@ -17,7 +17,7 @@ interface ViewRequestModalProps {
 export default function ViewRequestModal({ item, formatStatus, onClose }: ViewRequestModalProps) {
 	return (
 		<>
-			<button className="close-modal-btn" onClick={onClose}>
+			<button className="close-modal-btn view" onClick={onClose}>
 				<i className="ri-close-line"></i>
 			</button>
 
@@ -51,7 +51,7 @@ export default function ViewRequestModal({ item, formatStatus, onClose }: ViewRe
 						</div>
 
 						<div className="form-group">
-							<label>Quantity</label>
+							<label>Requested Quantity</label>
 							<p>55</p>
 						</div>
 					</div>

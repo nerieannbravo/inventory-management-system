@@ -16,7 +16,7 @@ interface ViewOrderModalProps {
 export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrderModalProps) {
     return (
         <>
-            <button className="close-modal-btn" onClick={onClose}>
+            <button className="close-modal-btn view" onClick={onClose}>
                 <i className="ri-close-line"></i>
             </button>
 

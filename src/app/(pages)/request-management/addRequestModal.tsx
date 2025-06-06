@@ -66,14 +66,14 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 			try {
 				setIsLoadingEmployees(true);
 				const employeeData = await fetchEmployees();
-				
+
 				// Sort employees alphabetically by full name (first name + last name)
 				const sortedEmployees = employeeData.sort((a, b) => {
 					const fullNameA = `${a.emp_first_name} ${a.emp_last_name}`.toLowerCase();
 					const fullNameB = `${b.emp_first_name} ${b.emp_last_name}`.toLowerCase();
 					return fullNameA.localeCompare(fullNameB);
 				});
-				
+
 				setEmployees(sortedEmployees);
 			} catch (error) {
 				console.error('Failed to load employees:', error);
@@ -91,13 +91,13 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 			try {
 				setIsLoadingItems(true);
 				const response = await fetch('/api/item');
-				
+
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
-				
+
 				const itemsData = await response.json();
-				
+
 				setInventoryItems(itemsData.items || []);
 			} catch (error) {
 				console.error('Failed to load inventory items:', error);
@@ -142,12 +142,12 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		} else if (field === "type") {
 			// Update type and automatically set status based on request type
 			const newStatus = getStatusFromRequestType(value as RequestType);
-			
+
 			setRequestForms((prev) =>
 				prev.map((form, i) =>
-					i === index ? { 
-						...form, 
-						[field]: value, 
+					i === index ? {
+						...form,
+						[field]: value,
 						reqStatus: newStatus,
 						// Clear expectedDate if changing from borrow to consume
 						expectedDate: value === RequestType.CONSUME ? "" : form.expectedDate
@@ -200,6 +200,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 			if (!form.reqStatus) errorObj.reqStatus = "Request status is required";
 			if (!form.itemName) errorObj.itemName = "Item name is required";
 			if (form.reqQuantity <= 0) errorObj.reqQuantity = "Quantity must be more than 0";
+			// if (form.reqQuantity > ) errorObj.reqQuantity = "Quantity must be less than the current stock";
 			if (!form.purpose) errorObj.purpose = "Request purpose is required";
 
 			// Validate expectedDate only if type is "BORROW"
@@ -315,8 +316,8 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 									className="readonly-input"
 									value={
 										form.reqStatus === RequestStatus.NOT_RETURNED ? 'Not Returned' :
-										form.reqStatus === RequestStatus.CONSUMED ? 'Consumed' :
-										form.reqStatus === RequestStatus.RETURNED ? 'Returned' : ''
+											form.reqStatus === RequestStatus.CONSUMED ? 'Consumed' :
+												form.reqStatus === RequestStatus.RETURNED ? 'Returned' : ''
 									}
 									readOnly
 									disabled={!form.type}
@@ -326,31 +327,39 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 							</div>
 						</div>
 
-						<div className="form-row">
-							{/* Item Name */}
-							<div className="form-group">
-								<label>Item Name</label>
-								<select
-									className={formErrors[index]?.itemName ? "invalid-input" : ""}
-									value={form.itemName}
-									onChange={(e) => handleFormChange(index, "itemName", e.target.value)}
-									disabled={isLoadingItems}
-								>
-									<option value="" disabled>
-										{isLoadingItems ? "Loading items..." : "Select item name..."}
+						{/* Item Name */}
+						<div className="form-group">
+							<label>Item Name</label>
+							<select
+								className={formErrors[index]?.itemName ? "invalid-input" : ""}
+								value={form.itemName}
+								onChange={(e) => handleFormChange(index, "itemName", e.target.value)}
+								disabled={isLoadingItems}
+							>
+								<option value="" disabled>
+									{isLoadingItems ? "Loading items..." : "Select item name..."}
+								</option>
+								{inventoryItems.map((item) => (
+									<option key={item.item_id} value={item.item_id}>
+										{item.item_name}
 									</option>
-									{inventoryItems.map((item) => (
-										<option key={item.item_id} value={item.item_id}>
-											{item.item_name}
-										</option>
-									))}
-								</select>
-								<p className="add-error-message">{formErrors[index]?.itemName}</p>
+								))}
+							</select>
+							<p className="add-error-message">{formErrors[index]?.itemName}</p>
+						</div>
+
+						<div className="form-row">
+							{/* Current Stock */}
+							<div className="form-group">
+								<label>Current Stock</label>
+								<input disabled
+									type="text"
+								/>
 							</div>
 
-							{/* Quantity */}
+							{/* Requested Quantity */}
 							<div className="form-group">
-								<label>Quantity</label>
+								<label>Requested Quantity</label>
 								<input
 									className={formErrors[index]?.reqQuantity ? "invalid-input" : ""}
 									type="number"

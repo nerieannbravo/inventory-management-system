@@ -157,9 +157,9 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 							<p className="edit-error-message"></p>
 						</div>
 
-						{/* Quantity */}
+						{/* Requested Quantity */}
 						<div className="form-group">
-							<label>Quantity</label>
+							<label>Requested Quantity</label>
 							<input disabled
 								className={formErrors?.reqQuantity ? "invalid-input" : ""}
 								type="number"
