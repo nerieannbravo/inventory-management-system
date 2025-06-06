@@ -27,7 +27,7 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 
 	return (
 		<>
-			<button className="close-modal-btn" onClick={onClose}>
+			<button className="close-modal-btn view" onClick={onClose}>
 				<i className="ri-close-line"></i>
 			</button>
 

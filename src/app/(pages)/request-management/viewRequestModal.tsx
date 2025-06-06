@@ -17,7 +17,7 @@ interface ViewRequestModalProps {
 export default function ViewRequestModal({ item, formatStatus, onClose }: ViewRequestModalProps) {
 	return (
 		<>
-			<button className="close-modal-btn" onClick={onClose}>
+			<button className="close-modal-btn view" onClick={onClose}>
 				<i className="ri-close-line"></i>
 			</button>
 
