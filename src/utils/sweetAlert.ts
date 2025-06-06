@@ -527,7 +527,7 @@ export const showBusUpdatedSuccess = () => {
 export const showGenerateReportConfirmation = () => {
     return Swal.fire({
         title: 'Generate Report',
-        html: '<p>Are you sure you want to generate a report with the current data?</p>',
+        html: '<p>Are you sure you want to download a report with the current data?</p>',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Generate Report',
@@ -545,7 +545,7 @@ export const showReportGeneratedSuccess = () => {
     return Swal.fire({
         icon: 'success',
         title: 'Report Generated!',
-        text: 'Your report has been generated successfully.',
+        text: 'Your report has been dowloaded successfully.',
         confirmButtonColor: '#961C1E',
         background: 'white',
         timer: 2000,

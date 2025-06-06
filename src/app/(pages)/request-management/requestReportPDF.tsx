@@ -1,3 +1,4 @@
+// src/components/reports/request/RequestReportPDF.tsx
 import React, { useState } from "react";
 import {
     Document,
@@ -6,9 +7,16 @@ import {
     View,
     PDFViewer,
     PDFDownloadLink,
-    StyleSheet
 } from '@react-pdf/renderer';
 
+import { reportStyles } from '@/styles/pdfReportStyles';
+import {
+    formatDate,
+    formatTime,
+    generateFileName,
+    formatRequestStatus,
+    getRequestStatusStyle
+} from '@/utils/pdfReportUtils';
 import "@/styles/pdfModal.css";
 
 // Interface definitions
@@ -28,156 +36,6 @@ interface RequestReportPDFProps {
     reportTitle?: string;
 }
 
-// PDF Styles
-const reportStyles = StyleSheet.create({
-    page: {
-        padding: 50,
-        fontFamily: 'Helvetica',
-    },
-    header: {
-        flexDirection: 'column',
-        justifyContent: 'center',
-        marginBottom: 20,
-        marginTop: 10,
-    },
-    companyName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: 'medium',
-        textAlign: 'center',
-        marginBottom: 5,
-    },
-    dateTime: {
-        color: '#404040',
-        fontSize: 10,
-        fontStyle: 'italic',
-        textAlign: 'center',
-        marginBottom: 5,
-    },
-    reportInfo: {
-        fontSize: 10,
-        textAlign: 'center',
-        color: '#404040',
-    },
-    divider: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#B3B3B3',
-        marginVertical: 15,
-    },
-    summarySection: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginBottom: 15,
-        backgroundColor: '#F3F2F9',
-        padding: 10,
-        borderRadius: 5,
-    },
-    summaryItem: {
-        alignItems: 'center',
-    },
-    summaryNumber: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: 'black',
-    },
-    summaryLabel: {
-        fontSize: 10,
-        color: '#404040',
-        marginTop: 2,
-    },
-    table: {
-        marginTop: 10,
-    },
-    tableHeader: {
-        flexDirection: 'row',
-        backgroundColor: '#404040',
-        padding: 10,
-        fontWeight: 'bold',
-        fontSize: 10,
-        color: 'white',
-        alignItems: 'center',
-        minHeight: 30,
-    },
-    tableRow: {
-        flexDirection: 'row',
-        borderBottomWidth: 0.5,
-        borderBottomColor: '#B3B3B3',
-        padding: 10,
-        fontSize: 9,
-        backgroundColor: 'white',
-        alignItems: 'center',
-        minHeight: 40,
-    },
-    alternateRow: {
-        backgroundColor: '#F3F2F9',
-    },
-    empName: {
-        flex: 3,
-        textAlign: 'center',
-        paddingRight: 8,
-    },
-    reqType: {
-        flex: 2,
-        textAlign: 'center',
-        paddingRight: 8,
-    },
-    itemName: {
-        flex: 3,
-        textAlign: 'center',
-        paddingRight: 8,
-    },
-    reqDate: {
-        flex: 2,
-        textAlign: 'center',
-        paddingRight: 8,
-    },
-    status: {
-        flex: 2,
-        textAlign: 'center',
-    },
-    statusChip: {
-        padding: 3,
-        borderRadius: 3,
-        fontSize: 8,
-        textAlign: 'center',
-    },
-    statusReturned: {
-        backgroundColor: '#D1F7D1',
-        color: '#23915F',
-    },
-    statusNotReturned: {
-        backgroundColor: '#FFDDDD',
-        color: '#A50000',
-    },
-    statusConsumed: {
-        backgroundColor: '#D6E4FF',
-        color: '#0050B3',
-    },
-    footer: {
-        position: 'absolute',
-        bottom: 40,
-        left: 0,
-        right: 0,
-        textAlign: 'center',
-        fontSize: 8,
-        color: '#555',
-    },
-    pageNumber: {
-        position: 'absolute',
-        bottom: 20,
-        left: 0,
-        right: 25,
-        textAlign: 'right',
-        fontSize: 10,
-        color: '#555',
-    },
-});
-
 // PDF Document Component
 const RequestReportDocument: React.FC<{
     requestData: RequestItem[],
@@ -192,34 +50,6 @@ const RequestReportDocument: React.FC<{
     const notReturnedItems = requestData.filter(item => item.reqStatus === 'not-returned').length;
     const consumedItems = requestData.filter(item => item.reqStatus === 'consumed').length;
 
-    // Format status for display
-    const formatStatus = (reqStatus: string) => {
-        switch (reqStatus) {
-            case "returned":
-                return "Returned";
-            case "not-returned":
-                return "Not Returned";
-            case "consumed":
-                return "Consumed";
-            default:
-                return reqStatus;
-        }
-    };
-
-    // Get status style
-    const getStatusStyle = (reqStatus: string) => {
-        switch (reqStatus) {
-            case "returned":
-                return [reportStyles.statusChip, reportStyles.statusReturned];
-            case "not-returned":
-                return [reportStyles.statusChip, reportStyles.statusNotReturned];
-            case "consumed":
-                return [reportStyles.statusChip, reportStyles.statusConsumed];
-            default:
-                return [reportStyles.statusChip];
-        }
-    };
-
     return (
         <Document>
             <Page size="LETTER" style={reportStyles.page}>
@@ -228,15 +58,7 @@ const RequestReportDocument: React.FC<{
                     <Text style={reportStyles.companyName}>Agila Bus Transport Corp.</Text>
                     <Text style={reportStyles.title}>{reportTitle}</Text>
                     <Text style={reportStyles.dateTime}>
-                        Generated on {today.toLocaleDateString('en-US', {
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric'
-                        })} at {today.toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true
-                        })}
+                        Generated on {formatDate(today)} at {formatTime(today)}
                     </Text>
                     <Text style={reportStyles.reportInfo}>
                         Total Item Requests: {totalItems}
@@ -266,11 +88,11 @@ const RequestReportDocument: React.FC<{
                 <View style={reportStyles.table}>
                     {/* Table Header */}
                     <View style={reportStyles.tableHeader}>
-                        <Text style={reportStyles.empName}>Employee Name</Text>
-                        <Text style={reportStyles.reqType}>Request Type</Text>
-                        <Text style={reportStyles.itemName}>Item Name</Text>
-                        <Text style={reportStyles.reqDate}>Request Date</Text>
-                        <Text style={reportStyles.status}>Status</Text>
+                        <Text style={reportStyles.columnLarge}>Employee Name</Text>
+                        <Text style={reportStyles.columnMedium}>Request Type</Text>
+                        <Text style={reportStyles.columnLarge}>Item Name</Text>
+                        <Text style={reportStyles.columnMedium}>Request Date</Text>
+                        <Text style={reportStyles.columnMedium}>Status</Text>
                     </View>
 
                     {/* Table Rows */}
@@ -282,21 +104,21 @@ const RequestReportDocument: React.FC<{
                                 index % 2 === 1 ? reportStyles.alternateRow : {}
                             ]}
                         >
-                            <Text style={reportStyles.empName}>
+                            <Text style={reportStyles.columnLarge}>
                                 {item.empName}
                             </Text>
-                            <Text style={reportStyles.reqType}>
+                            <Text style={reportStyles.columnMedium}>
                                 {item.type}
                             </Text>
-                            <Text style={reportStyles.itemName}>
+                            <Text style={reportStyles.columnLarge}>
                                 {item.itemName}
                             </Text>
-                            <Text style={reportStyles.reqDate}>
+                            <Text style={reportStyles.columnMedium}>
                                 {item.reqDate}
                             </Text>
-                            <View style={reportStyles.status}>
-                                <Text style={getStatusStyle(item.reqStatus)}>
-                                    {formatStatus(item.reqStatus)}
+                            <View style={reportStyles.statusContainer}>
+                                <Text style={getRequestStatusStyle(item.reqStatus)}>
+                                    {formatRequestStatus(item.reqStatus)}
                                 </Text>
                             </View>
                         </View>
@@ -326,12 +148,6 @@ export const RequestReportPreviewModal: React.FC<RequestReportPDFProps> = ({
 }) => {
     if (!isOpen) return null;
 
-    const generateFileName = () => {
-        const today = new Date();
-        const dateStr = today.toISOString().slice(0, 10);
-        return `request-report-${dateStr}.pdf`;
-    };
-
     return (
         <div className="pdf-modal-overlay">
             <div className="pdf-modal">
@@ -354,7 +170,7 @@ export const RequestReportPreviewModal: React.FC<RequestReportPDFProps> = ({
                                     reportTitle={reportTitle}
                                 />
                             }
-                            fileName={generateFileName()}
+                            fileName={generateFileName('request')}
                             className="download-btn"
                         >
                             {({ blob, url, loading, error }) =>
