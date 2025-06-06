@@ -26,6 +26,7 @@ export interface RequestForm {
 	type: RequestType | '',
 	reqStatus: RequestStatus | '',
 	itemName: string,
+	itemStock: number,
 	reqQuantity: number,
 	purpose: string,
 	expectedDate: string,
@@ -47,6 +48,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		type: "",
 		reqStatus: "",
 		itemName: "",
+		itemStock: 0,
 		reqQuantity: 0,
 		purpose: "",
 		expectedDate: "",
@@ -200,7 +202,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 			if (!form.reqStatus) errorObj.reqStatus = "Request status is required";
 			if (!form.itemName) errorObj.itemName = "Item name is required";
 			if (form.reqQuantity <= 0) errorObj.reqQuantity = "Quantity must be more than 0";
-			// if (form.reqQuantity > ) errorObj.reqQuantity = "Quantity must be less than the current stock";
+			if (form.reqQuantity > form.itemStock) errorObj.reqQuantity = "Quantity must be less than the current stock";
 			if (!form.purpose) errorObj.purpose = "Request purpose is required";
 
 			// Validate expectedDate only if type is "BORROW"
@@ -354,6 +356,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								<label>Current Stock</label>
 								<input disabled
 									type="text"
+									value={form.itemStock}
 								/>
 							</div>
 

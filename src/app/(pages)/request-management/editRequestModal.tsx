@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 
-import { showRequestUpdateConfirmation, showRequestUpdatedSuccess,
-	showCloseWithoutUpdatingConfirmation} from "@/utils/sweetAlert";
+import {
+	showRequestUpdateConfirmation, showRequestUpdatedSuccess,
+	showCloseWithoutUpdatingConfirmation
+} from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
@@ -115,6 +117,19 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 						<p className="edit-error-message"></p>
 					</div>
 
+					{/* Item Name */}
+					<div className="form-group">
+						<label>Item Name</label>
+						<input disabled
+							className={formErrors?.itemName ? "invalid-input" : ""}
+							type="text"
+							value={formData.itemName}
+							onChange={(e) => handleChange("itemName", e.target.value)}
+						/>
+						<p className="edit-error-message"></p>
+					</div>
+
+
 					<div className="form-row">
 						{/* Request Type */}
 						<div className="form-group">
@@ -126,6 +141,18 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 								onChange={(e) => handleChange("type", e.target.value)}
 							/>
 							<p className="edit-error-message"></p>
+						</div>
+
+						{/* Requested Quantity */}
+						<div className="form-group">
+							<label>Requested Quantity</label>
+							<input disabled
+								className={formErrors?.reqQuantity ? "invalid-input" : ""}
+								type="number"
+								min="0"
+								value={formData.reqQuantity}
+								onChange={(e) => handleChange("reqQuantity", Number(e.target.value))}
+							/>
 						</div>
 
 						{/* Status */}
@@ -141,32 +168,6 @@ export default function EditRequestModal({ item, onSave, onClose }: EditRequestM
 								{/* <option value="consumed">Consumed</option> */}
 							</select>
 							<p className="edit-error-message">{formErrors?.reqStatus}</p>
-						</div>
-					</div>
-
-					<div className="form-row">
-						{/* Item Name */}
-						<div className="form-group">
-							<label>Item Name</label>
-							<input disabled
-								className={formErrors?.itemName ? "invalid-input" : ""}
-								type="text"
-								value={formData.itemName}
-								onChange={(e) => handleChange("itemName", e.target.value)}
-							/>
-							<p className="edit-error-message"></p>
-						</div>
-
-						{/* Requested Quantity */}
-						<div className="form-group">
-							<label>Requested Quantity</label>
-							<input disabled
-								className={formErrors?.reqQuantity ? "invalid-input" : ""}
-								type="number"
-								min="0"
-								value={formData.reqQuantity}
-								onChange={(e) => handleChange("reqQuantity", Number(e.target.value))}
-							/>
 						</div>
 					</div>
 
