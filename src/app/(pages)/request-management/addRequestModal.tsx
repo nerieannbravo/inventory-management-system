@@ -13,6 +13,7 @@ export interface RequestForm {
 	type: string,
 	reqStatus: string,
 	itemName: string,
+	itemStock: number,
 	reqQuantity: number,
 	purpose: string,
 	expectedDate: string,
@@ -34,6 +35,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		type: "",
 		reqStatus: "",
 		itemName: "",
+		itemStock: 0,
 		reqQuantity: 0,
 		purpose: "",
 		expectedDate: "",
@@ -255,28 +257,36 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 							</div>
 						</div>
 
+						{/* Item Name */}
+						<div className="form-group">
+							<label>Item Name</label>
+							<select
+								className={formErrors[index]?.itemName ? "invalid-input" : ""}
+								value={form.itemName}
+								onChange={(e) => handleFormChange(index, "itemName", e.target.value)}
+							>
+								<option value="" disabled>Select item name...</option>
+								<option value="1">Item 1</option>
+								<option value="2">Item 2</option>
+								<option value="3">Item 3</option>
+								<option value="4">Item 4</option>
+								<option value="5">Item 5</option>
+							</select>
+							<p className="add-error-message">{formErrors[index]?.itemName}</p>
+						</div>
+
 						<div className="form-row">
-							{/* Item Name */}
+							{/* Current Stock */}
 							<div className="form-group">
-								<label>Item Name</label>
-								<select
-									className={formErrors[index]?.itemName ? "invalid-input" : ""}
-									value={form.itemName}
-									onChange={(e) => handleFormChange(index, "itemName", e.target.value)}
-								>
-									<option value="" disabled>Select item name...</option>
-									<option value="1">Item 1</option>
-									<option value="2">Item 2</option>
-									<option value="3">Item 3</option>
-									<option value="4">Item 4</option>
-									<option value="5">Item 5</option>
-								</select>
-								<p className="add-error-message">{formErrors[index]?.itemName}</p>
+								<label>Current Stock</label>
+								<input disabled
+									type="text"
+								/>
 							</div>
 
-							{/* Quantity */}
+							{/* Requested Quantity */}
 							<div className="form-group">
-								<label>Quantity</label>
+								<label>Requested Quantity</label>
 								<input
 									className={formErrors[index]?.reqQuantity ? "invalid-input" : ""}
 									type="number"

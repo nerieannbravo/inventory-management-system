@@ -32,6 +32,11 @@ export default function ViewRequestModal({ item, formatStatus, onClose }: ViewRe
 						<p>{item.empName}</p>
 					</div>
 
+					<div className="form-group">
+						<label>Item Name</label>
+						<p>{item.itemName}</p>
+					</div>
+
 					<div className="form-row">
 						<div className="form-group">
 							<label>Request Type</label>
@@ -39,20 +44,13 @@ export default function ViewRequestModal({ item, formatStatus, onClose }: ViewRe
 						</div>
 
 						<div className="form-group">
+							<label>Requested Quantity</label>
+							<p>55</p>
+						</div>
+
+						<div className="form-group">
 							<label>Status</label>
 							<p>{formatStatus(item.reqStatus)}</p>
-						</div>
-					</div>
-
-					<div className="form-row">
-						<div className="form-group">
-							<label>Item Name</label>
-							<p>{item.itemName}</p>
-						</div>
-
-						<div className="form-group">
-							<label>Quantity</label>
-							<p>55</p>
 						</div>
 					</div>
 
