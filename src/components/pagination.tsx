@@ -6,7 +6,6 @@ type PaginationProps = {
     currentPage: number;
     totalPages: number;
     pageSize: number;
-    totalItems?: number; // Prop to track total items
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
 };
@@ -15,14 +14,10 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     currentPage,
     totalPages,
     pageSize,
-    totalItems = 0, // Default to 0 if not provided
     onPageChange,
     onPageSizeChange,
 }) => {
     const [jumpToPage, setJumpToPage] = useState<number | string>(''); // State for "Go to" input
-
-    // Check if there's any data
-    const hasData = totalItems > 0;
 
     // Calculate the range of page numbers to display
     const getPageNumbers = () => {
@@ -43,7 +38,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
 
     const handleJumpToPage = () => {
         const page = Number(jumpToPage);
-        if (page >= 1 && page <= totalPages && hasData) {
+        if (page >= 1 && page <= totalPages) {
             onPageChange(page);
         }
         setJumpToPage(''); // Clear the input after jumping
@@ -72,7 +67,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 <button
                     className="pagination-button-prevnext"
                     onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage === 1 || !hasData} // Disable if no data
+                    disabled={currentPage === 1}
                 >
                     <i className="ri-arrow-left-s-line"></i>
                 </button>
@@ -81,16 +76,15 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 <button
                     className={`pagination-button ${currentPage === 1 ? 'active' : ''}`}
                     onClick={() => onPageChange(1)}
-                    disabled={!hasData} // Disable if no data
                 >
                     1
                 </button>
 
                 {/* Ellipsis Before Visible Pages */}
-                {hasData && pageNumbers[0] > 2 && <span className="pagination-ellipsis">...</span>}
+                {pageNumbers[0] > 2 && <span className="pagination-ellipsis">...</span>}
 
                 {/* Visible Page Numbers */}
-                {hasData && pageNumbers.map((page) =>
+                {pageNumbers.map((page) =>
                     page !== 1 && page !== totalPages ? (
                         <button
                             key={page}
@@ -103,12 +97,12 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 )}
 
                 {/* Ellipsis After Visible Pages */}
-                {hasData && totalPages > pageNumbers[pageNumbers.length - 1] + 1 && (
+                {totalPages > pageNumbers[pageNumbers.length - 1] + 1 && (
                     <span className="pagination-ellipsis">...</span>
                 )}
 
                 {/* Last Page */}
-                {hasData && totalPages > 1 && (
+                {totalPages > 1 && (
                     <button
                         className={`pagination-button ${currentPage === totalPages ? 'active' : ''}`}
                         onClick={() => onPageChange(totalPages)}
@@ -121,7 +115,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 <button
                     className="pagination-button-prevnext"
                     onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages || !hasData} // Disable if no data
+                    disabled={currentPage === totalPages}
                 >
                     <i className="ri-arrow-right-s-line"></i>
                 </button>
@@ -143,6 +137,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
                 <button className="pagination-go-button" onClick={handleJumpToPage}> Go </button>
             </div>
         </div>
+
     );
 };
 
