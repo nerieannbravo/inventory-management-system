@@ -348,6 +348,7 @@ export default function OrderManagement() {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     pageSize={pageSize}
+                    totalItems={paginatedData.length}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
                 />
