@@ -12,6 +12,7 @@ import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
 import EditStockModal from "./editStockModal";
 import { StockForm } from "./addStockModal";
+import { StockReportPreviewModal } from "./stockReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -58,15 +59,19 @@ export default function StocksManagement() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
-    // Pagination state - Updated to match old file's approach
+    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
 
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Stock Management Report");
 
     // Fetch data from API
     useEffect(() => {
@@ -94,7 +99,7 @@ export default function StocksManagement() {
         }
     };
 
-    // Filter sections for the filter dropdown - Enhanced with proper categories
+    // Filter sections for the filter dropdown
     const filterSections: FilterSection[] = [
         {
             id: "dateRange",
@@ -261,24 +266,7 @@ export default function StocksManagement() {
         return null;
     };
 
-    // Generate page numbers for pagination - improved version
-    const getPageNumbers = () => {
-        const pages = [];
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-        const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-        if (endPage - startPage < maxVisiblePages - 1) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-        return pages;
-    };
-
-    // Handle filter application - enhanced from old file
+    // Handle filter application
     const handleApplyFilters = (newFilterValues: Record<string, any>) => {
         console.log("Applied filters:", newFilterValues);
         setFilterValues(newFilterValues);
@@ -291,7 +279,7 @@ export default function StocksManagement() {
         setCurrentPage(1); // Reset to first page when search changes
     };
 
-    // Handle pagination - updated to support page size changes like old file
+    // Handle pagination
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
@@ -457,6 +445,25 @@ export default function StocksManagement() {
         );
     }
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters or search are applied
+        const hasFilters = searchTerm.trim() ||
+            (filterValues.status && filterValues.status.length > 0) ||
+            (filterValues.category && filterValues.category.length > 0) ||
+            (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to));
+
+        const title = hasFilters ? "Stock Management Report - Filtered" : "Stock Management Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
+    };
+
     return (
         <div className="card">
             <h1 className="title">Stock Management</h1>
@@ -483,7 +490,11 @@ export default function StocksManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button type="button" className="generate-btn">
+                    <button
+                        type="button"
+                        className="generate-btn"
+                        onClick={handleGenerateReport}
+                    >
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -575,6 +586,13 @@ export default function StocksManagement() {
                 modalContent={modalContent}
             />
 
+            {/* PDF Report Modal */}
+            <StockReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                stockData={filteredAndSearchedItems}
+                reportTitle={reportTitle}
+            />
         </div>
     );
 }
