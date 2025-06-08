@@ -574,6 +574,7 @@ export default function StocksManagement() {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     pageSize={pageSize}
+                    totalItems={paginatedItems.length}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
                 />
