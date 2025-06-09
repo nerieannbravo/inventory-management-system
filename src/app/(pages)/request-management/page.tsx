@@ -418,6 +418,7 @@ export default function RequestManagement() {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     pageSize={pageSize}
+                    totalItems={paginatedData.length}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
                 />
