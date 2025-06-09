@@ -156,7 +156,11 @@ export default function StocksManagement() {
         if (searchTerm.trim()) {
             filtered = filtered.filter(item =>
                 item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.unit_measure.toLowerCase().includes(searchTerm.toLowerCase())
+                item.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.category.category_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.unit_measure.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.current_stock.toString().includes(searchTerm) ||
+                item.reorder_level.toString().includes(searchTerm) 
             );
         }
 
@@ -468,7 +472,7 @@ export default function StocksManagement() {
                         <i className="ri-search-line" />
                         <input
                             type="text"
-                            placeholder="Search item name or unit measure"
+                            placeholder="Search"
                             value={searchTerm}
                             onChange={handleSearchChange}
                         />

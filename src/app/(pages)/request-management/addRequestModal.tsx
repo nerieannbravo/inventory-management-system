@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import {
 	showRequestSaveConfirmation, showRequestSavedSuccess,
-	showCloseWithoutSavingConfirmation
+	showCloseWithoutSavingConfirmation, showPartialSuccessWarning, showStockSaveError
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
@@ -22,14 +22,15 @@ enum RequestStatus {
 
 // Export the interface so it can be imported by other components
 export interface RequestForm {
-	empName: string,
-	type: RequestType | '',
-	reqStatus: RequestStatus | '',
-	itemName: string,
-	itemStock: number,
-	reqQuantity: number,
-	purpose: string,
-	expectedDate: string,
+    empName: string,
+    type: RequestType | '',
+    reqStatus: RequestStatus | '',
+    itemName: string,
+    itemStock: number,
+    unit_measure?: string, // <-- add this line
+    reqQuantity: number,
+    purpose: string,
+    expectedDate: string,
 }
 
 interface FormError {
@@ -49,6 +50,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		reqStatus: "",
 		itemName: "",
 		itemStock: 0,
+		unit_measure: "", // <-- add this line
 		reqQuantity: 0,
 		purpose: "",
 		expectedDate: "",
@@ -57,6 +59,8 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 	const [requestForms, setRequestForms] = useState<RequestForm[]>([initialFormState]);
 	const [formErrors, setFormErrors] = useState<FormError[]>([{}]);
 	const [isDirty, setIsDirty] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 	const [employees, setEmployees] = useState<Employee[]>([]);
 	const [inventoryItems, setInventoryItems] = useState<any[]>([]);
 	const [isLoadingEmployees, setIsLoadingEmployees] = useState(true);
@@ -152,16 +156,31 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 						[field]: value,
 						reqStatus: newStatus,
 						// Clear expectedDate if changing from borrow to consume
-						expectedDate: value === RequestType.CONSUME ? "" : form.expectedDate
+						expectedDate: value === RequestType.CONSUME ? "" : form.expectedDate,
+					} : form
+				)
+			);
+
+		} else if (field === "itemName") {
+			const selectedItem = inventoryItems.find(item => item.item_id === value);
+
+			setRequestForms((prev) =>
+				prev.map((form, i) =>
+					i === index ? {
+						...form,
+						itemName: value,
+						itemStock: selectedItem ? selectedItem.current_stock : 0,
+                        unit_measure: selectedItem ? selectedItem.unit_measure : "",
 					} : form
 				)
 			);
 
 			// Clear the error for that field and reqStatus
-			if (formErrors[index]?.[field] || formErrors[index]?.reqStatus) {
+			if (formErrors[index]?.[field] || formErrors[index]?.reqStatus || formErrors[index]?.itemName) {
 				const newErrors = [...formErrors];
 				delete newErrors[index][field];
 				delete newErrors[index].reqStatus;
+				delete newErrors[index].itemName;
 				setFormErrors(newErrors);
 			}
 		} else {
@@ -234,8 +253,62 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 
 		const result = await showRequestSaveConfirmation(requestForms.length);
 		if (result.isConfirmed) {
-			onSave(requestForms);
-			await showRequestSavedSuccess(requestForms.length);
+			setIsSaving(true);
+			try {
+				const response = await fetch('/api/request', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ requests: requestForms }),
+				});
+
+				let result;
+				try {
+					result = await response.json();
+				} catch (jsonError) {
+					console.error('Error parsing JSON response:', jsonError);
+					throw new Error('Failed to parse server response');
+				}
+
+				if (!response.ok) {
+					// Extract more detailed error information if available
+					const errorMessage = result && result.error 
+						? `Error: ${result.error}` 
+						: `Failed to save employee request (Status: ${response.status})`;
+					
+					if (result && result.details) {
+						console.error('Error details:', result.details);
+					}
+					
+					throw new Error(errorMessage);
+				}
+
+				if (result.success) {
+					// Show success message using SweetAlert
+					await showRequestSavedSuccess(requestForms.length);
+					
+					// Call the onSave callback to close the modal or update the parent
+					onSave(requestForms);
+					window.location.reload();
+				} else {
+					setError(result.error || 'Failed to save employee request');
+				}
+				
+				// Check if there were any partial failures
+				if (result.partialFailure) {
+					console.warn('Some request were processed successfully, but others failed:', result.results);
+					// You could show a warning to the user here using SweetAlert
+					await showPartialSuccessWarning();
+				}
+
+			} catch (error: any) {
+				console.error('Error saving employee request:', error);
+				setError(error.message);
+				
+				// Show error using SweetAlert
+				await showStockSaveError(error.message);
+			} finally {
+				setIsSaving(false);
+			}
 		}
 	};
 
@@ -336,16 +409,29 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								className={formErrors[index]?.itemName ? "invalid-input" : ""}
 								value={form.itemName}
 								onChange={(e) => handleFormChange(index, "itemName", e.target.value)}
-								disabled={isLoadingItems}
+								disabled={isLoadingItems || !form.type }
 							>
 								<option value="" disabled>
-									{isLoadingItems ? "Loading items..." : "Select item name..."}
+									{isLoadingItems ? "Loading items..." : 
+									!form.type ? "" : 
+									"Select item name..."}
 								</option>
-								{inventoryItems.map((item) => (
-									<option key={item.item_id} value={item.item_id}>
-										{item.item_name}
-									</option>
-								))}
+								{inventoryItems
+									.filter((item) => {
+										if (item.current_stock <= 0) return false;
+										if (form.type === RequestType.CONSUME) {
+											return item.category.category_name.toLowerCase() === "consumable";
+										}
+										if (form.type === RequestType.BORROW) {
+											return item.category.category_name.toLowerCase() !== "consumable";
+										}
+										return true; // Show all if no type selected
+									})
+									.map((item) => (
+										<option key={item.item_id} value={item.item_id}>
+											{item.item_name}
+										</option>
+									))}
 							</select>
 							<p className="add-error-message">{formErrors[index]?.itemName}</p>
 						</div>
@@ -353,10 +439,15 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 						<div className="form-row">
 							{/* Current Stock */}
 							<div className="form-group">
-								<label>Current Stock</label>
-								<input disabled
+								<label>Available Stock</label>
+								<input
+									disabled
 									type="text"
-									value={form.itemStock}
+									value={
+										form.itemStock && form.unit_measure
+											? `${form.itemStock} ${form.unit_measure}`
+											: ""
+									}
 								/>
 							</div>
 

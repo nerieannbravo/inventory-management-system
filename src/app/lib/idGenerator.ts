@@ -49,13 +49,13 @@ export async function generateId(
       case 'employeeRequest':
       lastEntry = await prisma.employeeRequest.findFirst({
         orderBy: {
-          emp_id: 'desc'
+          request_id: 'desc'
         },
         select: {
-          emp_id: true
+          request_id: true
         }
       });
-      idField = 'emp_id';
+      idField = 'request_id';
       break;
   }
 

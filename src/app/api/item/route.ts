@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../lib/prisma';
 import { generateId } from '../../lib/idGenerator';
+import { calculateAndUpdateStatus } from "../../lib/itemStatus";
 
 export async function GET() {
   try {
@@ -52,30 +53,10 @@ export async function GET() {
       // Calculate current stock: sum of all usable quantities from non-deleted batches
       const current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
       
-      // Check if any batch has expired (expiration date is today or earlier)
-      const hasExpiredBatch = batches.some(batch => {
-        if (!batch.expiration_date) return false;
-        const expirationDate = new Date(batch.expiration_date);
-        expirationDate.setHours(0, 0, 0, 0);
-        return expirationDate <= today;
-      });
-      
-      // Determine status based on business logic
-      let status: string;
-      if (hasExpiredBatch) {
-        status = 'EXPIRED';
-      } else if (current_stock === 0) {
-        status = 'OUT_OF_STOCK';
-      } else if (current_stock <= item.reorder_level) {
-        status = 'LOW_STOCK';
-      } else {
-        status = item.status;
-      }
-      
       return {
         ...itemData,
         current_stock,
-        status,
+        // status,
         batches
       };
     });
@@ -110,6 +91,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    
+
     const { stockItems } = await request.json();
     console.log(`🔄 Starting to process ${stockItems.length} items`);
 
@@ -168,7 +151,7 @@ export async function POST(request: NextRequest) {
           });
           console.log(`✅ Successfully updated item ${i + 1}`);
           results.push({ success: true, action: 'updated', item: updatedItem });
-          
+          await calculateAndUpdateStatus(existingItem.item_id);
         } else {
           console.log(`🆔 Generating item ID for new item ${i + 1}`);
           const item_id = await generateId('inventoryItem', 'ITEM');
@@ -216,6 +199,7 @@ export async function POST(request: NextRequest) {
               }
             }
           });
+          await calculateAndUpdateStatus(item_id);
           console.log(`✅ Successfully created item ${i + 1}: ${newItem.item_id}`);
           results.push({ success: true, action: 'created', item: newItem });
         }
@@ -261,6 +245,7 @@ export async function PUT(request: NextRequest) {
                 status: status,
             },
         });
+        await calculateAndUpdateStatus(item_id);
         return NextResponse.json({ 
       success: true, 
       item: updated,
