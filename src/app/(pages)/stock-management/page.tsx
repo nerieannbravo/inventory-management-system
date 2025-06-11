@@ -294,14 +294,7 @@ export default function StocksManagement() {
     };
 
     // Status formatting function
-    const formatStatus = (status: string, item?: InventoryItem) => {
-        if (status === "EXPIRED" && item) {
-            const now = new Date();
-            const expiredCount = item.batches.filter(
-                batch => batch.expiration_date && new Date(batch.expiration_date) < now
-            ).length;
-            return expiredCount > 0 ? `${expiredCount} Expired` : "Expired";
-        }
+    const formatStatus = (status: string) => {
         switch (status) {
             case "AVAILABLE":
                 return "Available";
