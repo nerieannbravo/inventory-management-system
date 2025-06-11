@@ -294,7 +294,14 @@ export default function StocksManagement() {
     };
 
     // Status formatting function
-    const formatStatus = (status: string) => {
+    const formatStatus = (status: string, item?: InventoryItem) => {
+        if (status === "EXPIRED" && item) {
+            const now = new Date();
+            const expiredCount = item.batches.filter(
+                batch => batch.expiration_date && new Date(batch.expiration_date) < now
+            ).length;
+            return expiredCount > 0 ? `${expiredCount} Expired` : "Expired";
+        }
         switch (status) {
             case "AVAILABLE":
                 return "Available";
@@ -554,7 +561,7 @@ export default function StocksManagement() {
                                             <td>{item.category.category_name}</td>
                                             <td className="table-status">
                                                 <span className={`chip ${getStatusClass(item.status)}`}>
-                                                    {formatStatus(item.status)}
+                                                    {formatStatus(item.status, item)}
                                                 </span>
                                             </td>
                                             <td>{item.reorder_level}</td>
