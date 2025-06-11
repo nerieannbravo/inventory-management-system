@@ -1,3 +1,5 @@
+// Crush ako ni Nerie Ann.
+
 generator client {
   provider = "prisma-client-js"
 }
