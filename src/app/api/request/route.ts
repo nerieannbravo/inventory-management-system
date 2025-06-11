@@ -139,7 +139,6 @@ export async function PUT(request: NextRequest) {
                 status: status,
             },
         });
-        await calculateAndUpdateStatus(request_id);
         return NextResponse.json({ 
       success: true, 
       request: updated,

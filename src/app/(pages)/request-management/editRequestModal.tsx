@@ -53,7 +53,9 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 	const formatStatusForDatabase = (displayStatus: string) => {
 		const statusMap: Record<string, string> = {
 			'returned': 'RETURNED',
-			'not-returned': 'NOT_RETURNED',
+			'not_returned': 'NOT_RETURNED',
+			'Returned': 'RETURNED',
+        	'Not Returned': 'NOT_RETURNED',
 		};
 		return statusMap[displayStatus] || displayStatus.toUpperCase();
 	};
@@ -62,7 +64,7 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 		request_id: request.request_id,
 		empName: request.empName,
 		request_type: formatTypeForDisplay(request.request_type),
-		status: "",
+		status: formatStatusForDisplay(request.status),
 		item_name: request.inventoryItem.item_name,
 		quantity: request.quantity, // Default value, would be populated from item in a real app
 		req_purpose: request.req_purpose, // Default value, would be populated from item in a real app
@@ -228,11 +230,11 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 							<label>Status</label>
 							<select
 								className={formErrors?.status ? "invalid-input" : ""}
-								value={formatStatusForDisplay(formData.status)}
+								value={formData.status}
 								onChange={(e) => handleChange("status", e.target.value)}
 							>
+								<option value="not_returned">Not Returned</option>
 								<option value="returned">Returned</option>
-								<option value="not-returned">Not Returned</option>
 								{/* <option value="consumed">Consumed</option> */}
 							</select>
 							<p className="edit-error-message">{formErrors?.status}</p>
