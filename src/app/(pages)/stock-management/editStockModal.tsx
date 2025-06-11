@@ -231,7 +231,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						{/* Category */}
 						<div className="form-group category">
 							<label>Category</label>
-							<input disabled
+							<input
 								type="text"
 								value={formData.category}
 								onChange={(e) => handleChange("category", e.target.value)}

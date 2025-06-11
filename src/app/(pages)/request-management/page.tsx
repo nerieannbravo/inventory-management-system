@@ -1,26 +1,35 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
-import { showRequestDeleteConfirmation, showRequestDeletedSuccess } from "@/utils/sweetAlert";
+import Loading from "@/components/loading";
+import { showRequestDeleteConfirmation, showRequestDeletedSuccess, showStockSaveError, showEditError } from "@/utils/sweetAlert";
 
 import AddRequestModal from "./addRequestModal";
 import ViewRequestModal from "./viewRequestModal";
 import EditRequestModal from "./editRequestModal";
 import { RequestForm } from "./addRequestModal";
+import { StockReportPreviewModal } from "./stockReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
+import "@/styles/loading.css"
 
 // Type definitions based on your Prisma schema
 interface EmployeeRequest {
     request_id: string;
-    item_id: string;
+    inventoryItem: {
+        item_id: string;
+        item_name: string;
+    };
     emp_id: string;
+    emp_first_name: string;
+    emp_last_name: string;
+    empName: string; // Derived from emp_first_name and emp_last_name
     request_type: string;
     quantity: number;
     req_purpose: string;
@@ -29,135 +38,60 @@ interface EmployeeRequest {
     actual_return_date: string | null;
     date_created: string;
     date_updated: string;
-    inventory_items: {
-        item_id: string;
-        item_name: string;
-    }[];
 }
 
 interface ApiResponse {
     success: boolean;
-    items: EmployeeRequest[];
+    request: EmployeeRequest[];
     error?: string;
 }
 
-const hardcodedData = [
-    {
-        id: 1,
-        empName: "Bette Anjanelle Cabarles",
-        type: "Borrow",
-        itemName: "Item Example A",
-        reqDate: "3/12/2025",
-        reqStatus: "returned",
-    },
-    {
-        id: 2,
-        empName: "Kristine Mae Cleofas",
-        type: "Consume",
-        itemName: "Item Example C",
-        reqDate: "5/1/2025",
-        reqStatus: "consumed",
-    },
-    {
-        id: 3,
-        empName: "Christelle Anne Dacapias",
-        type: "Borrow",
-        itemName: "Item Example B",
-        reqDate: "4/27/2025",
-        reqStatus: "not-returned",
-    },
-    {
-        id: 4,
-        empName: "Sean Arjunell Cabarles",
-        type: "Borrow",
-        itemName: "Item Example A",
-        reqDate: "3/19/2025",
-        reqStatus: "not-returned",
-    },
-    {
-        id: 5,
-        empName: "Kathleen Cleofas",
-        type: "Consume",
-        itemName: "Item Example E",
-        reqDate: "5/6/2025",
-        reqStatus: "consumed",
-    },
-    // Add more dummy data to test pagination
-    {
-        id: 6,
-        empName: "John Doe Smith",
-        type: "Borrow",
-        itemName: "Item Example F",
-        reqDate: "4/15/2025",
-        reqStatus: "returned",
-    },
-    {
-        id: 7,
-        empName: "Jane Marie Santos",
-        type: "Consume",
-        itemName: "Item Example G",
-        reqDate: "5/8/2025",
-        reqStatus: "consumed",
-    },
-    {
-        id: 8,
-        empName: "Mark Anthony Cruz",
-        type: "Borrow",
-        itemName: "Item Example H",
-        reqDate: "4/20/2025",
-        reqStatus: "not-returned",
-    },
-    {
-        id: 9,
-        empName: "Maria Clara Reyes",
-        type: "Consume",
-        itemName: "Item Example I",
-        reqDate: "5/12/2025",
-        reqStatus: "consumed",
-    },
-    {
-        id: 10,
-        empName: "Jose Rizal Garcia",
-        type: "Borrow",
-        itemName: "Item Example J",
-        reqDate: "3/25/2025",
-        reqStatus: "returned",
-    },
-];
-
 export default function RequestManagement() {
+    // Data state
+    const [requestList, setRequestList] = useState<EmployeeRequest[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    
     // for modal
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
+    // Fetch data from API
+    useEffect(() => {
+        fetchEmployeeRequests();
+    }, []);
 
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10); // default number of rows per page
+    const fetchEmployeeRequests = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch('/api/request');
+            const data: ApiResponse = await response.json();
 
-    // Calculate paginated data
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        return filteredData.slice(startIndex, endIndex);
-    }, [filteredData, currentPage, pageSize]);
-
-    // Calculate total pages
-    const totalPages = Math.ceil(filteredData.length / pageSize);
-
-    // Handle page change
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
-
-    // Handle page size change
-    const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
-        setCurrentPage(1); // Reset to first page when changing page size
+            if (data.success) {
+                setRequestList(Array.isArray(data.request) ? data.request : []);
+                setError(null);
+            } else {
+                setRequestList([]); // Ensure it's always an array
+                setError(data.error || 'Failed to fetch employee requests');
+            }
+        } catch (err) {
+            setRequestList([]); // Ensure it's always an array
+            const errorMessage = 'Error fetching employee requests';
+            setError(errorMessage);
+            console.error('Error fetching employee requests', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Filter sections
@@ -169,22 +103,22 @@ export default function RequestManagement() {
             defaultValue: { from: "", to: "" }
         },
         {
-            id: "type",
+            id: "request_type",
             title: "Request Type",
             type: "checkbox",
             options: [
-                { id: "borrow", label: "Borrow" },
-                { id: "consume", label: "Consume" }
+                { id: "BORROW", label: "Borrow" },
+                { id: "CONSUME", label: "Consume" }
             ]
         },
         {
-            id: "reqStatus",
+            id: "status",
             title: "Status",
             type: "checkbox",
             options: [
-                { id: "returned", label: "Returned" },
-                { id: "not-returned", label: "Not Retuned" },
-                { id: "consumed", label: "Consumed" }
+                { id: "RETURNED", label: "Returned" },
+                { id: "NOT_RETURNED", label: "Not Retuned" },
+                { id: "CONSUMED", label: "Consumed" }
             ]
         },
         {
@@ -193,8 +127,8 @@ export default function RequestManagement() {
             type: "radio",
             options: [
                 { id: "empName", label: "Employee Name" },
-                { id: "itemName", label: "Item Name" },
-                { id: "reqDate", label: "Request Date" }
+                { id: "item_name", label: "Item Name" },
+                { id: "date_created", label: "Request Date" }
             ],
             defaultValue: "empName"
         },
@@ -210,62 +144,196 @@ export default function RequestManagement() {
         }
     ];
 
-    // Handle filter application
-    const handleApplyFilters = (filterValues: Record<string, any>) => {
-        console.log("Applied filters:", filterValues);
+    const filteredAndSearchedRequests = useMemo(() => {
+        let filtered = [...requestList];
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Apply search filter
+        if (searchTerm.trim()) {
+            filtered = filtered.filter(request => {
+                const formattedDate = request.date_created
+                    ? new Date(request.date_created).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }).toLowerCase()
+                    : "";
 
-        // Example implementation for filtering and sorting:
-        let newData = [...hardcodedData];
-
-        // Filter by request type if selected
-        if (filterValues.type && filterValues.type.length > 0) {
-            newData = newData.filter(item => filterValues.type.includes(item.type.toLowerCase())
+                return (
+                request.inventoryItem.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                request.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                request.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                request.request_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                request.quantity.toString().includes(searchTerm) ||
+                formattedDate.includes(searchTerm.toLowerCase())
             );
+        });
         }
 
-        // Filter by status if selected
-        if (filterValues.reqStatus && filterValues.reqStatus.length > 0) {
-            newData = newData.filter(item => filterValues.reqStatus.includes(item.reqStatus));
+        // Apply status filter
+        if (filterValues.status && filterValues.status.length > 0) {
+            filtered = filtered.filter(request=> filterValues.status.includes(request.status));
         }
 
-        // Sort by empName or itemName or date
-        if (filterValues.sortBy === "empName") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.empName.localeCompare(b.empName) * sortOrder;
-            });
-        } else if (filterValues.sortBy === "itemName") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.itemName.localeCompare(b.itemName) * sortOrder;
-            });
-        } else if (filterValues.sortBy === "reqDate") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.reqDate.localeCompare(b.reqDate) * sortOrder;
+        if (filterValues.request_type && filterValues.request_type.length > 0) {
+            filtered = filtered.filter(request => filterValues.request_type.includes(request.request_type));
+        }
+
+        if (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to)) {
+            filtered = filtered.filter(request => {
+                const requestDate = new Date(request.date_updated);
+                const fromDate = filterValues.dateRange.from ? new Date(filterValues.dateRange.from) : null;
+                const toDate = filterValues.dateRange.to ? new Date(filterValues.dateRange.to) : null;
+
+                // If both dates are provided
+                if (fromDate && toDate) {
+                    return requestDate >= fromDate && requestDate <= toDate;
+                }
+                // If only from date is provided
+                else if (fromDate) {
+                    return requestDate >= fromDate;
+                }
+                // If only to date is provided
+                else if (toDate) {
+                    return requestDate <= toDate;
+                }
+
+                return true;
             });
         }
 
-        setFilteredData(newData);
+        // Apply sorting
+        const sortBy = filterValues.sortBy || "empName";
+        const order = filterValues.order || "asc";
+
+        filtered.sort((a, b) => {
+            let aValue, bValue;
+
+            switch (sortBy) {
+                case "empName":
+                    aValue = a.empName ? a.empName.toLowerCase() : "";
+                    bValue = b.empName ? b.empName.toLowerCase() : "";
+                    break;
+                case "request_type":
+                    aValue = a.request_type ? a.request_type.toLowerCase() : "";
+                    bValue = b.request_type ? b.request_type.toLowerCase() : "";
+                    break;
+                case "date_created":
+                    aValue = a.date_created ? new Date(a.date_created) : new Date(0);
+                    bValue = b.date_created ? new Date(b.date_created) : new Date(0);
+                    break;
+                default:
+                    aValue = a.empName ? a.empName.toLowerCase() : "";
+                    bValue = b.empName ? b.empName.toLowerCase() : "";
+            }
+
+            // Use type guards to ensure correct typing
+            if (typeof aValue === "string" && typeof bValue === "string") {
+                const comparison = aValue.localeCompare(bValue);
+                return order === "asc" ? comparison : -comparison;
+            } else if (aValue instanceof Date && bValue instanceof Date) {
+                const comparison = aValue.getTime() - bValue.getTime();
+                return order === "asc" ? comparison : -comparison;
+            } else if (typeof aValue === "number" && typeof bValue === "number") {
+                const comparison = aValue - bValue;
+                return order === "asc" ? comparison : -comparison;
+            } else {
+                return 0; // fallback in case of type mismatch (should not occur)
+            }
+        });
+        return filtered;
+    }, [requestList, searchTerm, filterValues]);
+
+    const totalPages = Math.ceil(filteredAndSearchedRequests.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginatedItems = filteredAndSearchedRequests.slice(startIndex, startIndex + pageSize);
+
+    const getDateRangeDisplay = () => {
+        if (!filterValues.dateRange) return null;
+
+        const { from, to } = filterValues.dateRange;
+        if (!from && !to) return null;
+
+        const formatDate = (dateString: string) => {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        };
+
+        if (from && to) {
+            return `Employee Requests filtered from ${formatDate(from)} to ${formatDate(to)}`;
+        } else if (from) {
+            return `Employee Requests filtered from ${formatDate(from)}`;
+        } else if (to) {
+            return `Employee Requests filtered up to ${formatDate(to)}`;
+        }
+
+        return null;
+    };
+
+    // Handle filter application
+    const handleApplyFilters = (newFilterValues: Record<string, any>) => {
+        console.log("Applied filters:", newFilterValues);
+        setFilterValues(newFilterValues);
         setCurrentPage(1); // Reset to first page when filters change
     };
 
-    // for request status formatting
-    function formatStatus(reqStatus: string) {
-        switch (reqStatus) {
-            case "returned":
-                return "Returned";
-            case "not-returned":
-                return "Not Returned";
-            case "consumed":
-                return "Consumed";
+    // Handle search input change
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1); // Reset to first page when search changes
+    };
+
+    // Handle pagination
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(1); // Reset to first page when changing page size
+    };
+
+    // for request type formatting
+    function formatType(request_type: string) {
+        switch (request_type) {
+            case "BORROW":
+                return "Borrow";
+            case "CONSUME":
+                return "Consume";
             default:
-                return reqStatus;
+                return request_type;
         }
     }
+
+    // for request status formatting
+    function formatStatus(status: string) {
+        switch (status) {
+            case "RETURNED":
+                return "Returned";
+            case "NOT_RETURNED":
+                return "Not Returned";
+            case "CONSUMED":
+                return "Consumed";
+            default:
+                return status;
+        }
+    }
+
+    // Get CSS class for status
+    const getStatusClass = (status: string) => {
+        switch (status) {
+            case "RETURNED":
+                return "returned";
+            case "NOT_RETURNED":
+                return "not-returned";
+            case "CONSUMED":
+                return "consumed";
+            default:
+                return status.toLowerCase().replace(/_/g, '-');
+        }
+    };
 
     // for the modals of add, view, edit, and delete
     const openModal = (mode: "add-request" | "view-request" | "edit-request" | "delete-request", rowData?: any) => {
@@ -280,14 +348,19 @@ export default function RequestManagement() {
                 break;
             case "view-request":
                 content = <ViewRequestModal
-                    item={rowData}
+                    request={rowData}
                     formatStatus={formatStatus}
+                    formatType={formatType}
                     onClose={closeModal}
                 />;
                 break;
             case "edit-request":
+                if (rowData && (rowData.status === "CONSUMED" || rowData.status === "RETURNED")) {
+                    showEditError(formatStatus(rowData.status));
+                    return;
+                }
                 content = <EditRequestModal
-                    item={rowData}
+                    request={rowData}
                     onSave={handleEditRequest}
                     onClose={closeModal}
                 />;
@@ -328,15 +401,57 @@ export default function RequestManagement() {
 
     // Handle delete requests
     const handleDeleteRequest = async (rowData: any) => {
-        const result = await showRequestDeleteConfirmation(rowData.itemName);
+        try {
+            const result = await showRequestDeleteConfirmation(rowData.inventoryItem.item_name);
 
-        if (result.isConfirmed) {
-            await showRequestDeletedSuccess();
-            console.log("Deleted row with id:", rowData.id);
-            // Logic to delete the item from the data
-            // In a real app, this would likely be an API call
+            if (result.isConfirmed) {
+                // Call the soft delete API
+                const response = await fetch(`/api/request`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ request_id: rowData.request_id }),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await showRequestDeletedSuccess();
+                    window.location.reload();
+                    console.log("Deleted row with id:", rowData.request_id);
+                } 
+            }
+        } catch (error) {
+            console.error('Error deleting stock:', error);
+            await showStockSaveError('An unexpected error occurred');
         }
     };
+
+    if (loading) {
+        return (
+            <div className="card">
+                <h1 className="title">Request Management</h1>
+                <Loading />
+            </div>
+        );
+    }
+
+    if (error && requestList.length === 0) {
+        return (
+            <div className="card">
+                <h1 className="title">Request Management</h1>
+                <div className="fetch-container">
+                    <div className="fetch-error">
+                        <i className="ri-error-warning-line" />
+                        {error}
+                    </div>
+                    <button className="retry-btn" onClick={fetchEmployeeRequests}>
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="card">
@@ -347,7 +462,12 @@ export default function RequestManagement() {
                 <div className="entries">
                     <div className="search">
                         <i className="ri-search-line" />
-                        <input type="text" placeholder="Search here..." />
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                        />
                     </div>
 
                     {/* Filter Button with Dropdown */}
@@ -369,6 +489,12 @@ export default function RequestManagement() {
                     </button>
                 </div>
 
+                {getDateRangeDisplay() && (
+                    <div className="filter-results">
+                        {getDateRangeDisplay()}
+                    </div>
+                )}
+
                 {/* Table */}
                 <div className="table-wrapper">
                     <div className="table-container">
@@ -378,36 +504,59 @@ export default function RequestManagement() {
                                     <th>Employee Name</th>
                                     <th>Request Type</th>
                                     <th>Item Name</th>
+                                    <th>Quantity</th>
                                     <th>Status</th>
                                     <th>Request Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.empName}</td>
-                                        <td>{item.type}</td>
-                                        <td>{item.itemName}</td>
-                                        <td className="table-status">
-                                            <span className={`chip ${item.reqStatus}`}>
-                                                {formatStatus(item.reqStatus)}
-                                            </span>
-                                        </td>
-                                        <td>{item.reqDate}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-request", item)}
-                                                onEdit={() => openModal("edit-request", item)}
-                                                onDelete={() => openModal("delete-request", item)}
-                                                disableEdit={item.reqStatus !== "not-returned"}
-                                            />
+                                {paginatedItems.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="no-records">
+                                            {searchTerm || Object.keys(filterValues).some(key =>
+                                                filterValues[key] &&
+                                                (Array.isArray(filterValues[key]) ? filterValues[key].length > 0 : true)
+                                            )
+                                                ? 'No requests matched'
+                                                : 'No requests available'
+                                            }
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    paginatedItems.map(request => (
+                                        <tr
+                                            key={request.request_id}
+                                            className={selectedIds.includes(parseInt(request.request_id)) ? "selected" : ""}
+                                        >
+                                            <td>{request.empName}</td>
+                                            <td>{formatType(request.request_type)}</td>
+                                            <td>{request.inventoryItem.item_name}</td>
+                                            <td>{request.quantity}</td>
+                                            <td className="table-status">
+                                                <span className={`chip ${getStatusClass(request.status)}`}>
+                                                    {formatStatus(request.status)}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {request.date_created
+                                                ? new Date(request.date_created).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })
+                                                : ''}
+                                            </td>
+                                            <td>
+                                                <ActionButtons
+                                                    onView={() => openModal("view-request", request)}
+                                                    onEdit={() => openModal("edit-request", request)}
+                                                    onDelete={() => openModal("delete-request", request)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -418,7 +567,7 @@ export default function RequestManagement() {
                     currentPage={currentPage}
                     totalPages={totalPages}
                     pageSize={pageSize}
-                    totalItems={paginatedData.length}
+                    totalItems={paginatedItems.length}
                     onPageChange={handlePageChange}
                     onPageSizeChange={handlePageSizeChange}
                 />

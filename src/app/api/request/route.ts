@@ -1,7 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from '../../lib/prisma';
 import { generateId } from '../../lib/idGenerator';
+import { fetchEmployees } from '../../lib/fetchEmployees';
 import { calculateAndUpdateStatus } from "../../lib/itemStatus";
+
+export async function GET() {
+  try {
+    // Fetch all employees
+    const employees = await fetchEmployees();
+    if (!employees || employees.length === 0) {
+      return NextResponse.json({ success: false, message: 'No employees found' }, { status: 404 });
+    }
+
+    // Fetch all categories except 'Bus'
+    const request = await prisma.employeeRequest.findMany({
+      where: {
+        isdeleted: false
+      },
+      select: {
+        request_id: true,
+        item_id: true,
+        inventoryItem: {
+          select: { item_id: true, item_name: true }
+        },
+        emp_id: true,
+        request_type: true,
+        quantity: true,
+        req_purpose: true,
+        status: true,
+        expected_return_date: true,
+        actual_return_date: true,
+        date_created: true,
+        date_updated: true,
+        isdeleted: true,
+        created_by: true,
+      }
+    });
+
+    // Attach employee data from Supabase
+    const requestWithEmployee = request.map((req: any) => {
+      const employee = employees.find((emp: any) => emp.emp_id === req.emp_id);
+      return {
+        ...req,
+        emp_first_name: employee?.emp_first_name || '',
+        emp_last_name: employee?.emp_last_name || '',
+        empName: employee ? `${employee.emp_first_name} ${employee.emp_last_name}`.trim() : 'Unknown Employee',
+        employee: employee ? {
+          emp_id: employee.emp_id,
+          emp_first_name: employee.emp_first_name,
+          emp_last_name: employee.emp_last_name
+        } : null
+      };
+    });
+
+    return NextResponse.json({ success: true,request: requestWithEmployee });
+  } catch (error: any) {
+    console.error('Error fetching employee request:', error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,35 +125,45 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    const { request_id, status } = await request.json();
 
-// try {
-//     const { requests } = await request.json();
-//     const results = [];
+    if (!request_id || request_id === "undefined") {
+            return NextResponse.json({ success: false, error: "Missing or invalid request_id" }, { status: 400 });
+        }
 
-//     for (let i = 0; i < requests.length; i++){
-//         const request = requests[i];
+    const updated = await prisma.employeeRequest.update({
+            where: { request_id: String(request_id) },
+            data: {
+                status: status,
+            },
+        });
+        await calculateAndUpdateStatus(request_id);
+        return NextResponse.json({ 
+      success: true, 
+      request: updated,
+      message: 'Item request updated successfully'
+    });
+    } catch (error) {
+        return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
+    }
+}
 
-//         const newRequest = await prisma.employeeRequest.create({
-//         data: {
-//           request_id: request_id,
-//           item_id: request.itemName,
-//           emp_id: request.empName,
-//           request_type: request.type,
-//           quantity: request.reqQuantity,
-//           req_purpose: request.purpose,
-//           status: request.reqStatus,
-//           expected_return_date: request.expectedDate ? new Date(request.expectedDate) : null,
-//           isdeleted: false,
-//           created_by: 1, // set as needed
-//         },
-//       });
-//       results.push({ success: true, action: 'created', item: newRequest });
-//     } 
-//     return NextResponse.json({ success: true, results });
+export async function PATCH (req: NextRequest) {
 
-// } catch (error: any) {
-//     return NextResponse.json(
-//       { success: false, error: error.message },
-//       { status: 500 }
-//     );
-//   }
+    if (req.method === 'PATCH') {
+        try {
+            const { request_id } = await req.json();
+          // Soft-delete 
+          await prisma.employeeRequest.update({
+              where: { request_id: String(request_id) },
+              data: { isdeleted: true },
+          });
+          return NextResponse.json({ success: true });
+      } catch (error) {
+          console.error("Delete error:", error);
+          return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
+      }
+  }
+}

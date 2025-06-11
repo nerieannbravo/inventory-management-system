@@ -289,10 +289,10 @@ export const showRequestSavedSuccess = (count: number) => {
 };
 
 // ----- Edit Request Confirmation ----- //
-export const showRequestUpdateConfirmation = (itemName: string) => {
+export const showRequestUpdateConfirmation = (item_name: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the request details for <strong>${itemName}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the request details for <strong>${item_name}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -321,11 +321,24 @@ export const showRequestUpdatedSuccess = () => {
     });
 };
 
+export const showEditError = (status: string) => {
+    return Swal.fire({
+        title: 'Edit Action Denied',
+        html: `<p>This request cannot be edited because it has already been marked as <strong>${status}</strong>.</p>`,
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 // ----- Delete Request Confirmation ----- //
-export const showRequestDeleteConfirmation = (itemName: string) => {
+export const showRequestDeleteConfirmation = (item_name: string) => {
     return Swal.fire({
         title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the request for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
+        html: `<p>Are you sure you want to delete the request for <strong>${item_name}</strong>? You will not be able to undo this.</p>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Delete',
