@@ -52,8 +52,8 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 
 	const formatStatusForDatabase = (displayStatus: string) => {
 		const statusMap: Record<string, string> = {
-			'Returned': 'RETURNED',
-			'Not Returned': 'NOT_RETURNED',
+			'returned': 'RETURNED',
+			'not-returned': 'NOT_RETURNED',
 		};
 		return statusMap[displayStatus] || displayStatus.toUpperCase();
 	};
@@ -231,7 +231,6 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 								value={formatStatusForDisplay(formData.status)}
 								onChange={(e) => handleChange("status", e.target.value)}
 							>
-								<option value="" disabled>Select status...</option>
 								<option value="returned">Returned</option>
 								<option value="not-returned">Not Returned</option>
 								{/* <option value="consumed">Consumed</option> */}

@@ -21,13 +21,15 @@ export async function calculateAndUpdateStatus(item_id: string) {
     return expirationDate <= today;
   });
 
-  let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE' = 'AVAILABLE';
+  let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE';
   if (hasExpiredBatch) {
     status = 'EXPIRED';
   } else if (item.category.category_name === "Consumable" && current_stock === 0) {
     status = 'OUT_OF_STOCK';
   } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
     status = 'LOW_STOCK';
+  } else {
+    status = item.status;
   }
 
   await prisma.inventoryItem.update({

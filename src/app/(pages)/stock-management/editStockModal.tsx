@@ -135,7 +135,8 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 				const updateData = {
 					item_id: formData.item_id,
 					reorder_level: formData.reorder,
-					status: formatStatusForDatabase(formData.status)
+					status: formatStatusForDatabase(formData.status),
+					category_id: categories.find(cat => cat.category_name === formData.category)?.category_id || item.category_id,
 				};
 				
 				console.log('Sending update data:', updateData);

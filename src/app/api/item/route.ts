@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { item_id, reorder_level, status } = await request.json();
+    const { item_id, reorder_level, status, category_id } = await request.json();
 
     if (!item_id || item_id === "undefined") {
             return NextResponse.json({ success: false, error: "Missing or invalid item_id" }, { status: 400 });
@@ -243,6 +243,8 @@ export async function PUT(request: NextRequest) {
             data: {
                 reorder_level: reorder_level,
                 status: status,
+                category_id: category_id,
+                date_updated: new Date(),
             },
         });
         await calculateAndUpdateStatus(item_id);
