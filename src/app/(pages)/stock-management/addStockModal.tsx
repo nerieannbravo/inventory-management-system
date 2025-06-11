@@ -64,7 +64,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 	// State for categories
 	const [categories, setCategories] = useState<Category[]>([]);
-
+	// Add this state to track reorder disabled per row
+	const [reorderDisabled, setReorderDisabled] = useState<boolean[]>([true]);
 	// Track which forms have pre-filled categories (should be disabled)
 	const [preFilledCategories, setPreFilledCategories] = useState<boolean[]>([false]);
 
@@ -109,6 +110,11 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	// Track if any form has been modified
 	useEffect(() => {
 		setIsDirty(true);
+	}, [stockForms]);
+
+	// Update this effect to sync reorderDisabled when adding/removing forms
+	useEffect(() => {
+		setReorderDisabled(stockForms.map(form => form.category !== "Consumable"));
 	}, [stockForms]);
 
 	// Handle item selection - populate unit and category from the selected item
@@ -216,6 +222,23 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				i === index ? { ...form, [field]: value } : form
 			)
 		);
+
+		// Category logic for reorder
+    if (field === "category") {
+        setStockForms((prev) =>
+            prev.map((form, i) =>
+                i === index
+                    ? {
+                        ...form,
+                        reorder: value === "Consumable" ? form.reorder : 0,
+                    }
+                    : form
+            )
+        );
+        setReorderDisabled((prev) =>
+            prev.map((disabled, i) => i === index ? value !== "Consumable" : disabled)
+        );
+    }
 
 		// Clear errors for the changed field
 		if (formErrors[index] && formErrors[index][field]) {
@@ -447,7 +470,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									min="0"
 									value={form.reorder}
 									onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
-									disabled={isSaving}
+									disabled={isSaving || reorderDisabled[index]}
 								/>
 								<p className="add-error-message">{formErrors[index]?.reorder}</p>
 							</div>

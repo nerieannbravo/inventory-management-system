@@ -1,5 +1,3 @@
-// Crush ako ni Nerie Ann.
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";

@@ -27,6 +27,11 @@ interface EditStockModalProps {
 	onClose: () => void;
 }
 
+interface Category {
+	category_id: string;
+	category_name: string;
+}
+
 export default function EditStockModal({ item, onSave, onClose }: EditStockModalProps) {
 	// Helper function to convert database status to form display value
 	const formatStatusForDisplay = (dbStatus: string) => {
@@ -67,9 +72,28 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	// State to track if form is dirty (has changes)
 	const [isFormDirty, setIsFormDirty] = useState(false);
 	const [originalData] = useState({ ...formData });
+	const [categories, setCategories] = useState<Category[]>([]);
 
 	// Add formErrors state similar to AddStockModal
 	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+	// Fetch categories
+		useEffect(() => {
+			async function loadCategories() {
+				try {
+					const response = await fetch('/api/category');
+					if (!response.ok) {
+						throw new Error('Failed to fetch categories');
+					}
+					const data = await response.json();
+					setCategories(data.categories);
+				} catch (error) {
+					console.error("Error loading categories:", error);
+				}
+			}
+	
+			loadCategories();
+		}, []);
 
 	// Check if form data has changed from original
 	useEffect(() => {
@@ -231,11 +255,28 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						{/* Category */}
 						<div className="form-group category">
 							<label>Category</label>
-							<input
+							{/* <input
 								type="text"
 								value={formData.category}
 								onChange={(e) => handleChange("category", e.target.value)}
-							/>
+							/> */}
+
+							<select
+									className={formErrors?.category ? "invalid-input" : ""}
+									value={formData.category}
+									onChange={(e) => handleChange("category", e.target.value)}
+								>
+									<option value="" disabled>Select category...</option>
+									{categories.map(category => (
+										<option 
+											key={category.category_id} 
+											value={category.category_name}
+										>
+											{category.category_name}
+										</option>
+									))}
+								</select>
+								<p className="add-error-message">{formErrors?.category}</p>
 						</div>
 
 						{/* Status */}
