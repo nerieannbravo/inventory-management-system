@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, act } from "react";
 
 import {
 	showRequestUpdateConfirmation, showRequestUpdatedSuccess,
@@ -114,7 +114,8 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 			try {
 				const updateData = {
 					request_id: formData.request_id,
-					status: formatStatusForDatabase(formData.status)
+					status: formatStatusForDatabase(formData.status),
+					actual_return_date: null,
 				};
 
 				// Make the API call to update the item
@@ -258,15 +259,14 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 						<div className="form-group">
 							<label>Expected Return Date</label>
 							<input disabled
-								className={formErrors?.expectedDate ? "invalid-input" : ""}
-								type="date"
-								value={formData.expected_return_date}
-								onChange={(e) => handleChange("expectedDate", e.target.value)}
+							className={formErrors?.expected_return_date ? "invalid-input" : ""}
+							type="date"
+							value={formData.expected_return_date ? formData.expected_return_date.slice(0, 10) : ""}
+							onChange={(e) => handleChange("expected_return_date", e.target.value)}
 							/>
-							<p className="edit-error-message"></p>
+							<p className="edit-error-message">{formErrors?.expected_return_date}</p>
 						</div>
-					)}
-
+						)}
 				</form>
 			</div>
 

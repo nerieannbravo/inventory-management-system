@@ -127,26 +127,34 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { request_id, status } = await request.json();
+    const { request_id, status, actual_return_date } = await request.json();
 
     if (!request_id || request_id === "undefined") {
-            return NextResponse.json({ success: false, error: "Missing or invalid request_id" }, { status: 400 });
-        }
+      return NextResponse.json({ success: false, error: "Missing or invalid request_id" }, { status: 400 });
+    }
+
+    // If status is 'returned' and actual_return_date is not provided, set it to now
+    let updatedActualReturnDate = actual_return_date;
+    if (status === "RETURNED") {
+      updatedActualReturnDate = new Date();
+    }
 
     const updated = await prisma.employeeRequest.update({
-            where: { request_id: String(request_id) },
-            data: {
-                status: status,
-            },
-        });
-        return NextResponse.json({ 
+      where: { request_id: String(request_id) },
+      data: {
+        status: status,
+        actual_return_date: updatedActualReturnDate ? new Date(updatedActualReturnDate) : null,
+        date_updated: new Date(),
+      },
+    });
+    return NextResponse.json({ 
       success: true, 
       request: updated,
       message: 'Item request updated successfully'
     });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
-    }
+  } catch (error) {
+    return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
+  }
 }
 
 export async function PATCH (req: NextRequest) {
