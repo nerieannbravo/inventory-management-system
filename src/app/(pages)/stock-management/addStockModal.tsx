@@ -428,7 +428,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								onChange={(e) => handleItemSelection(index, e.target.value)}
 								disabled={isLoading || isSaving}
 							>
-								<option value="" disabled>{isLoading ? "Loading..." : "Select item name..."}</option>
+								<option value="" disabled>Select an item...</option>
 								{items.map((item) => (
 									<option key={item.f_item_id} value={item.f_item_id}>
 										{getItemDisplayName(item)}
@@ -534,19 +534,21 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 						<div className="form-row">
 							{/* Reorder Level */}
-							<div className="form-group">
-								<label>Reorder Level</label>
-								<input
-									className={formErrors[index]?.reorder ? "invalid-input" : ""}
-									type="number"
-									step="1"
-									min="0"
-									value={form.reorder}
-									onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
-									disabled={isSaving || reorderDisabled[index]}
-								/>
-								<p className="add-error-message">{formErrors[index]?.reorder}</p>
-							</div>
+							{form.category === "Consumable" && (
+								<div className="form-group">
+									<label>Reorder Level</label>
+									<input
+										className={formErrors[index]?.reorder ? "invalid-input" : ""}
+										type="number"
+										step="1"
+										min="0"
+										value={form.reorder}
+										onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
+										disabled={isSaving || reorderDisabled[index]}
+									/>
+									<p className="add-error-message">{formErrors[index]?.reorder}</p>
+								</div>
+							)}
 
 							{/* Status */}
 							<div className="form-group">
