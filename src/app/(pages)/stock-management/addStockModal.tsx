@@ -119,102 +119,102 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 	// Handle item selection - populate unit and category from the selected item
 	const handleItemSelection = async (index: number, itemId: string) => {
-	try {
-		// Find the selected item in our already fetched items array
-		const selectedItem = items.find(item => item.f_item_id === itemId);
-		
-		if (selectedItem) {
-			// Check if this item is already selected in another form
-			const isDuplicate = stockForms.some((form, i) => 
-				i !== index && form.name === itemId
-			);
+		try {
+			// Find the selected item in our already fetched items array
+			const selectedItem = items.find(item => item.f_item_id === itemId);
 
-			if (isDuplicate) {
-				// Show SweetAlert for duplicate error
-				await showDuplicateItemError();
-				return;
+			if (selectedItem) {
+				// Check if this item is already selected in another form
+				const isDuplicate = stockForms.some((form, i) =>
+					i !== index && form.name === itemId
+				);
+
+				if (isDuplicate) {
+					// Show SweetAlert for duplicate error
+					await showDuplicateItemError();
+					return;
+				}
+				const fullItemName = getItemDisplayName(selectedItem);
+				console.log('Selected item:', selectedItem); // Debug log
+				console.log('Item name for check:', selectedItem.item_name); // Debug log
+
+				let categoryValue = "";
+				let reorderValue = 0;
+				let hasPrefillCategory = false;
+
+				// Check if item already exists in local database
+				try {
+					const existingItemResponse = await fetch(`/api/stock?action=check-existing&itemName=${encodeURIComponent(fullItemName)}`);
+
+					console.log('API Response status:', existingItemResponse.status); // Debug log
+
+					if (!existingItemResponse.ok) {
+						throw new Error(`HTTP error! status: ${existingItemResponse.status}`);
+					}
+
+					const existingItemData = await existingItemResponse.json();
+					console.log('Existing item data:', existingItemData); // Debug log
+
+					if (existingItemData.success && existingItemData.exists) {
+						// Item exists in local database - use existing category and reorder level
+						categoryValue = existingItemData.item.category_name;
+						reorderValue = existingItemData.item.reorder_level;
+						hasPrefillCategory = true; // Mark this as pre-filled
+						console.log('Pre-filling with:', { categoryValue, reorderValue }); // Debug log
+					}
+				} catch (apiError) {
+					console.error("Error checking existing item:", apiError);
+					// Don't fail the entire operation, just log the error
+				}
+
+				// Update the form with data from the selected item
+				setStockForms(prev =>
+					prev.map((form, i) =>
+						i === index
+							? {
+								...form,
+								name: itemId,
+								itemName: getItemDisplayName(selectedItem),
+								unit: selectedItem.unit_measure || form.unit,
+								quantity: selectedItem.purchased_quantity || form.quantity,
+								// Set default values for quantities
+								usable: selectedItem.purchased_quantity || 0,
+								defective: 0,
+								missing: 0,
+								// Pre-fill category and reorder if item exists in local DB
+								category: categoryValue,
+								reorder: reorderValue,
+							}
+							: form
+					)
+				);
+
+				// Update the pre-filled categories tracking
+				setPreFilledCategories(prev =>
+					prev.map((isPrefilled, i) => i === index ? hasPrefillCategory : isPrefilled)
+				);
+
+				// Clear errors for the name field
+				if (formErrors[index] && formErrors[index].name) {
+					const newErrors = [...formErrors];
+					delete newErrors[index].name;
+					// Also clear category error if we auto-filled it
+					if (categoryValue) {
+						delete newErrors[index].category;
+					}
+					// Clear reorder error if we auto-filled it
+					if (reorderValue > 0) {
+						delete newErrors[index].reorder;
+					}
+					setFormErrors(newErrors);
+				}
 			}
-			const fullItemName = getItemDisplayName(selectedItem);
-			console.log('Selected item:', selectedItem); // Debug log
-			console.log('Item name for check:', selectedItem.item_name); // Debug log
-
-			let categoryValue = "";
-			let reorderValue = 0;
-			let hasPrefillCategory = false;
-
-			// Check if item already exists in local database
-			try {
-				const existingItemResponse = await fetch(`/api/stock?action=check-existing&itemName=${encodeURIComponent(fullItemName)}`);
-				
-				console.log('API Response status:', existingItemResponse.status); // Debug log
-				
-				if (!existingItemResponse.ok) {
-					throw new Error(`HTTP error! status: ${existingItemResponse.status}`);
-				}
-				
-				const existingItemData = await existingItemResponse.json();
-				console.log('Existing item data:', existingItemData); // Debug log
-
-				if (existingItemData.success && existingItemData.exists) {
-					// Item exists in local database - use existing category and reorder level
-					categoryValue = existingItemData.item.category_name;
-					reorderValue = existingItemData.item.reorder_level;
-					hasPrefillCategory = true; // Mark this as pre-filled
-					console.log('Pre-filling with:', { categoryValue, reorderValue }); // Debug log
-				}
-			} catch (apiError) {
-				console.error("Error checking existing item:", apiError);
-				// Don't fail the entire operation, just log the error
-			}
-
-			// Update the form with data from the selected item
-			setStockForms(prev =>
-				prev.map((form, i) =>
-					i === index
-						? {
-							...form,
-							name: itemId,
-							itemName: getItemDisplayName(selectedItem),
-							unit: selectedItem.unit_measure || form.unit,
-							quantity: selectedItem.purchased_quantity || form.quantity,
-							// Set default values for quantities
-							usable: selectedItem.purchased_quantity || 0,
-							defective: 0,
-							missing: 0,
-							// Pre-fill category and reorder if item exists in local DB
-							category: categoryValue,
-							reorder: reorderValue,
-						}
-						: form
-				)
-			);
-
-			// Update the pre-filled categories tracking
-			setPreFilledCategories(prev => 
-				prev.map((isPrefilled, i) => i === index ? hasPrefillCategory : isPrefilled)
-			);
-
-			// Clear errors for the name field
-			if (formErrors[index] && formErrors[index].name) {
-				const newErrors = [...formErrors];
-				delete newErrors[index].name;
-				// Also clear category error if we auto-filled it
-				if (categoryValue) {
-					delete newErrors[index].category;
-				}
-				// Clear reorder error if we auto-filled it
-				if (reorderValue > 0) {
-					delete newErrors[index].reorder;
-				}
-				setFormErrors(newErrors);
-			}
+		} catch (error) {
+			console.error("Error selecting item:", error);
+			// You might want to show an error message to the user here
+			setError("Failed to load item data. Please try again.");
 		}
-	} catch (error) {
-		console.error("Error selecting item:", error);
-		// You might want to show an error message to the user here
-		setError("Failed to load item data. Please try again.");
-	}
-};
+	};
 
 	const handleFormChange = (index: number, field: string, value: any) => {
 		setStockForms((prev) =>
@@ -224,21 +224,21 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		);
 
 		// Category logic for reorder
-    if (field === "category") {
-        setStockForms((prev) =>
-            prev.map((form, i) =>
-                i === index
-                    ? {
-                        ...form,
-                        reorder: value === "Consumable" ? form.reorder : 0,
-                    }
-                    : form
-            )
-        );
-        setReorderDisabled((prev) =>
-            prev.map((disabled, i) => i === index ? value !== "Consumable" : disabled)
-        );
-    }
+		if (field === "category") {
+			setStockForms((prev) =>
+				prev.map((form, i) =>
+					i === index
+						? {
+							...form,
+							reorder: value === "Consumable" ? form.reorder : 0,
+						}
+						: form
+				)
+			);
+			setReorderDisabled((prev) =>
+				prev.map((disabled, i) => i === index ? value !== "Consumable" : disabled)
+			);
+		}
 
 		// Clear errors for the changed field
 		if (formErrors[index] && formErrors[index][field]) {
@@ -294,7 +294,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			const duplicates = stockForms
 				.filter((_, i) => i !== stockForms.indexOf(form))
 				.filter((otherForm) => otherForm.name === form.name);
-			
+
 			if (duplicates.length > 0) {
 				errorObj.duplicate = "This item is already selected in another form";
 			}
@@ -313,7 +313,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 		// Show confirmation dialog using SweetAlert
 		const result = await showStockSaveConfirmation(stockForms.length);
-		
+
 		if (result.isConfirmed) {
 			setIsSaving(true);
 			try {
@@ -337,28 +337,28 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 				if (!response.ok) {
 					// Extract more detailed error information if available
-					const errorMessage = result && result.error 
-						? `Error: ${result.error}` 
+					const errorMessage = result && result.error
+						? `Error: ${result.error}`
 						: `Failed to save stock items (Status: ${response.status})`;
-					
+
 					if (result && result.details) {
 						console.error('Error details:', result.details);
 					}
-					
+
 					throw new Error(errorMessage);
 				}
-				
+
 				if (result.success) {
 					// Show success message using SweetAlert
 					await showStockSavedSuccess(stockForms.length);
-					
+
 					// Call the onSave callback to close the modal or update the parent
 					onSave(stockForms);
 					window.location.reload();
 				} else {
 					setError(result.error || 'Failed to save stock items');
 				}
-				
+
 				// Check if there were any partial failures
 				if (result.partialFailure) {
 					console.warn('Some items were processed successfully, but others failed:', result.results);
@@ -368,7 +368,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			} catch (error: any) {
 				console.error('Error saving stock items:', error);
 				setError(error.message);
-				
+
 				// Show error using SweetAlert
 				await showStockSaveError(error.message);
 			} finally {
@@ -455,24 +455,31 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							{/* Unit Measure */}
 							<div className="form-group">
 								<label>Unit Measure</label>
-								<input disabled 
+								<input disabled
 									value={form.unit}
 								/>
 							</div>
 
-							{/* Reorder Level */}
+							{/* Category */}
 							<div className="form-group">
-								<label>Reorder Level</label>
-								<input
-									className={formErrors[index]?.reorder ? "invalid-input" : ""}
-									type="number"
-									step="1"
-									min="0"
-									value={form.reorder}
-									onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
-									disabled={isSaving || reorderDisabled[index]}
-								/>
-								<p className="add-error-message">{formErrors[index]?.reorder}</p>
+								<label>Category</label>
+								<select
+									className={formErrors[index]?.category ? "invalid-input" : ""}
+									value={form.category}
+									onChange={(e) => handleFormChange(index, "category", e.target.value)}
+									disabled={isSaving || preFilledCategories[index]}
+								>
+									<option value="" disabled>Select category...</option>
+									{categories.map(category => (
+										<option
+											key={category.category_id}
+											value={category.category_name}
+										>
+											{category.category_name}
+										</option>
+									))}
+								</select>
+								<p className="add-error-message">{formErrors[index]?.category}</p>
 							</div>
 						</div>
 
@@ -526,32 +533,25 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						<div className="form-row">
-							{/* Category */}
+							{/* Reorder Level */}
 							<div className="form-group">
-								<label>Category</label>
-								<select
-									className={formErrors[index]?.category ? "invalid-input" : ""}
-									value={form.category}
-									onChange={(e) => handleFormChange(index, "category", e.target.value)}
-									disabled={isSaving || preFilledCategories[index]}
-								>
-									<option value="" disabled>Select category...</option>
-									{categories.map(category => (
-										<option 
-											key={category.category_id} 
-											value={category.category_name}
-										>
-											{category.category_name}
-										</option>
-									))}
-								</select>
-								<p className="add-error-message">{formErrors[index]?.category}</p>
+								<label>Reorder Level</label>
+								<input
+									className={formErrors[index]?.reorder ? "invalid-input" : ""}
+									type="number"
+									step="1"
+									min="0"
+									value={form.reorder}
+									onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
+									disabled={isSaving || reorderDisabled[index]}
+								/>
+								<p className="add-error-message">{formErrors[index]?.reorder}</p>
 							</div>
 
 							{/* Status */}
 							<div className="form-group">
 								<label>Status</label>
-								<input 
+								<input
 									disabled value={form.status}
 								/>
 							</div>
@@ -596,7 +596,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 					<i className="ri-add-line" /> Add Another Stock
 				</button>
 
-				<button type="submit" className="submit-btn" onClick={handleSubmit} 
+				<button type="submit" className="submit-btn" onClick={handleSubmit}
 					disabled={isSaving}>
 					<i className="ri-save-3-line" /> {isSaving ? 'Saving...' : 'Save'}
 				</button>

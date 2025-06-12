@@ -13,49 +13,47 @@ import {
     formatDate,
     formatTime,
     generateFileName,
-    formatStockStatus,
-    getStockStatusStyle
+    formatRequestStatus,
+    getRequestStatusStyle,
+    formatRequestType
 } from '@/utils/pdfReportUtils';
 import "@/styles/pdfModal.css";
 
 // Interface definitions
-interface StockItem {
-    item_id: string;
-    item_name: string;
-    current_stock: number;
-    unit_measure: string;
-    status: string;
-    category_id: string;
-    category: {
-        category_id: string;
-        category_name: string;
+interface RequestItem {
+    request_id: string;
+    inventoryItem: {
+        item_id: string;
+        item_name: string;
     };
-    reorder_level: number;
-    date_updated: string;
+    emp_id: string;
+    empName: string;
+    request_type: string;
+    quantity: number;
+    status: string;
+    date_created: string;
 }
 
-interface StockReportPDFProps {
+interface RequestReportPDFProps {
     isOpen: boolean;
     onClose: () => void;
-    stockData: StockItem[];
+    requestData: RequestItem[];
     reportTitle?: string;
 }
 
 // PDF Document Component
-const StockReportDocument: React.FC<{
-    stockData: StockItem[],
+const RequestReportDocument: React.FC<{
+    requestData: RequestItem[],
     reportTitle?: string
-}> = ({ stockData, reportTitle = "Stock Management Report" }) => {
+}> = ({ requestData, reportTitle = "Request Management Report" }) => {
 
     const today = new Date();
 
     // Calculate summary statistics
-    const totalItems = stockData.length;
-    const availableItems = stockData.filter(item => item.status === 'AVAILABLE').length;
-    const outOfStockItems = stockData.filter(item => item.status === 'OUT_OF_STOCK').length;
-    const lowStockItems = stockData.filter(item => item.status === 'LOW_STOCK').length;
-    const maintenanceItems = stockData.filter(item => item.status === 'UNDER_MAINTENANCE').length;
-    const expiredItems = stockData.filter(item => item.status === 'EXPIRED').length;
+    const totalRequests = requestData.length;
+    const returnedRequests = requestData.filter(request => request.status === 'RETURNED').length;
+    const notReturnedRequests = requestData.filter(request => request.status === 'NOT_RETURNED').length;
+    const consumedRequests = requestData.filter(request => request.status === 'CONSUMED').length;
 
     return (
         <Document>
@@ -68,7 +66,7 @@ const StockReportDocument: React.FC<{
                         Generated on {formatDate(today)} at {formatTime(today)}
                     </Text>
                     <Text style={reportStyles.reportInfo}>
-                        Total Items: {totalItems}
+                        Total Item Requests: {totalRequests}
                     </Text>
                 </View>
 
@@ -78,24 +76,16 @@ const StockReportDocument: React.FC<{
                 {/* Summary Section */}
                 <View style={reportStyles.summarySection}>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{availableItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Available</Text>
+                        <Text style={reportStyles.summaryNumber}>{returnedRequests}</Text>
+                        <Text style={reportStyles.summaryLabel}>Returned Items</Text>
                     </View>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{lowStockItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Low Stock</Text>
+                        <Text style={reportStyles.summaryNumber}>{notReturnedRequests}</Text>
+                        <Text style={reportStyles.summaryLabel}>Not Returned Items</Text>
                     </View>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{outOfStockItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Out of Stock</Text>
-                    </View>
-                    <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{maintenanceItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Maintenance</Text>
-                    </View>
-                    <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{expiredItems}</Text>
-                        <Text style={reportStyles.summaryLabel}>Expired</Text>
+                        <Text style={reportStyles.summaryNumber}>{consumedRequests}</Text>
+                        <Text style={reportStyles.summaryLabel}>Consumed Items</Text>
                     </View>
                 </View>
 
@@ -103,39 +93,51 @@ const StockReportDocument: React.FC<{
                 <View style={reportStyles.table}>
                     {/* Table Header */}
                     <View style={reportStyles.tableHeader}>
+                        <Text style={reportStyles.columnLarge}>Employee Name</Text>
+                        <Text style={reportStyles.columnMedium}>Request Type</Text>
                         <Text style={reportStyles.columnLarge}>Item Name</Text>
-                        <Text style={reportStyles.columnSmall}>Current Stock</Text>
-                        <Text style={reportStyles.columnMedium}>Category</Text>
-                        <Text style={reportStyles.columnMedium}>Reorder Level</Text>
+                        <Text style={reportStyles.columnSmall}>Quantity</Text>
+                        <Text style={reportStyles.columnMedium}>Request Date</Text>
                         <Text style={reportStyles.columnMedium}>Status</Text>
                     </View>
 
                     {/* Table Rows */}
-                    {stockData.map((item, index) => (
+                    {requestData.map((request, index) => (
                         <View
-                            key={item.item_id}
+                            key={request.request_id}
                             style={[
                                 reportStyles.tableRow,
                                 index % 2 === 1 ? reportStyles.alternateRow : {}
                             ]}
                         >
                             <Text style={reportStyles.columnLarge}>
-                                {item.item_name}
+                                {request.empName}
+                            </Text>
+                            <Text style={reportStyles.columnMedium}>
+                                {formatRequestType(request.request_type)}
+                            </Text>
+                            <Text style={reportStyles.columnLarge}>
+                                {request.inventoryItem.item_name}
                             </Text>
                             <Text style={reportStyles.columnSmall}>
-                                {item.current_stock} {item.unit_measure}
+                                {request.quantity}
                             </Text>
                             <Text style={reportStyles.columnMedium}>
-                                {item.category.category_name}
-                            </Text>
-                            <Text style={reportStyles.columnMedium}>
-                                {item.reorder_level}
+                                {request.date_created
+                                    ? new Date(request.date_created).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                    })
+                                    : 'N/A'
+                                }
                             </Text>
                             <View style={reportStyles.statusContainer}>
-                                <Text style={getStockStatusStyle(item.status)}>
-                                    {formatStockStatus(item.status)}
+                                <Text style={getRequestStatusStyle(request.status)}>
+                                    {formatRequestStatus(request.status)}
                                 </Text>
                             </View>
+
                         </View>
                     ))}
                 </View>
@@ -155,10 +157,10 @@ const StockReportDocument: React.FC<{
 };
 
 // PDF Preview Modal Component
-export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
+export const RequestReportPreviewModal: React.FC<RequestReportPDFProps> = ({
     isOpen,
     onClose,
-    stockData,
+    requestData,
     reportTitle
 }) => {
     if (!isOpen) return null;
@@ -169,8 +171,8 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
                 <div className="pdf-modal-content">
                     <div className="pdf-container">
                         <PDFViewer width="100%" height="100%">
-                            <StockReportDocument
-                                stockData={stockData}
+                            <RequestReportDocument
+                                requestData={requestData}
                                 reportTitle={reportTitle}
                             />
                         </PDFViewer>
@@ -180,12 +182,12 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
                         <button className="close-btn" onClick={onClose}>Close</button>
                         <PDFDownloadLink
                             document={
-                                <StockReportDocument
-                                    stockData={stockData}
+                                <RequestReportDocument
+                                    requestData={requestData}
                                     reportTitle={reportTitle}
                                 />
                             }
-                            fileName={generateFileName('Stock')}
+                            fileName={generateFileName('Request')}
                             className="download-btn"
                         >
                             {({ blob, url, loading, error }) =>
