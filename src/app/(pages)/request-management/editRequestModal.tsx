@@ -260,8 +260,14 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 							<label>Expected Return Date</label>
 							<input disabled
 							className={formErrors?.expected_return_date ? "invalid-input" : ""}
-							type="date"
-							value={formData.expected_return_date ? formData.expected_return_date.slice(0, 10) : ""}
+							type="text"
+							value={formData.expected_return_date
+							? new Date(formData.expected_return_date).toLocaleDateString("en-US", {
+								year: "numeric",
+								month: "long",
+								day: "numeric",
+							})
+							: "—"}
 							onChange={(e) => handleChange("expected_return_date", e.target.value)}
 							/>
 							<p className="edit-error-message">{formErrors?.expected_return_date}</p>
