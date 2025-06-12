@@ -297,10 +297,13 @@ export default function StocksManagement() {
     const formatStatus = (status: string, item?: InventoryItem) => {
         if (status === "EXPIRED" && item) {
             const now = new Date();
+            // Set time to 00:00:00 for both dates to compare only the date part
+            now.setHours(0, 0, 0, 0);
             const expiredCount = item.batches.filter(
-                batch => batch.expiration_date && new Date(batch.expiration_date) < now
+                batch => batch.expiration_date && 
+                    new Date(batch.expiration_date).setHours(0, 0, 0, 0) <= now.getTime()
             ).length;
-            return expiredCount > 0 ? `${expiredCount} Expired` : "Expired";
+            return `${expiredCount} Expired`;
         }
         switch (status) {
             case "AVAILABLE":
