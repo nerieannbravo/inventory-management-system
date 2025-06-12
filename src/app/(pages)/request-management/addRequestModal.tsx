@@ -516,7 +516,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 				</button>
 
 				<button type="submit" className="submit-btn" onClick={handleSubmit}>
-					<i className="ri-save-3-line" /> Save
+					<i className="ri-save-3-line" /> {isSaving ? 'Saving...' : 'Save'}
 				</button>
 			</div>
 

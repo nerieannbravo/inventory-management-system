@@ -428,7 +428,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								onChange={(e) => handleItemSelection(index, e.target.value)}
 								disabled={isLoading || isSaving}
 							>
-								<option value="" disabled>Select an item...</option>
+								<option value="" disabled>{isLoading ? "Loading..." : "Select item name..."}</option>
 								{items.map((item) => (
 									<option key={item.f_item_id} value={item.f_item_id}>
 										{getItemDisplayName(item)}
