@@ -6,13 +6,13 @@ import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 import Loading from "@/components/loading";
-import { showRequestDeleteConfirmation, showRequestDeletedSuccess, showStockSaveError, showEditError } from "@/utils/sweetAlert";
+import { showRequestDeleteConfirmation, showRequestDeletedSuccess, showRequestSaveError, showEditError } from "@/utils/sweetAlert";
 
 import AddRequestModal from "./addRequestModal";
 import ViewRequestModal from "./viewRequestModal";
 import EditRequestModal from "./editRequestModal";
 import { RequestForm } from "./addRequestModal";
-import { StockReportPreviewModal } from "./stockReportPDF";
+import { RequestReportPreviewModal } from "./requestReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -59,12 +59,16 @@ export default function RequestManagement() {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    
-    // for modal
+
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Request Management Report");
 
     // Fetch data from API
     useEffect(() => {
@@ -159,19 +163,19 @@ export default function RequestManagement() {
                     : "";
 
                 return (
-                request.inventoryItem.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                request.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                request.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                request.request_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                request.quantity.toString().includes(searchTerm) ||
-                formattedDate.includes(searchTerm.toLowerCase())
-            );
-        });
+                    request.inventoryItem.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    request.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    request.empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    request.request_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    request.quantity.toString().includes(searchTerm) ||
+                    formattedDate.includes(searchTerm.toLowerCase())
+                );
+            });
         }
 
         // Apply status filter
         if (filterValues.status && filterValues.status.length > 0) {
-            filtered = filtered.filter(request=> filterValues.status.includes(request.status));
+            filtered = filtered.filter(request => filterValues.status.includes(request.status));
         }
 
         if (filterValues.request_type && filterValues.request_type.length > 0) {
@@ -419,12 +423,31 @@ export default function RequestManagement() {
                     await showRequestDeletedSuccess();
                     window.location.reload();
                     console.log("Deleted row with id:", rowData.request_id);
-                } 
+                }
             }
         } catch (error) {
-            console.error('Error deleting stock:', error);
-            await showStockSaveError('An unexpected error occurred');
+            console.error('Error deleting request:', error);
+            await showRequestSaveError('An unexpected error occurred');
         }
+    };
+
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters or search are applied
+        const hasFilters = searchTerm.trim() ||
+            (filterValues.status && filterValues.status.length > 0) ||
+            (filterValues.request_type && filterValues.request_type.length > 0) ||
+            (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to));
+
+        const title = hasFilters ? "Request Management Report - Filtered" : "Request Management Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
     };
 
     if (loading) {
@@ -479,7 +502,11 @@ export default function RequestManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button type="button" className="generate-btn">
+                    <button
+                        type="button"
+                        className="generate-btn"
+                        onClick={handleGenerateReport}
+                    >
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -540,12 +567,12 @@ export default function RequestManagement() {
                                             </td>
                                             <td>
                                                 {request.date_created
-                                                ? new Date(request.date_created).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric'
-                                                })
-                                                : ''}
+                                                    ? new Date(request.date_created).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    })
+                                                    : ''}
                                             </td>
                                             <td>
                                                 <ActionButtons
@@ -580,6 +607,13 @@ export default function RequestManagement() {
                 modalContent={modalContent}
             />
 
+            {/* PDF Report Modal */}
+            <RequestReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                requestData={filteredAndSearchedRequests}
+                reportTitle={reportTitle}
+            />
         </div>
     );
 }

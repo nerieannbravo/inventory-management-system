@@ -165,7 +165,7 @@ export default function StocksManagement() {
                 item.category.category_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.unit_measure.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.current_stock.toString().includes(searchTerm) ||
-                item.reorder_level.toString().includes(searchTerm) 
+                item.reorder_level.toString().includes(searchTerm)
             );
         }
 
@@ -430,6 +430,25 @@ export default function StocksManagement() {
         }
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters or search are applied
+        const hasFilters = searchTerm.trim() ||
+            (filterValues.status && filterValues.status.length > 0) ||
+            (filterValues.category && filterValues.category.length > 0) ||
+            (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to));
+
+        const title = hasFilters ? "Stock Management Report - Filtered" : "Stock Management Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
+    };
+
     if (loading) {
         return (
             <div className="card">
@@ -455,25 +474,6 @@ export default function StocksManagement() {
             </div>
         );
     }
-
-    // Handle generate report
-    const handleGenerateReport = () => {
-        // Check if any filters or search are applied
-        const hasFilters = searchTerm.trim() ||
-            (filterValues.status && filterValues.status.length > 0) ||
-            (filterValues.category && filterValues.category.length > 0) ||
-            (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to));
-
-        const title = hasFilters ? "Stock Management Report - Filtered" : "Stock Management Report";
-
-        setReportTitle(title);
-        setShowReportPreview(true);
-    };
-
-    // Handle close report
-    const handleCloseReportPreview = () => {
-        setShowReportPreview(false);
-    };
 
     return (
         <div className="card">

@@ -367,6 +367,20 @@ export const showRequestDeletedSuccess = () => {
     });
 };
 
+// ----- Request Save Error ----- //
+export const showRequestSaveError = (errorMessage?: string) => {
+    return Swal.fire({
+        title: 'Error',
+        html: errorMessage || 'Failed to save requests. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 
 //-------------------- ORDER MANAGEMENT SPECIFIC -------------------//
 

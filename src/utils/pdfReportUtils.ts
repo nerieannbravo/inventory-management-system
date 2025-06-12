@@ -66,7 +66,6 @@ export const formatBusStatus = (status: string): string => {
 // Status style functions - Updated to handle original API status format
 export const getStockStatusStyle = (status: string) => {
     const statusStyleMap: Record<string, any> = {
-        // Original API format
         'AVAILABLE': [reportStyles.statusChip, statusColors.available],
         'OUT_OF_STOCK': [reportStyles.statusChip, statusColors.outOfStock],
         'LOW_STOCK': [reportStyles.statusChip, statusColors.lowStock],
@@ -101,4 +100,13 @@ export const getBusStatusStyle = (status: string) => {
         'UNDER_MAINTENANCE': [reportStyles.statusChip, statusColors.underMaintenance]
     };
     return statusStyleMap[status] || [reportStyles.statusChip];
+};
+
+// Request type formatting
+export const formatRequestType = (type: string): string => {
+    const statusMap: Record<string, string> = {
+        'BORROW': 'Borrow',
+        'CONSUME': 'Consume'
+    };
+    return statusMap[type] || type;
 };
