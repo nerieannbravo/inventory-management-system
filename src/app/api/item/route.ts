@@ -46,14 +46,14 @@ export async function GET() {
     });
 
     // Process each item to calculate current_stock and status
-    const processedItems = items.map(item => {
+    const processedItems = items.map((item: { [x: string]: any; reorder_level?: any; status?: any; batches?: any; }) => {
       const { batches, ...itemData } = item;
       
       // Calculate current stock: sum of all usable quantities from non-deleted batches
-      const current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
+      const current_stock = batches.reduce((sum: any, batch: { usable_quantity: any; }) => sum + batch.usable_quantity, 0);
       
       // Check if any batch has expired (expiration date is today or earlier)
-      const hasExpiredBatch = batches.some(batch => {
+      const hasExpiredBatch = batches.some((batch: { expiration_date: string | number | Date; }) => {
         if (!batch.expiration_date) return false;
         const expirationDate = new Date(batch.expiration_date);
         expirationDate.setHours(0, 0, 0, 0);

@@ -428,7 +428,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									value={form.quantity}
 								/>
 							</div>
-
+		
 							{/* Unit Measure */}
 							<div className="form-group">
 								<label>Unit Measure</label>
@@ -468,6 +468,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								/>
 							</div>
 
+						
 							{/* Defective */}
 							<div className="form-group">
 								<label>Defective Quantity</label>
