@@ -184,6 +184,9 @@ export default function StocksManagement() {
                 const fromDate = filterValues.dateRange.from ? new Date(filterValues.dateRange.from) : null;
                 const toDate = filterValues.dateRange.to ? new Date(filterValues.dateRange.to) : null;
 
+                if (fromDate) fromDate.setHours(0, 0, 0, 0);
+                if (toDate) toDate.setHours(23, 59, 59, 999);
+
                 // If both dates are provided
                 if (fromDate && toDate) {
                     return itemDate >= fromDate && itemDate <= toDate;
