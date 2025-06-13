@@ -13,7 +13,7 @@ import {
     formatDate,
     formatTime,
     generateFileName,
-    formatStockStatus,
+    formatStockStatusWithExpiredCount,
     getStockStatusStyle
 } from '@/utils/pdfReportUtils';
 import "@/styles/pdfModal.css";
@@ -32,6 +32,13 @@ interface StockItem {
     };
     reorder_level: number;
     date_updated: string;
+    batches: {
+        batch_id: string;
+        usable_quantity: number;
+        defective_quantity: number;
+        missing_quantity: number;
+        expiration_date: string | null;
+    }[];
 }
 
 interface StockReportPDFProps {
@@ -133,7 +140,7 @@ const StockReportDocument: React.FC<{
                             </Text>
                             <View style={reportStyles.statusContainer}>
                                 <Text style={getStockStatusStyle(item.status)}>
-                                    {formatStockStatus(item.status)}
+                                    {formatStockStatusWithExpiredCount(item.status, item)}
                                 </Text>
                             </View>
                         </View>

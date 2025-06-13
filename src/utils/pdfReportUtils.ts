@@ -1,5 +1,19 @@
 import { reportStyles, statusColors } from '@/styles/pdfReportStyles';
 
+// Interface for batch data
+interface BatchData {
+    batch_id: string;
+    usable_quantity: number;
+    defective_quantity: number;
+    missing_quantity: number;
+    expiration_date: string | null;
+}
+
+// Interface for stock item with batches
+interface StockItemWithBatches {
+    batches?: BatchData[];
+}
+
 // Common formatting functions
 export const formatDate = (date: Date): string => {
     return date.toLocaleDateString('en-US', {
@@ -21,6 +35,29 @@ export const generateFileName = (reportType: string): string => {
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10);
     return `${reportType}-Report-${dateStr}.pdf`;
+};
+
+// Expired count utility function
+export const getExpiredBatchCount = (item: StockItemWithBatches): number => {
+    if (!item.batches) return 0;
+    
+    const now = new Date();
+    // Set time to 00:00:00 for both dates to compare only the date part
+    now.setHours(0, 0, 0, 0);
+    
+    return item.batches.filter(
+        batch => batch.expiration_date && 
+            new Date(batch.expiration_date).setHours(0, 0, 0, 0) <= now.getTime()
+    ).length;
+};
+
+// Enhanced status formatting function that handles expired count
+export const formatStockStatusWithExpiredCount = (status: string, item?: StockItemWithBatches): string => {
+    if (status === "EXPIRED" && item) {
+        const expiredCount = getExpiredBatchCount(item);
+        return `${expiredCount} Expired`;
+    }
+    return formatStockStatus(status);
 };
 
 // Status formatting functions - Updated to handle original API status format
