@@ -47,7 +47,7 @@ export async function GET() {
     });
 
     // Process each item to calculate current_stock and status
-    const processedItems = items.map(item => {
+    const processedItems = items.map((item) => {
       const { batches, ...itemData } = item;
       
       // Calculate current stock: sum of all usable quantities from non-deleted batches
