@@ -26,6 +26,7 @@ model InventoryItem {
   batches       Batch[]
   employeeRequests EmployeeRequest[]
   category      Category        @relation(fields: [category_id], references: [category_id])
+  fuelConsumption FuelConsumption[]
 
   @@map("inventory_items")
 }
@@ -73,6 +74,18 @@ model EmployeeRequest {
   inventoryItem InventoryItem   @relation(fields: [item_id], references: [item_id])
 
   @@map("employee_requests")
+}
+
+model FuelConsumption {
+  id            String    @id @default(uuid())
+  item_id       String    @db.VarChar(10)
+  quantity      Float
+  date          DateTime  @default(now())
+  created_by    String
+  isdeleted     Boolean   @default(false)
+  inventoryItem InventoryItem @relation(fields: [item_id], references: [item_id])
+
+  @@map("fuel_consumption")
 }
 
 enum InventoryStatus {
