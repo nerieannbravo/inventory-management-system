@@ -268,7 +268,8 @@ export default function BusManagement() {
                         />
                       </td>
                     </tr>
-                  ))}
+                  ))
+                  }
                 </tbody>
               </table>
             </div>

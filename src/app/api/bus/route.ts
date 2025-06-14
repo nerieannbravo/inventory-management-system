@@ -23,8 +23,6 @@ export async function GET() {
         chasis_number: true,
         engine_number: true,
         seat_capacity: true,
-        purchase_price: true,
-        purchase_date: true,
         date_created: true,
         date_updated: true,
         created_by: true,
