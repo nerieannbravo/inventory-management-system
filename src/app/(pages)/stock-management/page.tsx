@@ -576,6 +576,7 @@ export default function StocksManagement() {
                                                     onView={() => openModal("view-stock", item)}
                                                     onEdit={() => openModal("edit-stock", item)}
                                                     onDelete={() => openModal("delete-stock", item)}
+                                                    disableDelete={item.current_stock > 0}
                                                 />
                                             </td>
                                         </tr>

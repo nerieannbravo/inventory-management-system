@@ -111,7 +111,6 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
                                     value={formData.itemName}
                                     onChange={(e) => handleChange("itemName", e.target.value)}
                                 />
-                                <p className="edit-error-message"></p>
                             </div>
 
                             {/* Quantity */}

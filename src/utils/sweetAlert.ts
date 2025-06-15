@@ -367,6 +367,20 @@ export const showRequestDeletedSuccess = () => {
     });
 };
 
+
+export const showDeleteRequestError = (status: string) => {
+    return Swal.fire({
+        title: 'Delete Action Denied',
+        html: `<p>This request cannot be deleted because it's still marked as <strong>${status}</strong>.</p>`,
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 // ----- Request Save Error ----- //
 export const showRequestSaveError = (errorMessage?: string) => {
     return Swal.fire({

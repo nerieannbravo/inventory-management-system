@@ -6,7 +6,7 @@ import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 import Loading from "@/components/loading";
-import { showRequestDeleteConfirmation, showRequestDeletedSuccess, showRequestSaveError, showEditError } from "@/utils/sweetAlert";
+import { showRequestDeleteConfirmation, showRequestDeletedSuccess, showRequestSaveError, showEditError, showDeleteRequestError } from "@/utils/sweetAlert";
 
 import AddRequestModal from "./addRequestModal";
 import ViewRequestModal from "./viewRequestModal";
@@ -190,7 +190,7 @@ export default function RequestManagement() {
 
                 if (fromDate) fromDate.setHours(0, 0, 0, 0);
                 if (toDate) toDate.setHours(23, 59, 59, 999);
-                
+
                 // If both dates are provided
                 if (fromDate && toDate) {
                     return requestDate >= fromDate && requestDate <= toDate;
@@ -373,6 +373,11 @@ export default function RequestManagement() {
                 />;
                 break;
             case "delete-request":
+                // Check stock before allowing deletion
+                if (rowData && rowData.status === "NOT_RETURNED") {
+                    showDeleteRequestError(formatStatus(rowData.status));;
+                    return;
+                }
                 handleDeleteRequest(rowData);
                 return;
             default:
@@ -582,6 +587,8 @@ export default function RequestManagement() {
                                                     onView={() => openModal("view-request", request)}
                                                     onEdit={() => openModal("edit-request", request)}
                                                     onDelete={() => openModal("delete-request", request)}
+                                                    disableEdit={request.status === "CONSUMED" || request.status === "RETURNED"}
+                                                    disableDelete={request.status === "NOT_RETURNED"}
                                                 />
                                             </td>
                                         </tr>

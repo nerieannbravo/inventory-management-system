@@ -93,20 +93,28 @@
 
 /* disabled styles */
 .form-group input:disabled,
+.form-group input:read-only,
 .form-group textarea:disabled,
 .form-group select:disabled {
+    background-color: var(--background-color);
+    border: 1px solid var(--background-color);
+    color: var(--secondary-text-color);
     cursor: not-allowed;
 }
 
 .form-group select:disabled {
+    background-color: var(--background-color);
+    border: 1px solid var(--background-color);
+    color: var(--secondary-text-color);
     appearance: none;
     padding: 6px 12px;
 }
 
 .form-group input:disabled:hover,
+.form-group input:read-only:hover,
 .form-group textarea:disabled:hover,
 .form-group select:disabled:hover {
-    border-color: var(--foreground-color);
+    border-color: var(--background-color);
 }
 
 /* hover and focus styles */

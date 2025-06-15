@@ -308,7 +308,7 @@ export default function OrderManagement() {
                                                 onView={() => openModal("view-order", item)}
                                                 onEdit={() => openModal("edit-order", item)}
                                                 onDelete={() => openModal("delete-order", item)}
-                                                disableEdit={item.ordStatus !== "pending" && item.ordStatus !== "approved"}
+                                                disableEdit={item.ordStatus.toLowerCase() === "completed"}
                                             />
                                         </td>
                                     </tr>
