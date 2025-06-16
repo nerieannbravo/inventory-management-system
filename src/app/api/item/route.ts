@@ -45,21 +45,44 @@ export async function GET() {
         }
       },
     });
+    const processedItems = await Promise.all(items.map(async (item) => {
+    const { batches, ...itemData } = item;
 
-    // Process each item to calculate current_stock and status
-    const processedItems = items.map((item) => {
-      const { batches, ...itemData } = item;
-      
-      // Calculate current stock: sum of all usable quantities from non-deleted batches
-      const current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
-      
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calculate current stock: sum of all usable quantities from non-deleted batches
+    const current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
+
+    const hasExpiredBatch = batches.some(batch => {
+      if (!batch.expiration_date) return false;
+      const expirationDate = new Date(batch.expiration_date);
+      expirationDate.setHours(0, 0, 0, 0);
+      return expirationDate <= today;
+    });
+
+    let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE';
+    if (hasExpiredBatch) {
+      status = 'EXPIRED';
+    } else if (item.category.category_name === "Consumable" && current_stock === 0) {
+      status = 'OUT_OF_STOCK';
+    } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
+      status = 'LOW_STOCK';
+    } else {
+      status = item.status;
+    }
+      await prisma.inventoryItem.update({
+        where: { item_id:item.item_id },
+        data: { status }
+      });
+
       return {
         ...itemData,
         current_stock,
-        // status,
+        status,
         batches
       };
-    });
+    }));
 
     // Also return all batches separately if needed
     const batches = await prisma.batch.findMany({
