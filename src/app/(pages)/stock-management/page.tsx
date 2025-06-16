@@ -6,7 +6,6 @@ import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 import Loading from "@/components/loading";
-import { showStockDeleteConfirmation, showStockDeletedSuccess, showStockSaveError, showDeleteError } from "@/utils/sweetAlert";
 
 import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
@@ -343,7 +342,7 @@ export default function StocksManagement() {
     };
 
     // for the modals of add, view, edit, and delete
-    const openModal = (mode: "add-stock" | "view-stock" | "edit-stock" | "delete-stock", rowData?: any) => {
+    const openModal = (mode: "add-stock" | "view-stock" | "edit-stock", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -367,14 +366,6 @@ export default function StocksManagement() {
                     onClose={closeModal}
                 />;
                 break;
-            case "delete-stock":
-                // Check stock before allowing deletion
-                if (rowData && rowData.current_stock > 0) {
-                    showDeleteError(rowData.item_name || rowData.name, rowData.current_stock);
-                    return;
-                }
-                handleDeleteStock(rowData);
-                return;
             default:
                 content = null;
         }
@@ -404,36 +395,6 @@ export default function StocksManagement() {
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
         closeModal();
-    };
-
-    // Handle delete stocks
-    const handleDeleteStock = async (rowData: any) => {
-        try {
-            const result = await showStockDeleteConfirmation(rowData.name || rowData.item_name);
-
-            if (result.isConfirmed) {
-                // Call the soft delete API
-                const response = await fetch(`/api/item`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ item_id: rowData.item_id }),
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    await showStockDeletedSuccess(rowData.name || rowData.item_name);
-                    window.location.reload();
-                    console.log("Deleted row with id:", rowData.id);
-                } else {
-                    await showDeleteError(rowData.item_name || rowData.name, rowData.current_stock);
-                }
-            }
-        } catch (error) {
-            console.error('Error deleting stock:', error);
-            await showStockSaveError('An unexpected error occurred');
-        }
     };
 
     // Handle generate report
@@ -575,8 +536,6 @@ export default function StocksManagement() {
                                                 <ActionButtons
                                                     onView={() => openModal("view-stock", item)}
                                                     onEdit={() => openModal("edit-stock", item)}
-                                                    onDelete={() => openModal("delete-stock", item)}
-                                                    disableDelete={item.current_stock > 0}
                                                 />
                                             </td>
                                         </tr>
