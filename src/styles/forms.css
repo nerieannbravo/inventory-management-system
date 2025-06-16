@@ -62,14 +62,14 @@
 
 .form-group textarea {
     padding: 6px 12px;
-    width: 600px;
+    min-width: 600px;
     height: 80px;
     resize: none;
 }
 
 .form-group textarea.order {
     padding: 6px 12px;
-    width: 300px;
+    min-width: 300px;
     height: 100%;
     resize: none;
 }

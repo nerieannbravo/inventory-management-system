@@ -17,6 +17,7 @@ export interface StockForm {
 	usable: number,
 	defective: number,
 	missing: number,
+	// remarks: string,
 	category: string,
 	status: string,
 	expiration: string,
@@ -47,6 +48,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		usable: 0,
 		defective: 0,
 		missing: 0,
+		// remarks: "",
 		category: "",
 		status: "AVAILABLE",
 		expiration: "",
@@ -536,6 +538,19 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						<div className="form-group">
 							{formErrors[index]?.sum && <p className="add-error-message quantity">{formErrors[index].sum}</p>}
 						</div>
+
+						{/* Inspection Remarks */}
+						{/* <div className="form-group">
+							<label>Inspection Remarks</label>
+							<textarea
+								className={formErrors[index]?.remarks ? "invalid-input" : ""}
+								value={form.remarks}
+								onChange={(e) => handleFormChange(index, "remarks", e.target.value)}
+								placeholder="Enter inspection remarks here..."
+							>
+							</textarea>
+							<p className="add-error-message">{formErrors[index]?.remarks}</p>
+						</div> */}
 
 						<div className="form-row">
 							{/* Reorder Level */}
