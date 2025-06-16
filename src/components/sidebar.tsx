@@ -23,11 +23,10 @@ const Sidebar: React.FC = () => {
         '/order-management': 'order-management',
         '/bus-management': 'bus-management',
         '/notification': 'notification',
-        '/history': 'history',
-        '/reports': 'reports'
+        '/history': 'history'
     };
 
-    const activitySubItems = ['/notification', '/history', '/reports'];
+    const activitySubItems = ['/notification', '/history'];
 
     // Set activeItem only on route change
     useEffect(() => {
@@ -128,13 +127,6 @@ const Sidebar: React.FC = () => {
                                 onClick={() => setActiveItem('history')}
                             >
                                 History
-                            </Link>
-                            <Link
-                                href="/reports"
-                                className={`sub-item ${activeItem === 'reports' ? 'active' : ''}`}
-                                onClick={() => setActiveItem('reports')}
-                            >
-                                Reports
                             </Link>
                         </div>
                     )}
