@@ -6,7 +6,7 @@ import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 import Loading from "@/components/loading";
-import { showRequestDeleteConfirmation, showRequestDeletedSuccess, showRequestSaveError, showEditError } from "@/utils/sweetAlert";
+import { showEditError } from "@/utils/sweetAlert";
 
 import AddRequestModal from "./addRequestModal";
 import ViewRequestModal from "./viewRequestModal";
@@ -190,7 +190,7 @@ export default function RequestManagement() {
 
                 if (fromDate) fromDate.setHours(0, 0, 0, 0);
                 if (toDate) toDate.setHours(23, 59, 59, 999);
-                
+
                 // If both dates are provided
                 if (fromDate && toDate) {
                     return requestDate >= fromDate && requestDate <= toDate;
@@ -343,7 +343,7 @@ export default function RequestManagement() {
     };
 
     // for the modals of add, view, edit, and delete
-    const openModal = (mode: "add-request" | "view-request" | "edit-request" | "delete-request", rowData?: any) => {
+    const openModal = (mode: "add-request" | "view-request" | "edit-request", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -372,9 +372,6 @@ export default function RequestManagement() {
                     onClose={closeModal}
                 />;
                 break;
-            case "delete-request":
-                handleDeleteRequest(rowData);
-                return;
             default:
                 content = null;
         }
@@ -404,34 +401,6 @@ export default function RequestManagement() {
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
         closeModal();
-    };
-
-    // Handle delete requests
-    const handleDeleteRequest = async (rowData: any) => {
-        try {
-            const result = await showRequestDeleteConfirmation(rowData.inventoryItem.item_name);
-
-            if (result.isConfirmed) {
-                // Call the soft delete API
-                const response = await fetch(`/api/request`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ request_id: rowData.request_id }),
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    await showRequestDeletedSuccess();
-                    window.location.reload();
-                    console.log("Deleted row with id:", rowData.request_id);
-                }
-            }
-        } catch (error) {
-            console.error('Error deleting request:', error);
-            await showRequestSaveError('An unexpected error occurred');
-        }
     };
 
     // Handle generate report
@@ -581,7 +550,7 @@ export default function RequestManagement() {
                                                 <ActionButtons
                                                     onView={() => openModal("view-request", request)}
                                                     onEdit={() => openModal("edit-request", request)}
-                                                    onDelete={() => openModal("delete-request", request)}
+                                                    disableEdit={request.status === "CONSUMED" || request.status === "RETURNED"}
                                                 />
                                             </td>
                                         </tr>

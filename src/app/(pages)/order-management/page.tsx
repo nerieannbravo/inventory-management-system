@@ -5,7 +5,6 @@ import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
-import { showOrderDeleteConfirmation, showOrderDeletedSuccess } from "@/utils/sweetAlert";
 
 import AddOrderModal from "./addOrderModal";
 import ViewOrderModal from "./viewOrderModal";
@@ -175,7 +174,7 @@ export default function OrderManagement() {
     }
 
     // for the modals of add, view, edit, and delete
-    const openModal = (mode: "add-order" | "view-order" | "edit-order" | "delete-order", rowData?: any) => {
+    const openModal = (mode: "add-order" | "view-order" | "edit-order", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -199,9 +198,6 @@ export default function OrderManagement() {
                     onClose={closeModal}
                 />;
                 break;
-            case "delete-order":
-                handleDeleteOrder(rowData);
-                return;
             default:
                 content = null;
         }
@@ -231,18 +227,6 @@ export default function OrderManagement() {
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
         closeModal();
-    };
-
-    // Handle delete order
-    const handleDeleteOrder = async (rowData: any) => {
-        const result = await showOrderDeleteConfirmation(rowData.itemName);
-
-        if (result.isConfirmed) {
-            await showOrderDeletedSuccess();
-            console.log("Deleted row with id:", rowData.id);
-            // Logic to delete the item from the data
-            // In a real app, this would likely be an API call
-        }
     };
 
     return (
@@ -307,8 +291,7 @@ export default function OrderManagement() {
                                             <ActionButtons
                                                 onView={() => openModal("view-order", item)}
                                                 onEdit={() => openModal("edit-order", item)}
-                                                onDelete={() => openModal("delete-order", item)}
-                                                disableEdit={item.ordStatus !== "pending" && item.ordStatus !== "approved"}
+                                                disableEdit={item.ordStatus.toLowerCase() === "completed"}
                                             />
                                         </td>
                                     </tr>

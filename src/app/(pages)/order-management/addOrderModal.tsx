@@ -126,8 +126,9 @@ export default function AddOrderModal({ onSave, onClose }: AddOrderModalProps) {
                                     className={formErrors?.ordQuantity ? "invalid-input" : ""}
                                     type="number"
                                     min="0"
-                                    value={orderForm.ordQuantity}
+                                    value={orderForm.ordQuantity || ""}
                                     onChange={(e) => handleChange("ordQuantity", Number(e.target.value))}
+                                    placeholder="0"
                                 />
                                 <p className="add-error-message">{formErrors?.ordQuantity}</p>
                             </div>

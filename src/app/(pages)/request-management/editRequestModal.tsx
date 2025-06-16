@@ -236,7 +236,6 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 							>
 								<option value="not_returned">Not Returned</option>
 								<option value="returned">Returned</option>
-								{/* <option value="consumed">Consumed</option> */}
 							</select>
 							<p className="edit-error-message">{formErrors?.status}</p>
 						</div>
@@ -255,7 +254,7 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 					</div>
 
 					{/* Expected Return Date */}
-					{formData.request_type === "Borrow" && (
+					{formData.request_type.toLowerCase() === "borrow" && (
 						<div className="form-group">
 							<label>Expected Return Date</label>
 							<input disabled

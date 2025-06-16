@@ -448,6 +448,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 											? `${form.itemStock} ${form.unit_measure}`
 											: ""
 									}
+									placeholder="0"
 								/>
 							</div>
 
@@ -459,8 +460,9 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 									type="number"
 									step="1"
 									min="0"
-									value={form.reqQuantity}
+									value={form.reqQuantity || ""}
 									onChange={(e) => handleFormChange(index, "reqQuantity", Number(e.target.value))}
+									placeholder="0"
 								/>
 								<p className="add-error-message">{formErrors[index]?.reqQuantity}</p>
 							</div>

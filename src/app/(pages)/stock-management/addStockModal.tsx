@@ -17,6 +17,7 @@ export interface StockForm {
 	usable: number,
 	defective: number,
 	missing: number,
+	// remarks: string,
 	category: string,
 	status: string,
 	expiration: string,
@@ -47,6 +48,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		usable: 0,
 		defective: 0,
 		missing: 0,
+		// remarks: "",
 		category: "",
 		status: "AVAILABLE",
 		expiration: "",
@@ -448,15 +450,17 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.quantity}
+									value={form.quantity || ""}
+									placeholder="0"
 								/>
 							</div>
-		
+
 							{/* Unit Measure */}
 							<div className="form-group">
 								<label>Unit Measure</label>
 								<input disabled
 									value={form.unit}
+									placeholder="unit"
 								/>
 							</div>
 
@@ -492,13 +496,13 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.usable}
+									value={form.usable || ""}
 									onChange={(e) => handleFormChange(index, "usable", Number(e.target.value))}
+									placeholder="0"
 									disabled={isSaving}
 								/>
 							</div>
 
-						
 							{/* Defective */}
 							<div className="form-group">
 								<label>Defective Quantity</label>
@@ -507,8 +511,9 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.defective}
+									value={form.defective || ""}
 									onChange={(e) => handleFormChange(index, "defective", Number(e.target.value))}
+									placeholder="0"
 									disabled={isSaving}
 								/>
 							</div>
@@ -521,8 +526,9 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.missing}
+									value={form.missing || ""}
 									onChange={(e) => handleFormChange(index, "missing", Number(e.target.value))}
+									placeholder="0"
 									disabled={isSaving}
 								/>
 							</div>
@@ -533,9 +539,22 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							{formErrors[index]?.sum && <p className="add-error-message quantity">{formErrors[index].sum}</p>}
 						</div>
 
+						{/* Inspection Remarks */}
+						{/* <div className="form-group">
+							<label>Inspection Remarks</label>
+							<textarea
+								className={formErrors[index]?.remarks ? "invalid-input" : ""}
+								value={form.remarks}
+								onChange={(e) => handleFormChange(index, "remarks", e.target.value)}
+								placeholder="Enter inspection remarks here..."
+							>
+							</textarea>
+							<p className="add-error-message">{formErrors[index]?.remarks}</p>
+						</div> */}
+
 						<div className="form-row">
 							{/* Reorder Level */}
-							{form.category === "Consumable" && (
+							{form.category.toLowerCase() === "consumable" && (
 								<div className="form-group">
 									<label>Reorder Level</label>
 									<input
@@ -543,8 +562,9 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 										type="number"
 										step="1"
 										min="0"
-										value={form.reorder}
+										value={form.reorder || ""}
 										onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
+										placeholder="0"
 										disabled={isSaving || reorderDisabled[index]}
 									/>
 									<p className="add-error-message">{formErrors[index]?.reorder}</p>
@@ -561,7 +581,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						{/* Expiration Date */}
-						{form.category === "Consumable" && (
+						{form.category.toLowerCase() === "consumable" && (
 							<div className="form-group">
 								<label>Expiration Date</label>
 								<input

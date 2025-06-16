@@ -78,22 +78,22 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
 	// Fetch categories
-		useEffect(() => {
-			async function loadCategories() {
-				try {
-					const response = await fetch('/api/category');
-					if (!response.ok) {
-						throw new Error('Failed to fetch categories');
-					}
-					const data = await response.json();
-					setCategories(data.categories);
-				} catch (error) {
-					console.error("Error loading categories:", error);
+	useEffect(() => {
+		async function loadCategories() {
+			try {
+				const response = await fetch('/api/category');
+				if (!response.ok) {
+					throw new Error('Failed to fetch categories');
 				}
+				const data = await response.json();
+				setCategories(data.categories);
+			} catch (error) {
+				console.error("Error loading categories:", error);
 			}
-	
-			loadCategories();
-		}, []);
+		}
+
+		loadCategories();
+	}, []);
 
 	// Check if form data has changed from original
 	useEffect(() => {
@@ -138,7 +138,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 					status: formatStatusForDatabase(formData.status),
 					category_id: categories.find(cat => cat.category_name === formData.category)?.category_id || item.category_id,
 				};
-				
+
 				console.log('Sending update data:', updateData);
 
 				// Make the API call to update the item
@@ -184,7 +184,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	};
 
 	// Check if status should be disabled based on category
-	const isStatusDisabled = formData.category.toLowerCase() === "consumable" ;
+	const isStatusDisabled = formData.category.toLowerCase() === "consumable";
 
 	return (
 		<>
@@ -241,12 +241,14 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						<div className="form-group">
 							<label>Reorder Level</label>
 							<input
+								readOnly={formData.category.toLowerCase() !== "consumable"}
 								className={formErrors?.reorder ? "invalid-input" : ""}
 								type="number"
 								step="1"
 								min="0"
-								value={formData.reorder}
+								value={formData.reorder || "0"}
 								onChange={(e) => handleChange("reorder", Number(e.target.value))}
+								placeholder="0"
 							/>
 							<p className="edit-error-message">{formErrors?.reorder}</p>
 						</div>
@@ -256,28 +258,22 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						{/* Category */}
 						<div className="form-group category">
 							<label>Category</label>
-							{/* <input
-								type="text"
+							<select
+								className={formErrors?.category ? "invalid-input" : ""}
 								value={formData.category}
 								onChange={(e) => handleChange("category", e.target.value)}
-							/> */}
-
-							<select
-									className={formErrors?.category ? "invalid-input" : ""}
-									value={formData.category}
-									onChange={(e) => handleChange("category", e.target.value)}
-								>
-									<option value="" disabled>Select category...</option>
-									{categories.map(category => (
-										<option 
-											key={category.category_id} 
-											value={category.category_name}
-										>
-											{category.category_name}
-										</option>
-									))}
-								</select>
-								<p className="add-error-message">{formErrors?.category}</p>
+							>
+								<option value="" disabled>Select category...</option>
+								{categories.map(category => (
+									<option
+										key={category.category_id}
+										value={category.category_name}
+									>
+										{category.category_name}
+									</option>
+								))}
+							</select>
+							<p className="add-error-message">{formErrors?.category}</p>
 						</div>
 
 						{/* Status */}
@@ -294,19 +290,6 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 							{isStatusDisabled}
 						</div>
 					</div>
-
-					{/* Expiration Date */}
-					{/* {formData.category === "consumable" && ( */}
-					{/* <div className="form-group expiration">
-						<label>Expiration Date</label>
-						<input disabled
-							type="date"
-							value={formData.expiration}
-							onChange={(e) => handleChange("expiration", e.target.value)}
-						/>
-					</div> */}
-					{/* )} */}
-
 				</form>
 			</div>
 
