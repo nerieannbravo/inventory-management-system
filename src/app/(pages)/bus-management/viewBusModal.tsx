@@ -7,7 +7,7 @@ interface ViewBusModalProps {
         bodyBuilder: string,
         busType: string,
         busStatus: string,
-        route: string,
+        condition: string,
         // Additional fields would be included in a real application
     };
     formatStatus: (status: string) => string;
@@ -25,13 +25,11 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                 <h1 className="modal-title">View Bus</h1>
             </div>
 
+            <p className="bus-details-title">I. Basic Identification</p>
             <div className="modal-content view">
                 <div className="view-order-form">
-                    <div className="form-group">
-                        <label>Route</label>
-                        <p>{item.route}</p>
-                    </div>
 
+                    {/* Plate number and Body number */}
                     <div className="form-row">
                         <div className="form-group">
                             <label>Plate Number</label>
@@ -40,14 +38,15 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
                         <div className="form-group">
                             <label>Body Number</label>
-                            <p>302508C</p>
+                            <p>{formatStatus(item.bodyNumber)}</p>
                         </div>
                     </div>
 
+                    {/* Body Builder and Bus Type */}
                     <div className="form-row">
                         <div className="form-group">
                             <label>Body Builder</label>
-                            <p>Agila</p>
+                            <p>{formatStatus(item.bodyBuilder)}</p>
                         </div>
 
                         <div className="form-group">
@@ -56,6 +55,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                         </div>
                     </div>
 
+                    {/* Manufacturer, Model, Year Model */}
                     <div className="form-row">
                         <div className="form-group">
                             <label>Manufacturer</label>
@@ -63,11 +63,19 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                         </div>
 
                         <div className="form-group">
-                            <label>Status</label>
-                            <p>{formatStatus(item.busStatus)}</p>
+                            <label>Model</label>
+                            <p>Raize</p>
                         </div>
+
+                        <div className="form-group">
+                            <label>Year Model</label>
+                            <p>2016</p>
+                        </div>
+
+                        
                     </div>
 
+                    {/* Chasis Number and Engine Number */}
                     <div className="form-row">
                         <div className="form-group">
                             <label>Chasis Number</label>
@@ -80,24 +88,197 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                         </div>
                     </div>
 
+                    {/* Condition, Seat Capacity and Status */}
                     <div className="form-row">
+                        <div className="form-group">
+                            <label>Condition</label>
+                            <p>{formatStatus(item.condition)}</p>
+                        </div>
+
                         <div className="form-group">
                             <label>Seat Capacity</label>
                             <p>45</p>
                         </div>
 
                         <div className="form-group">
-                            <label>Purchase Price</label>
-                            <p>Php 5,000,000.00</p>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Purchase Date</label>
-                            <p>05/17/2017</p>
+                            <label>Status</label>
+                            <p>{formatStatus(item.busStatus)}</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {item.condition === "Second Hand" && (
+                <>
+                    <p className="bus-details-title">II. Second Hand Details</p>
+                    <div className="modal-content view">
+                        <div className="view-order-form">
+
+                            {/* Acquisition Date and Aquisition Method */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Acquisition Date</label>
+                                    <p>January 10, 2020</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Aquisition Method</label>
+                                    <p>Purchased</p>
+                                </div>
+                            </div>
+
+                            {/* Previous Owner and Previous Owner Contact */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Previous Owner</label>
+                                    <p>Nerie Ann Bravo</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Previous Owner Contact</label>
+                                    <p>09123456789</p>
+                                </div>
+                            </div>
+
+                            {/* Source and Odometer Reading */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Source</label>
+                                    <p>Dealership</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Odometer Reading</label>
+                                    <p>102938</p>
+                                </div>
+                            </div>
+
+                            {/* Warranty Expiration Date and Registration Status */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Warranty Expiration Date</label>
+                                    <p>January 17, 2020</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Registration Status</label>
+                                    <p>Registered</p>
+                                </div>
+                            </div>
+
+                            {/* Last Registration Date and Last Maintenance Date */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Last Registration Date</label>
+                                    <p>March 19, 2016</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Last Maintenance Date </label>
+                                    <p>December 12, 2019</p>
+                                </div>
+                            </div>
+
+                            {/* Initial Status Condition/Notes*/}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Initial Status Condition/Notes</label>
+                                    <p>Good Condition</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {item.condition === "Brand New" && (
+                <>
+                    <p className="bus-details-title">II. Brand New Details</p>
+                    <div className="modal-content view">
+                        <div className="view-order-form">
+
+                            {/* Acquisition Date and Aquisition Method */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Acquisition Date</label>
+                                    <p>January 10, 2020</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Aquisition Method</label>
+                                    <p>Purchased</p>
+                                </div>
+                            </div>
+
+                            {/* Dealer Name and Dealer Contact */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Dealer Name</label>
+                                    <p>Iveco Quezon City</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Dealer Contact</label>
+                                    <p>09123456789</p>
+                                </div>
+                            </div>
+
+                            {/* Warranty Expiration Date and Registration Status */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Warranty Expiration Date</label>
+                                    <p>January 17, 2020</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Registration Status</label>
+                                    <p>Registered</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            <p className="bus-details-title">III. Document Attachments</p>
+            <div className="modal-content view">
+                <div className="view-order-form">
+
+                    {/* OR/CR Attachments */}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>OR/CR Attachments</label>
+                            <div className="uploaded-document-item">
+                                {/* Example: Replace with dynamic document list */}
+                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
+                                    OR-2020.pdf
+                                </a>
+                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
+                                    CR-2020.pdf
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Other Documents */}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Other Documents</label>
+                            <div className="uploaded-document-item">
+                                {/* Example: Replace with dynamic document list */}
+                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
+                                    Warranty.pdf
+                                </a>
+                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
+                                    Insurance.pdf
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </>
     );
 }

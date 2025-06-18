@@ -23,7 +23,7 @@ interface BusItem {
     id: number,
     bodyNumber: string,
     bodyBuilder: string,
-    route: string,
+    // route: string,
     busType: string,
     busStatus: string,
 }
@@ -109,9 +109,9 @@ const BusReportDocument: React.FC<{
                             <Text style={reportStyles.columnMedium}>
                                 {item.bodyBuilder}
                             </Text>
-                            <Text style={reportStyles.columnLarge}>
+                            {/* <Text style={reportStyles.columnLarge}>
                                 {item.route}
-                            </Text>
+                            </Text> */}
                             <Text style={reportStyles.columnMedium}>
                                 {item.busType}
                             </Text>

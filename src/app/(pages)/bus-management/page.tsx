@@ -21,7 +21,7 @@ const hardcodedData = [
         id: 1,
         bodyNumber: "1001A",
         bodyBuilder: "Agila",
-        route: "Sapang Palay - PITX",
+        condition: "Brand New",
         busType: "Airconditioned",
         busStatus: "active",
     },
@@ -29,7 +29,7 @@ const hardcodedData = [
         id: 2,
         bodyNumber: "1002B",
         bodyBuilder: "DARJ",
-        route: "Sapang Palay - PITX",
+        condition: "Second Hand",
         busType: "Ordinary",
         busStatus: "decommissioned",
     },
@@ -37,7 +37,7 @@ const hardcodedData = [
         id: 3,
         bodyNumber: "1003C",
         bodyBuilder: "Hilltop",
-        route: "Sapang Palay - Santa Cruz",
+        condition: "Second Hand",
         busType: "Airconditioned",
         busStatus: "under-maintenance",
     },
@@ -45,7 +45,7 @@ const hardcodedData = [
         id: 4,
         bodyNumber: "1002A",
         bodyBuilder: "Agila",
-        route: "Sapang Palay - Santa Cruz",
+        condition: "Brand New",
         busType: "Airconditioned",
         busStatus: "active",
 
@@ -54,7 +54,7 @@ const hardcodedData = [
         id: 5,
         bodyNumber: "1005D",
         bodyBuilder: "RBM",
-        route: "Sapang Palay - PITX",
+        condition: "Brand New",
         busType: "Ordinary",
         busStatus: "active",
     },
@@ -124,15 +124,6 @@ export default function BusManagement() {
             ]
         },
         {
-            id: "route",
-            title: "Route",
-            type: "checkbox",
-            options: [
-                { id: "sapang palay - pitx", label: "Sapang Palay - PITX" },
-                { id: "sapang palay - santa cruz", label: "Sapang Palay - Santa Cruz" }
-            ]
-        },
-        {
             id: "busStatus",
             title: "Status",
             type: "checkbox",
@@ -186,12 +177,6 @@ export default function BusManagement() {
         // Filter by bodyBuilder if selected
         if (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) {
             newData = newData.filter(item => filterValues.bodyBuilder.includes(item.bodyBuilder.toLowerCase())
-            );
-        }
-
-        // Filter by route if selected
-        if (filterValues.route && filterValues.route.length > 0) {
-            newData = newData.filter(item => filterValues.route.includes(item.route.toLowerCase())
             );
         }
 
@@ -347,7 +332,7 @@ export default function BusManagement() {
                                 <tr>
                                     <th>Body Number</th>
                                     <th>Body Builder</th>
-                                    <th>Route</th>
+                                    <th>Condition</th>
                                     <th>Status</th>
                                     <th>Bus Type</th>
                                     <th>Actions</th>
@@ -361,7 +346,7 @@ export default function BusManagement() {
                                     >
                                         <td>{item.bodyNumber}</td>
                                         <td>{item.bodyBuilder}</td>
-                                        <td>{item.route}</td>
+                                        <td>{item.condition}</td>
                                         <td className="table-status">
                                             <span className={`chip ${item.busStatus}`}>
                                                 {formatStatus(item.busStatus)}

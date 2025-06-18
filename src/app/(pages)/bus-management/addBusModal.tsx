@@ -30,8 +30,6 @@ export interface BusForm {
     prevOwner?: string,
     prevOwnerContact?: string,
     source?: string,
-    secHandWarranty?: number,
-    secHandWarrantyPeriod?: string,
     secHandWarrantyExpiryDate: string,
     odometerReading?: number,
     registrationStatus?: string,
@@ -44,8 +42,6 @@ export interface BusForm {
     newAcquiMethod?: string,
     dealerName?: string,
     dealerContact?: number,
-    newWarranty?: number,
-    newWarrantyPeriod?: string,
     newWarrantyExpiryDate?: string,
     initialRegistrationStatus?: string,
 
@@ -86,8 +82,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         prevOwner: "",
         prevOwnerContact: "",
         source: "",
-        secHandWarranty: 0,
-        secHandWarrantyPeriod: "",
         secHandWarrantyExpiryDate: "",
         odometerReading: 0,
         registrationStatus: "",
@@ -100,8 +94,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         newAcquiMethod: "",
         dealerName: "",
         dealerContact: 0,
-        newWarranty: 0,
-        newWarrantyPeriod: "",
         newWarrantyExpiryDate: "",
         initialRegistrationStatus: "",
 
@@ -168,21 +160,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
         if (!busForm.secHandAcquiMethod) errors.secHandAcquiMethod = "Acquisition method is required";
         if (!busForm.source) errors.source = "Source is required";
-
-        // Second hand warranty validation: both fields are optional, but if one is filled, the other is required
-        if (
-            (busForm.secHandWarranty !== undefined && busForm.secHandWarranty !== 0 && !busForm.secHandWarrantyPeriod)
-        ) {
-            errors.secHandWarrantyPeriod = "Warranty period is required if warranty value is provided";
-        }
-        if (
-            (busForm.secHandWarrantyPeriod && (busForm.secHandWarranty === undefined || busForm.secHandWarranty === 0))
-        ) {
-            errors.secHandWarranty = "Warranty value is required if warranty period is provided";
-        }
-        if (busForm.secHandWarranty !== undefined && busForm.secHandWarranty < 0) {
-            errors.secHandWarranty = "Warranty must be a positive number";
-        }
        
         if (busForm.odometerReading !== undefined && busForm.odometerReading <= 0) errors.odometerReading = "Odometer reading must be more than 0";
 
@@ -229,15 +206,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         } else if (!/^[A-Za-z\s\-]+$/.test(busForm.dealerContact.toString())) {
             errors.dealerContact = "Dealer contact must only contain letters, spaces, and hyphens";
         }
-        // Brand new warranty validation: both fields are required together, and must be valid
-        if (
-            (busForm.newWarranty === undefined || busForm.newWarranty === 0 || !busForm.newWarrantyPeriod) 
-        ) {
-            errors.newWarranty = "Warranty value and period are both required";
-        } else if (busForm.newWarranty < 0) {
-            errors.newWarranty = "Warranty must be a positive number";
-        }
-
+        
         if (!busForm.newWarrantyExpiryDate) {
             errors.newWarrantyExpiryDate = "New warranty expiry date is required";
         } else {
@@ -348,7 +317,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 value={busForm.bodyBuilder}
                                 onChange={(e) => handleChange("bodyBuilder", e.target.value)}
                             >
-                                <option value="" disabled>Select body builder...</option>
+                                <option value="" disabled>--Select Body Builder--</option>
                                 <option value="agila">Agila</option>
                                 <option value="hilltop">Hilltop</option>
                                 <option value="rbm">RBM</option>
@@ -365,7 +334,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 value={busForm.busType}
                                 onChange={(e) => handleChange("busType", e.target.value)}
                             >
-                                <option value="" disabled>Select bus type...</option>
+                                <option value="" disabled>--Select Bus Type--</option>
                                 <option value="airconditioned">Airconditioned</option>
                                 <option value="ordinary">Ordinary</option>
                             </select>
@@ -621,38 +590,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 </div>
                             </div>
 
-                            {/* Form row - warranty period and expiration date*/}
+                            {/* Form row - warranty expiration date and registration status*/}
                             <div className="form-row">
-                                {/* Warranty Period */}
-                                <div className="form-group">
-                                    <label>Warranty Period</label>
-                                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                                        <input
-                                            className={formErrors?.secHandWarranty ? "invalid-input" : ""}
-                                            type="number"
-                                            min="0"
-                                            style={{ width: "70px" }}
-                                            value={busForm.secHandWarranty}
-                                            onChange={(e) => handleChange("secHandWarranty", e.target.value === "" ? 0 : Number(e.target.value))}
-                                            placeholder="Value"
-                                        />
-                                        <select
-                                            className={formErrors?.secHandWarrantyPeriod ? "invalid-input" : ""}
-                                            value={busForm.secHandWarrantyPeriod}
-                                            onChange={(e) => handleChange("secHandWarrantyPeriod", e.target.value)}
-                                            style={{ flex: 1 }}
-                                        >
-                                            <option value="" disabled>--Select Warranty Period--</option>
-                                            <option value="days">Days</option>
-                                            <option value="weeks">Weeks</option>
-                                            <option value="months">Months</option>
-                                            <option value="year">Year</option>
-                                        </select>
-                                    </div>
-                                    <p className="add-error-message">{formErrors?.secHandWarranty}</p>
-                                    <p className="add-error-message">{formErrors?.secHandWarrantyPeriod}</p>
-                                </div>
-
                                 {/* Warranty Expiration Date */}
                                 <div className="form-group">
                                     <label>Warranty Expiration Date</label>
@@ -666,10 +605,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     />
                                     <p className="add-error-message">{formErrors?.secHandWarrantyExpiryDate}</p>
                                 </div>
-                            </div>
 
-                            {/* Form row - registration status */}
-                            <div className="form-row">
                                 {/* Registration Status */}
                                 <div className="form-group">
                                     <label>Registration Status</label>
@@ -812,38 +748,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 </div>
                             </div>
 
-                            {/* Form row - warranty period and expiration date */}
+                            {/* Form row - warranty expiration date */}
                             <div className="form-row">
-                                {/* Warranty Period */}
-                                <div className="form-group">
-                                    <label>Warranty Period</label>
-                                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                                        <input
-                                            className={formErrors?.newWarranty ? "invalid-input" : ""}
-                                            type="number"
-                                            min="0"
-                                            style={{ width: "70px" }}
-                                            value={busForm.newWarranty}
-                                            onChange={(e) => handleChange("newWarranty", e.target.value === "" ? 0 : Number(e.target.value))}
-                                            placeholder="Value"
-                                        />
-                                        <select
-                                            className={formErrors?.newWarrantyPeriod ? "invalid-input" : ""}
-                                            value={busForm.newWarrantyPeriod}
-                                            onChange={(e) => handleChange("newWarrantyPeriod", e.target.value)}
-                                            style={{ flex: 1 }}
-                                        >
-                                            <option value="" disabled>--Select Warranty Period--</option>
-                                            <option value="days">Days</option>
-                                            <option value="weeks">Weeks</option>
-                                            <option value="months">Months</option>
-                                            <option value="year">Year</option>
-                                        </select>
-                                    </div>
-                                    <p className="add-error-message">{formErrors?.newWarranty}</p>
-                                    <p className="add-error-message">{formErrors?.newWarrantyPeriod}</p>
-                                </div>
-
                                 {/* Warranty Expiration Date */}
                                 <div className="form-group">
                                     <label>Warranty Expiration Date</label>
@@ -857,10 +763,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     />
                                     <p className="add-error-message">{formErrors?.newWarrantyExpiryDate}</p>
                                 </div>
-                            </div>
 
-                            {/* Form row - initial registration status */}
-                            <div className="form-row">
                                 {/* Registration Status */}
                                 <div className="form-group">
                                     <label>Registration Status</label>
