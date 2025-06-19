@@ -575,7 +575,7 @@ export const showBusMaintenanceUpdateConfirmation = (plateNumber: string) => {
 };
 
 // ----- Edit Bus Maintenance Success ----- //
-export const showBuMaintenanceUpdatedSuccess = () => {
+export const showBusMaintenanceUpdatedSuccess = () => {
     return Swal.fire({
         title: 'Updated!',
         text: 'Bus maintenance detail has been updated.',

@@ -169,13 +169,13 @@ export default function BusMaintenance() {
                     onClose={closeModal}
                 />;
                 break;
-            // case "edit-bus-maintenance":
-            //     content = <EditBusMaintenanceModal
-            //         item={rowData}
-            //         onSave={handleEditBusMaintenance}
-            //         onClose={closeModal}
-            //     />;
-            //     break;
+            case "edit-bus-maintenance":
+                content = <EditBusMaintenanceModal
+                    item={rowData}
+                    onSave={handleEditBusMaintenance}
+                    onClose={closeModal}
+                />;
+                break;
             // case "delete-order":
             //     handleDeleteOrder(rowData);
             //     return;
