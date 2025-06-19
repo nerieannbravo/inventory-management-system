@@ -122,6 +122,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
     };
 
+    // Generate year options for the year model dropdown
+    const currentYear = new Date().getFullYear();
+    const startYear = 1980;
+    const yearOptions = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+    // Function to validate the form
     const validateForm = (): boolean => {
         const errors: FormError = {};
 
@@ -160,7 +166,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
         if (!busForm.secHandAcquiMethod) errors.secHandAcquiMethod = "Acquisition method is required";
         if (!busForm.source) errors.source = "Source is required";
-       
+
         if (busForm.odometerReading !== undefined && busForm.odometerReading <= 0) errors.odometerReading = "Odometer reading must be more than 0";
 
         if (!busForm.registrationStatus) errors.registrationStatus = "Registration status is required";
@@ -206,7 +212,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         } else if (!/^[A-Za-z\s\-]+$/.test(busForm.dealerContact.toString())) {
             errors.dealerContact = "Dealer contact must only contain letters, spaces, and hyphens";
         }
-        
+
         if (!busForm.newWarrantyExpiryDate) {
             errors.newWarrantyExpiryDate = "New warranty expiry date is required";
         } else {
@@ -372,20 +378,19 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Year Model */}
                         <div className="form-group">
-                            <label> Year Model</label>
-                            <input
+                            <label>Year Model</label>
+                            <select
                                 className={formErrors?.yearModel ? "invalid-input" : ""}
-                                type="text"
                                 value={busForm.yearModel}
-                                onChange={(e) => {
-                                    // Only allow up to 4 digits
-                                    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
-                                    handleChange("yearModel", value);
-                                }}
-                                placeholder="Enter year model here..."
-                                maxLength={4}
-                                inputMode="numeric"
-                            />
+                                onChange={(e) => handleChange("yearModel", e.target.value)}
+                            >
+                                <option value="" disabled>--Select Year Model--</option>
+                                {yearOptions.map((year) => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
                             <p className="add-error-message">{formErrors?.yearModel}</p>
                         </div>
                     </div>

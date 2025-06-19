@@ -64,14 +64,14 @@
 
 .form-group textarea {
     padding: 6px 12px;
-    width: 600px;
+    min-width: 600px;
     height: 80px;
     resize: none;
 }
 
 .form-group textarea.order {
     padding: 6px 12px;
-    width: 300px;
+    min-width: 300px;
     height: 100%;
     resize: none;
 }
@@ -95,20 +95,28 @@
 
 /* disabled styles */
 .form-group input:disabled,
+.form-group input:read-only,
 .form-group textarea:disabled,
 .form-group select:disabled {
+    background-color: var(--background-color);
+    border: 1px solid var(--background-color);
+    color: var(--secondary-text-color);
     cursor: not-allowed;
 }
 
 .form-group select:disabled {
+    background-color: var(--background-color);
+    border: 1px solid var(--background-color);
+    color: var(--secondary-text-color);
     appearance: none;
     padding: 6px 12px;
 }
 
 .form-group input:disabled:hover,
+.form-group input:read-only:hover,
 .form-group textarea:disabled:hover,
 .form-group select:disabled:hover {
-    border-color: var(--foreground-color);
+    border-color: var(--background-color);
 }
 
 /* hover and focus styles */
@@ -253,32 +261,32 @@
 
 /* ----- MODAL FORMS STYLING: FONT UPLOADED FILES ----- */
 .uploaded-documents-list {
-  margin-top: 8px;
-  padding-left: 0;
-  list-style: none;
+    margin-top: 8px;
+    padding-left: 0;
+    list-style: none;
 }
 
 .uploaded-document-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  margin-left: 20px;
-  margin-top: 10px;
-  background-color: var(--table-header-color);
-  color: var(--secondary-text-color);
-  padding: 3px;
-  padding-left: 20px;
-  padding-right: 20px;
-  border-radius: 30px;
-  width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    margin-left: 20px;
+    margin-top: 10px;
+    background-color: var(--table-header-color);
+    color: var(--secondary-text-color);
+    padding: 3px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 30px;
+    width: fit-content;
 }
 
 .remove-document-button {
-  background: none;
-  border: none;
-  color: var(--error-color);
-  cursor: pointer;
-  padding: 0;
-  font-size: 1rem;
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
 }

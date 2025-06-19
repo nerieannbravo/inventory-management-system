@@ -93,7 +93,7 @@ const Sidebar: React.FC = () => {
                         className={`nav-item ${activeItem === 'request-management' ? 'active' : ''}`}
                         onClick={() => setActiveItem('request-management')}
                     >
-                        <i className="ri-tools-line" />
+                        <i className="ri-swap-2-line" />
                         <span>Request Management</span>
                     </Link>
 
@@ -150,7 +150,7 @@ const Sidebar: React.FC = () => {
                         className={`nav-item module ${isDisposalItemActive ? 'active' : ''}`}
                         onClick={() => toggleSubMenu('disposal-submenu')}
                     >
-                        <i className="ri-booklet-line" />
+                        <i className="ri-recycle-line" />
                         <span>Disposal</span>
                         <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'disposal-submenu' ? 'rotate' : ''}`} />
                     </div>
