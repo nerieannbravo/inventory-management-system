@@ -9,12 +9,11 @@ import PaginationComponent from "@/components/pagination";
 import AddBusMaintenanceModal, { BusMaintenanceForm } from "./addBusMaintenanceModal";
 import ViewBusMaintenanceModal from "./viewBusMaintenanceModal";
 import EditBusMaintenanceModal from "./editBusMaintenanceModal";
-// import { BusMaintenanceForm } from "./addBusMaintenanceModal";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
-import { BusForm } from "../../bus-management/addBusModal";
+// import { BusForm } from "../../bus-management/addBusModal";
 
 const hardcodedData = [
     {
@@ -91,7 +90,7 @@ export default function BusMaintenance() {
             type: "radio",
             options: [
                 { id: "busMaintenanceDate", label: "Maintenance Date" },
-                { id: "bodyNumber", label: "Plate Number" }
+                { id: "bodyNumber", label: "Body Number" }
             ],
             defaultValue: "busMaintenanceDate"
         },

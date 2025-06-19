@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 
 import {
@@ -146,12 +148,6 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
         });
 
         // Mechanic details validation
-        if (!formData.employeeDepartment) {
-            errors.employeeDepartment = "Employee department is required";
-        }
-        if (!formData.employeeName) {
-            errors.employeeName = "Employee name is required";
-        }
         if (!formData.workDescription) {
             errors.workDescription = "Work description is required";
         }
@@ -408,7 +404,10 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                         {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
-                            <select value={formData.busMaintenanceStatus}>
+                            <select
+                                value={formData.busMaintenanceStatus}
+                                onChange={(e) => handleChange("busMaintenanceStatus", e.target.value)}
+                            >
                                 <option value="pending">Pending</option>
                                 <option value="completed">Completed</option>
                             </select>
@@ -533,13 +532,13 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                                 value={formData.employeeDepartment}
                                 onChange={(e) => handleChange("employeeDepartment", e.target.value)}
                             >
-                                <option value="">--Select Department--</option>
+                                {/* <option value="">--Select Department--</option> */}
                                 <option value="maintenance">Maintenance</option>
                                 <option value="operations">Operations</option>
                                 <option value="engineering">Engineering</option>
                                 <option value="other">Other</option>
                             </select>
-                            <p className="edit-error-message">{formErrors?.employeeDepartment}</p>
+                            {/* <p className="edit-error-message">{formErrors?.employeeDepartment}</p> */}
                         </div>
 
                         {/* Employee Name */}
@@ -550,13 +549,13 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                                 onChange={(e) => handleChange("employeeName", e.target.value)}
                                 className={formErrors?.employeeName ? "invalid-input" : ""}
                             >
-                                <option value="" disabled>--Select Employee Name--</option>
+                                {/* <option value="" disabled>--Select Employee Name--</option> */}
                                 <option value="John Doe">John Doe</option>
                                 <option value="Jane Smith">Jane Smith</option>
                                 <option value="Alex Johnson">Alex Johnson</option>
                                 {/* edit more employee options as needed */}
                             </select>
-                            <p className="edit-error-message">{formErrors?.employeeName}</p>
+                            {/* <p className="edit-error-message">{formErrors?.employeeName}</p> */}
                         </div>
                     </div>
 

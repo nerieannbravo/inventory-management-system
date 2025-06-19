@@ -558,10 +558,10 @@ export const showBusMaintenanceSavedSuccess = () => {
 };
 
 // ----- Edit Bus Maintenance Confirmation ----- //
-export const showBusMaintenanceUpdateConfirmation = (plateNumber: string) => {
+export const showBusMaintenanceUpdateConfirmation = (bodyNumber: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the bus maintenance details for <strong>${plateNumber}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the bus maintenance details for <strong>${bodyNumber}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -579,6 +579,74 @@ export const showBusMaintenanceUpdatedSuccess = () => {
     return Swal.fire({
         title: 'Updated!',
         text: 'Bus maintenance detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+//-------------------- BUS DISPOSAL SPECIFIC -------------------//
+
+// ----- Add Bus Maintenance Confirmation ----- //
+export const showBusDisposalSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this bus disposal details?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Bus Disposal Success ----- //
+export const showBusDisposalSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Bus disposal added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Disposal Confirmation ----- //
+export const showBusDisposalUpdateConfirmation = (bodyNumber: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the bus disposal details for <strong>${bodyNumber}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Disposal Success ----- //
+export const showBusDisposalUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Bus disposal detail has been updated.',
         icon: 'success',
         background: 'white',
         timer: 2000,
