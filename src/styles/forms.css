@@ -178,7 +178,8 @@
 .view-request-form .form-group,
 .view-order-form .form-group,
 .view-bus-form .form-group,
-.view-bus-maintenance-form .form-group {
+.view-bus-maintenance-form .form-group,
+.view-bus-disposal-form .form-group {
     margin-bottom: 5px;
 }
 
@@ -186,7 +187,8 @@
 .view-request-form .form-group p,
 .view-order-form .form-group p,
 .view-bus-form .form-group p,
-.view-bus-maintenance-form .form-group p {
+.view-bus-maintenance-form .form-group p,
+.view-bus-disposal-form .form-group p {
     margin-top: 5px;
     padding: 6px 12px;
     background-color: var(--foreground-color);
