@@ -11,7 +11,9 @@
 .modal-content.view .view-order-form,
 .modal-content.add .add-bus-form,
 .modal-content.edit .edit-bus-form,
-.modal-content.view .view-bus-form {
+.modal-content.view .view-bus-form,
+.modal-content.add .add-bus-maintenance-form,
+.modal-content.view .view-bus-maintenance-form {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -163,14 +165,16 @@
 .view-stock-form .form-group,
 .view-request-form .form-group,
 .view-order-form .form-group,
-.view-bus-form .form-group {
+.view-bus-form .form-group,
+.view-bus-maintenance-form .form-group {
     margin-bottom: 5px;
 }
 
 .view-stock-form .form-group p,
 .view-request-form .form-group p,
 .view-order-form .form-group p,
-.view-bus-form .form-group p {
+.view-bus-form .form-group p,
+.view-bus-maintenance-form .form-group p {
     margin-top: 5px;
     padding: 6px 12px;
     background-color: var(--foreground-color);
@@ -226,7 +230,8 @@
 .add-order-form .add-error-message,
 .edit-order-form .edit-error-message,
 .add-bus-form .add-error-message,
-.edit-bus-form .edit-error-message {
+.edit-bus-form .edit-error-message,
+.add-bus-maintenance-form .add-error-message {
     margin: 5px;
     font-size: 12px;
     color: var(--error-color);

@@ -10,7 +10,8 @@
 .chip.available,
 .chip.returned,
 .chip.approved,
-.chip.active {
+.chip.active,
+.chip.completed {
     background-color: var(--success-chip-bg-color);
     color: var(--success-chip-text-color);
 }

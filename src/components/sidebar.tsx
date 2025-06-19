@@ -6,11 +6,10 @@ import { usePathname } from 'next/navigation';
 import "@/styles/sidebar.css";
 
 // interface SidebarProps {
-//     isCollapsed: boolean;
-//     setIsCollapsed: (val: boolean) => void;
-// }
+//      isCollapsed: boolean;
+//      setIsCollapsed: (val: boolean) => void;
+//  }
 
-// const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
     const [activeItem, setActiveItem] = useState<string | null>(null);
@@ -22,20 +21,33 @@ const Sidebar: React.FC = () => {
         '/request-management': 'request-management',
         '/order-management': 'order-management',
         '/bus-management': 'bus-management',
+        '/bus-maintenance': 'bus-maintenance',
+        '/machine-equipment-maintenance': 'machine-equipment-maintenance',
+        '/bus-disposal': 'bus-disposal',
+        '/stock-disposal': 'stock-disposal',
         '/notification': 'notification',
         '/history': 'history',
         '/reports': 'reports'
     };
 
     const activitySubItems = ['/notification', '/history', '/reports'];
+    const maintenanceSubItems = ['/bus-maintenance', '/machine-equipment-maintenance'];
+    const disposalSubItems = ['/bus-disposal', '/stock-disposal'];
 
-    // Set activeItem only on route change
+    // Set activeItem and openSubMenu based on current route
     useEffect(() => {
-        const current = routeToItem[pathname] ||
-            (activitySubItems.includes(pathname) ? pathname.slice(1) : null);
+        const current = routeToItem[pathname];
         setActiveItem(current);
-    }, [pathname]);
 
+        // Auto-open submenu if current route is a sub-item
+        if (activitySubItems.includes(pathname)) {
+            setOpenSubMenu('activity-submenu');
+        } else if (maintenanceSubItems.includes(pathname)) {
+            setOpenSubMenu('maintenance-submenu');
+        } else if (disposalSubItems.includes(pathname)) {
+            setOpenSubMenu('disposal-submenu');
+        }
+    }, [pathname]);
 
     const toggleSubMenu = (id: string) => {
         setOpenSubMenu(prev => (prev === id ? null : id));
@@ -45,11 +57,12 @@ const Sidebar: React.FC = () => {
     //     setIsCollapsed(!isCollapsed);
     // };
 
-    // Determine if an activity subitem is active
+    // Determine if any subitem in each category is active
     const isActivityItemActive = activitySubItems.includes(pathname);
+    const isMaintenanceItemActive = maintenanceSubItems.includes(pathname);
+    const isDisposalItemActive = disposalSubItems.includes(pathname);
 
     return (
-        // <div className={`sidebar ${isCollapsed ? 'collapsed' : ''} shadow-lg`} id="sidebar">
         <div className="sidebar shadow-lg" id="sidebar">
             <div className="sidebar-content">
                 <div className="logo-img">
@@ -102,7 +115,67 @@ const Sidebar: React.FC = () => {
                         <span>Bus Management</span>
                     </Link>
 
-                    {/* Sidebar Sub-item */}
+                    {/* Sidebar Maintenance Sub-item */}
+                    <div
+                        className={`nav-item module ${isMaintenanceItemActive ? 'active' : ''}`}
+                        onClick={() => toggleSubMenu('maintenance-submenu')}
+                    >
+                        <i className="ri-tools-line"></i>
+                        <span>Maintenance</span>
+                        <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'maintenance-submenu' ? 'rotate' : ''}`} />
+                    </div>
+
+                    {openSubMenu === 'maintenance-submenu' && (
+                        <div className="sub-menu active">
+                            <Link
+                                href="/bus-maintenance"
+                                className={`sub-item ${activeItem === 'bus-maintenance' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('bus-maintenance')}
+                            >
+                                Bus Maintenance
+                            </Link>
+
+                            <Link
+                                href="/machine-equipment-maintenance"
+                                className={`sub-item ${activeItem === 'machine-equipment-maintenance' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('machine-equipment-maintenance')}
+                            >
+                                Machine & Equipment Maintenance
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Sidebar Disposal Sub-item */}
+                    <div
+                        className={`nav-item module ${isDisposalItemActive ? 'active' : ''}`}
+                        onClick={() => toggleSubMenu('disposal-submenu')}
+                    >
+                        <i className="ri-booklet-line" />
+                        <span>Disposal</span>
+                        <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'disposal-submenu' ? 'rotate' : ''}`} />
+                    </div>
+
+                    {openSubMenu === 'disposal-submenu' && (
+                        <div className="sub-menu active">
+                            <Link
+                                href="/bus-disposal"
+                                className={`sub-item ${activeItem === 'bus-disposal' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('bus-disposal')}
+                            >
+                                Bus Disposal
+                            </Link>
+
+                            <Link
+                                href="/stock-disposal"
+                                className={`sub-item ${activeItem === 'stock-disposal' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('stock-disposal')}
+                            >
+                                Stock Disposal
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Sidebar Activities Sub-item */}
                     <div
                         className={`nav-item module ${isActivityItemActive ? 'active' : ''}`}
                         onClick={() => toggleSubMenu('activity-submenu')}
@@ -150,8 +223,8 @@ const Sidebar: React.FC = () => {
             </div>
 
             {/* <div className="toggle-btn" onClick={toggleSidebar}>
-                <i className="ri-arrow-left-s-line" />
-            </div> */}
+                 <i className="ri-arrow-left-s-line" />
+             </div> */}
         </div>
     );
 };
