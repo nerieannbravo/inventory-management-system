@@ -1,40 +1,36 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function TestFilesPage() {
-  const [testResult, setTestResult] = useState<string>('');
+export default function TestFiles() {
+  const [files, setFiles] = useState<string[]>([]);
 
-  const testFileAccess = async () => {
-    try {
-      // Test with one of the existing files
-      const response = await fetch('/api/upload/1750443699340-Resume.pdf');
-      if (response.ok) {
-        setTestResult('✅ File access successful!');
-      } else {
-        setTestResult(`❌ File access failed: ${response.status} ${response.statusText}`);
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await fetch('/api/upload?file=1750443699340-Resume.pdf');
+        if (response.ok) {
+          console.log('File exists');
+        }
+      } catch (error) {
+        console.error('Error fetching file:', error);
       }
-    } catch (error) {
-      setTestResult(`❌ Error: ${error}`);
-    }
-  };
+    };
+
+    fetchFiles();
+  }, []);
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>File Serving Test</h1>
-      <button onClick={testFileAccess} style={{ padding: '10px 20px', margin: '10px 0' }}>
-        Test File Access
-      </button>
-      <div style={{ marginTop: '20px' }}>
-        <p><strong>Test Result:</strong> {testResult}</p>
-      </div>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4">Test Files</h1>
+      <p className="mb-4">Testing file upload and serving functionality</p>
       
-      <div style={{ marginTop: '30px' }}>
-        <h2>Available Test Files:</h2>
-        <ul>
-          <li><a href="/api/upload/1750443699340-Resume.pdf" target="_blank">1750443699340-Resume.pdf</a></li>
-          <li><a href="/api/upload/1750443702039-Resume.pdf" target="_blank">1750443702039-Resume.pdf</a></li>
-          <li><a href="/api/upload/lllll-school-id.jpg" target="_blank">lllll-school-id.jpg</a></li>
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Test File Links:</h2>
+        <ul className="list-disc list-inside space-y-2">
+          <li><a href="/api/upload?file=1750443699340-Resume.pdf" target="_blank">1750443699340-Resume.pdf</a></li>
+          <li><a href="/api/upload?file=1750443702039-Resume.pdf" target="_blank">1750443702039-Resume.pdf</a></li>
+          <li><a href="/api/upload?file=lllll-school-id.jpg" target="_blank">lllll-school-id.jpg</a></li>
         </ul>
       </div>
     </div>

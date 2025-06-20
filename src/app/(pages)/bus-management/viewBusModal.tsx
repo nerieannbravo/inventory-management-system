@@ -332,7 +332,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                       );
                     }
                     
-                    const fileUrl = `/api/upload/${filename}`;
+                    const fileUrl = `/api/upload?file=${filename}`;
                     
                     return (
                       <a
