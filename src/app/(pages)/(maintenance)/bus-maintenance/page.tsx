@@ -19,6 +19,7 @@ const hardcodedData = [
     {
         id: 1,
         bodyNumber: "BUS123",
+        bodyBuilder: "Agila",
         busMaintenanceType: "Engine Check",
         busMaintenanceDate: "2023-10-01",
         busMaintenanceStatus: "completed",
@@ -26,6 +27,7 @@ const hardcodedData = [
     {
         id: 2,
         bodyNumber: "BUS456",
+        bodyBuilder: "Hilltop",
         busMaintenanceType: "Tire Replacement",
         busMaintenanceDate: "2023-10-05",
         busMaintenanceStatus: "pending",
@@ -74,6 +76,17 @@ export default function BusMaintenance() {
             title: "Date Range",
             type: "dateRange",
             defaultValue: { from: "", to: "" }
+        },
+        {
+            id: "bodyBuilder",
+            title: "Body Builder",
+            type: "checkbox",
+            options: [
+                { id: "agila", label: "Agila" },
+                { id: "hilltop", label: "Hilltop" },
+                { id: "rbm", label: "RBM" },
+                { id: "darj", label: "DARJ" },
+            ],
         },
         {
             id: "busMaintenanceStatus",
@@ -242,6 +255,7 @@ export default function BusMaintenance() {
                             <thead className="table-heading">
                                 <tr>
                                     <th>Body Number</th>
+                                    <th>Body Builder</th>
                                     <th>Maintenance Type</th>
                                     <th>Status</th>
                                     <th>Maintenance Date</th>
@@ -255,6 +269,7 @@ export default function BusMaintenance() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.bodyNumber}</td>
+                                        <td>{item.bodyBuilder}</td>
                                         <td>{item.busMaintenanceType}</td>
                                         <td className="table-status">
                                             <span className={`chip ${item.busMaintenanceStatus}`}>

@@ -15,9 +15,15 @@
 .modal-content.add .add-bus-maintenance-form,
 .modal-content.view .view-bus-maintenance-form,
 .modal-content.edit .edit-bus-maintenance-form,
+.modal-content.add .add-stock-maintenance-form,
+.modal-content.view .view-stock-maintenance-form,
+.modal-content.edit .edit-stock-maintenance-form,
 .modal-content.add .add-bus-disposal-form,
 .modal-content.view .view-bus-disposal-form,
-.modal-content.edit .edit-bus-disposal-form {
+.modal-content.edit .edit-bus-disposal-form,
+.modal-content.add .add-stock-disposal-form,
+.modal-content.view .view-stock-disposal-form,
+.modal-content.edit .edit-stock-disposal-form {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -179,7 +185,9 @@
 .view-order-form .form-group,
 .view-bus-form .form-group,
 .view-bus-maintenance-form .form-group,
-.view-bus-disposal-form .form-group {
+.view-bus-disposal-form .form-group,
+.view-stock-maintenance-form .form-group,
+.view-stock-disposal-form .form-group {
     margin-bottom: 5px;
 }
 
@@ -188,7 +196,9 @@
 .view-order-form .form-group p,
 .view-bus-form .form-group p,
 .view-bus-maintenance-form .form-group p,
-.view-bus-disposal-form .form-group p {
+.view-bus-disposal-form .form-group p,
+.view-stock-maintenance-form .form-group p,
+.view-stock-disposal-form .form-group p {
     margin-top: 5px;
     padding: 6px 12px;
     background-color: var(--foreground-color);
@@ -247,8 +257,12 @@
 .edit-bus-form .edit-error-message,
 .add-bus-maintenance-form .add-error-message,
 .edit-bus-maintenance-form .edit-error-message,
+.add-stock-maintenance-form .add-error-message,
+.edit-stock-maintenance-form .edit-error-message,
 .add-bus-disposal-form .add-error-message,
-.edit-bus-disposal-form .edit-error-message {
+.edit-bus-disposal-form .edit-error-message,
+.add-stock-disposal-form .add-error-message,
+.edit-stock-disposal-form .edit-error-message {
     margin: 5px;
     font-size: 12px;
     color: var(--error-color);

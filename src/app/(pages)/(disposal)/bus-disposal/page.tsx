@@ -8,7 +8,7 @@ import PaginationComponent from "@/components/pagination";
 
 import AddBusDisposalModal, { BusDisposalForm } from "./addBusDisposalModal";
 import ViewBusDisposalModal from "./viewBusDisposalModal";
-import EditBusDisposalModal from "./editBusDisposalModal";
+// import EditBusDisposalModal from "./editBusDisposalModal";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -18,13 +18,17 @@ const hardcodedData = [
     {
         id: 1,
         bodyNumber: "BUS123",
-        busDisposalMethod: "Engine Check",
+        bodyBuilder: "Agila",
+        busType: "Airconditioned",
+        busDisposalMethod: "Sold",
         busDisposalDate: "2023-10-01",
     },
     {
         id: 2,
         bodyNumber: "BUS456",
-        busDisposalMethod: "Tire Replacement",
+        bodyBuilder: "Hilltop",
+        busType: "Ordinary",
+        busDisposalMethod: "Scrapped",
         busDisposalDate: "2023-10-05",
     },
 ];
@@ -73,12 +77,32 @@ export default function BusDisposal() {
             defaultValue: { from: "", to: "" }
         },
         {
+            id: "bodyBuilder",
+            title: "Body Builder",
+            type: "checkbox",
+            options: [
+                { id: "agila", label: "Agila" },
+                { id: "hilltop", label: "Hilltop" },
+                { id: "rbm", label: "RBM" },
+                { id: "darj", label: "DARJ" },
+            ],
+        },
+        {
+            id: "busType",
+            title: "Bus Type",
+            type: "checkbox",
+            options: [
+                { id: "airconditioned", label: "Airconditioned" },
+                { id: "ordinary", label: "Ordinary" },
+            ],
+        },
+        {
             id: "sortBy",
             title: "Sort By",
             type: "radio",
             options: [
                 { id: "busDisposalDate", label: "Disposal Date" },
-                { id: "bodyNumber", label: "Body Number" }
+                { id: "bodyNumber", label: "Body Number" },
             ],
             defaultValue: "busDisposalDate"
         },
@@ -144,13 +168,13 @@ export default function BusDisposal() {
                     onClose={closeModal}
                 />;
                 break;
-            case "edit-bus-disposal":
-                content = <EditBusDisposalModal
-                    item={rowData}
-                    onSave={handleEditBusDisposal}
-                    onClose={closeModal}
-                />;
-                break;
+            // case "edit-bus-disposal":
+            //     content = <EditBusDisposalModal
+            //         item={rowData}
+            //         onSave={handleEditBusDisposal}
+            //         onClose={closeModal}
+            //     />;
+            //     break;
             // case "delete-order":
             //     handleDeleteOrder(rowData);
             //     return;
@@ -178,12 +202,12 @@ export default function BusDisposal() {
     };
 
     // Handle edit bus disposal
-    const handleEditBusDisposal = (updatedItem: any) => {
-        console.log("Updating item:", updatedItem);
-        // Logic to update the item in the data
-        // In a real app, this would likely be an API call
-        closeModal();
-    };
+    // const handleEditBusDisposal = (updatedItem: any) => {
+    //     console.log("Updating item:", updatedItem);
+    //     // Logic to update the item in the data
+    //     // In a real app, this would likely be an API call
+    //     closeModal();
+    // };
 
     return (
         <div className="card">
@@ -218,6 +242,8 @@ export default function BusDisposal() {
                             <thead className="table-heading">
                                 <tr>
                                     <th>Body Number</th>
+                                    <th>Body Builder</th>
+                                    <th>Bus Type</th>
                                     <th>Disposal Method</th>
                                     <th>Disposal Date</th>
                                     <th>Actions</th>
@@ -230,12 +256,14 @@ export default function BusDisposal() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.bodyNumber}</td>
+                                        <td>{item.bodyBuilder}</td>
+                                        <td>{item.busType}</td>
                                         <td>{item.busDisposalMethod}</td>
                                         <td>{item.busDisposalDate}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-bus-disposal", item)}
-                                                onEdit={() => openModal("edit-bus-disposal", item)}
+                                            // onEdit={() => openModal("edit-bus-disposal", item)}
                                             // disableEdit={item.busDisposalStatus !== "pending" && item.busDisposalStatus !== "approved"}
                                             />
                                         </td>
