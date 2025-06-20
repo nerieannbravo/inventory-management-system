@@ -490,6 +490,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 									type="date"
 									value={form.expectedDate}
 									onChange={(e) => handleFormChange(index, "expectedDate", e.target.value)}
+									min={new Date().toISOString().split("T")[0]}
 								/>
 								<p className="add-error-message">{formErrors[index]?.expectedDate}</p>
 							</div>

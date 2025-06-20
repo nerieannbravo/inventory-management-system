@@ -590,6 +590,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									value={form.expiration}
 									onChange={(e) => handleFormChange(index, "expiration", e.target.value)}
 									disabled={isSaving}
+									min={new Date().toISOString().split("T")[0]}
 								/>
 								<p className="add-error-message">{formErrors[index]?.expiration}</p>
 							</div>
