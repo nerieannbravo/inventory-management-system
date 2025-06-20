@@ -45,6 +45,8 @@ export async function GET() {
         }
       },
     });
+
+    // Process each item to calculate current_stock and status
     const processedItems = await Promise.all(items.map(async (item) => {
     const { batches, ...itemData } = item;
 
@@ -69,7 +71,7 @@ export async function GET() {
     } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
       status = 'LOW_STOCK';
     } else {
-      status = item.status;
+      status = item.status as typeof status;
     }
       await prisma.inventoryItem.update({
         where: { item_id:item.item_id },

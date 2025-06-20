@@ -360,6 +360,36 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 						</select>
 						<p className="add-error-message">{formErrors[0]?.empName}</p>
 					</div>
+					<div className="form-row">
+							<div className="form-group">
+								<label>Department</label>
+								<input
+									disabled
+									type="text"
+									value=""
+									placeholder="Department"
+								/>
+							</div>
+							<div className="form-group">
+								<label>Role</label>
+								<input
+									disabled
+									type="text"
+									value=""
+									placeholder="Role"
+								/>
+							</div>
+							<div className="form-group">
+								<label>Contact Number</label>
+								<input
+									disabled
+									type="text"
+									value=""
+									placeholder="Contact Number"
+								/>
+							</div>
+						</div>
+
 				</form>
 			</div>
 

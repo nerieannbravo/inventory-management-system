@@ -540,17 +540,17 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						{/* Inspection Remarks */}
-						{/* <div className="form-group">
+						<div className="form-group">
 							<label>Inspection Remarks</label>
 							<textarea
 								className={formErrors[index]?.remarks ? "invalid-input" : ""}
-								value={form.remarks}
+								value=""
 								onChange={(e) => handleFormChange(index, "remarks", e.target.value)}
 								placeholder="Enter inspection remarks here..."
 							>
 							</textarea>
 							<p className="add-error-message">{formErrors[index]?.remarks}</p>
-						</div> */}
+						</div>
 
 						<div className="form-row">
 							{/* Reorder Level */}

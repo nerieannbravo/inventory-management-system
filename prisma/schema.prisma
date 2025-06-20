@@ -38,6 +38,7 @@ model Batch {
   usable_quantity    Int           @default(0)
   defective_quantity Int           @default(0)
   missing_quantity   Int           @default(0)
+  remarks            String?       @db.VarChar(255)
   expiration_date    DateTime?
   date_created       DateTime      @default(now())
   created_by         String
@@ -88,21 +89,67 @@ model Bus {
   chasis_number   String          @unique @db.VarChar(50)
   engine_number   String          @unique @db.VarChar(50)
   seat_capacity   Int
+  model           String          @db.VarChar(50)
+  year_model      Int
+  route           String?          @db.VarChar(10)
+  condition       BusCondition
+  acquisition_date DateTime
+  acquisition_method AcquisitionMethod
+  warranty_expiration_date DateTime?
+  registration_status  RegistrationStatus
   date_created    DateTime        @default(now())
   date_updated    DateTime        @updatedAt
-  isdeleted       Boolean         @default(false)
   created_by      Int
   inventoryItem   InventoryItem   @relation(fields: [item_id], references: [item_id])
 
+  secondHandDetails     SecondHandDetails?
+  brandNewDetails       BrandNewDetails?
+  busOtherFiles            BusOtherFiles[]
+
   @@map("bus")
+}
+
+model SecondHandDetails {
+  s_bus_id               String    @id
+  previous_owner         String
+  previous_owner_contact String
+  source                 BusSource
+  odometer_reading       Int
+  last_registration_date DateTime
+  last_maintenance_date  DateTime
+  bus_condition_notes    String?
+
+  bus                    Bus    @relation(fields: [s_bus_id], references: [bus_id], onDelete: Cascade)
+}
+
+model BrandNewDetails {
+  b_bus_id        String    @id
+  dealer_name     String
+  dealer_contact  String
+
+  bus             Bus    @relation(fields: [b_bus_id], references: [bus_id], onDelete: Cascade)
+}
+
+model BusOtherFiles {
+  bus_files_id    String    @id @db.VarChar(10)
+  file_name       String
+  file_type       String
+  file_url       String
+  date_uploaded   DateTime @default(now())
+
+  bus_id          String
+  bus             Bus    @relation(fields: [bus_id], references: [bus_id], onDelete: Cascade)
 }
 
 enum InventoryStatus {
   LOW_STOCK
   AVAILABLE
+  NOT_AVAILABLE
   OUT_OF_STOCK
   UNDER_MAINTENANCE
   EXPIRED
+  IN_USED
+  DISPOSED
 }
 
 enum RequestType {
@@ -114,6 +161,8 @@ enum RequestStatus {
   RETURNED
   NOT_RETURNED
   CONSUMED
+  PARTIALLY_CONSUMED
+  CANCELLED
 }
 
 enum BodyBuilder {
@@ -132,4 +181,28 @@ enum BusStatus {
   ACTIVE
   DECOMMISSIONED
   UNDER_MAINTENANCE
+}
+
+enum BusCondition {
+  BRAND_NEW
+  SECOND_HAND
+}
+
+enum AcquisitionMethod {
+  PURCHASED
+  LEASED
+  DONATED
+}
+
+enum RegistrationStatus {
+  REGISTERED
+  NOT_REGISTERED
+  NEEDS_RENEWAL
+  EXPIRED
+}
+
+enum BusSource {
+  DEALERSHIP
+  ACTION
+  PRIVATE_INDIVIDUAL
 }

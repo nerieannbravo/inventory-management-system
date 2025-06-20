@@ -11,7 +11,10 @@
 .modal-content.view .view-order-form,
 .modal-content.add .add-bus-form,
 .modal-content.edit .edit-bus-form,
-.modal-content.view .view-bus-form {
+.modal-content.view .view-bus-form,
+.modal-content.add .add-bus-maintenance-form,
+.modal-content.view .view-bus-maintenance-form,
+.modal-content.edit .edit-bus-maintenance-form {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -171,14 +174,16 @@
 .view-stock-form .form-group,
 .view-request-form .form-group,
 .view-order-form .form-group,
-.view-bus-form .form-group {
+.view-bus-form .form-group,
+.view-bus-maintenance-form .form-group {
     margin-bottom: 5px;
 }
 
 .view-stock-form .form-group p,
 .view-request-form .form-group p,
 .view-order-form .form-group p,
-.view-bus-form .form-group p {
+.view-bus-form .form-group p,
+.view-bus-maintenance-form .form-group p {
     margin-top: 5px;
     padding: 6px 12px;
     background-color: var(--foreground-color);
@@ -234,7 +239,9 @@
 .add-order-form .add-error-message,
 .edit-order-form .edit-error-message,
 .add-bus-form .add-error-message,
-.edit-bus-form .edit-error-message {
+.edit-bus-form .edit-error-message,
+.add-bus-maintenance-form .add-error-message,
+.edit-bus-maintenance-form .edit-error-message {
     margin: 5px;
     font-size: 12px;
     color: var(--error-color);
@@ -243,4 +250,45 @@
 .add-stock-form .add-error-message.quantity {
     margin-top: -5px;
     margin-bottom: 5px;
+}
+
+/* ----- MODAL FORMS STYLING: FONT TITLE DETAILS ----- */
+.bus-details-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+/* ----- MODAL FORMS STYLING: FONT UPLOADED FILES ----- */
+.uploaded-documents-list {
+    margin-top: 8px;
+    padding-left: 0;
+    list-style: none;
+}
+
+.uploaded-document-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    margin-left: 20px;
+    margin-top: 10px;
+    background-color: var(--table-header-color);
+    color: var(--secondary-text-color);
+    padding: 3px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 30px;
+    width: fit-content;
+}
+
+.remove-document-button {
+    background: none;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
 }

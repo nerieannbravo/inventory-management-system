@@ -6,61 +6,34 @@ import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 
-import AddBusModal from "./addBusModal";
-import ViewBusModal from "./viewBusModal";
-import EditBusModal from "./editBusModal";
-import { BusForm } from "./addBusModal";
-import { BusReportPreviewModal, useBusReportPDF } from "./busReportPDF";
+import AddBusMaintenanceModal, { BusMaintenanceForm } from "./addBusMaintenanceModal";
+import ViewBusMaintenanceModal from "./viewBusMaintenanceModal";
+import EditBusMaintenanceModal from "./editBusMaintenanceModal";
+// import { BusMaintenanceForm } from "./addBusMaintenanceModal";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
+import { BusForm } from "../../bus-management/addBusModal";
 
 const hardcodedData = [
     {
         id: 1,
-        bodyNumber: "1001A",
-        bodyBuilder: "Agila",
-        condition: "Brand New",
-        busType: "Airconditioned",
-        busStatus: "active",
+        bodyNumber: "BUS123",
+        busMaintenanceType: "Engine Check",
+        busMaintenanceDate: "2023-10-01",
+        busMaintenanceStatus: "completed",
     },
     {
         id: 2,
-        bodyNumber: "1002B",
-        bodyBuilder: "DARJ",
-        condition: "Second Hand",
-        busType: "Ordinary",
-        busStatus: "decommissioned",
-    },
-    {
-        id: 3,
-        bodyNumber: "1003C",
-        bodyBuilder: "Hilltop",
-        condition: "Second Hand",
-        busType: "Airconditioned",
-        busStatus: "maintenance",
-    },
-    {
-        id: 4,
-        bodyNumber: "1002A",
-        bodyBuilder: "Agila",
-        condition: "Brand New",
-        busType: "Airconditioned",
-        busStatus: "active",
-
-    },
-    {
-        id: 5,
-        bodyNumber: "1005D",
-        bodyBuilder: "RBM",
-        condition: "Brand New",
-        busType: "Ordinary",
-        busStatus: "active",
+        bodyNumber: "BUS456",
+        busMaintenanceType: "Tire Replacement",
+        busMaintenanceDate: "2023-10-05",
+        busMaintenanceStatus: "pending",
     },
 ];
 
-export default function BusManagement() {
+export default function BusMaintenance() {
     // for modal
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,15 +42,6 @@ export default function BusManagement() {
 
     // For filtering
     const [filteredData, setFilteredData] = useState(hardcodedData);
-
-    // Add the bus report PDF hook
-    const {
-        showReportPreview,
-        handlePreviewReport,
-        handleCloseReportPreview,
-        reportTitle,
-        setReportTitle
-    } = useBusReportPDF(filteredData);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -113,33 +77,12 @@ export default function BusManagement() {
             defaultValue: { from: "", to: "" }
         },
         {
-            id: "bodyBuilder",
-            title: "Body Builder",
-            type: "checkbox",
-            options: [
-                { id: "agila", label: "Agila" },
-                { id: "hilltop", label: "Hilltop" },
-                { id: "rbm", label: "RBM" },
-                { id: "darj", label: "DARJ" }
-            ]
-        },
-        {
-            id: "busStatus",
+            id: "busMaintenanceStatus",
             title: "Status",
             type: "checkbox",
             options: [
-                { id: "active", label: "Active" },
-                { id: "decommissioned", label: "Decommissioned" },
-                { id: "under-maintenance", label: "Under Maintenance" }
-            ]
-        },
-        {
-            id: "busType",
-            title: "Bus Type",
-            type: "checkbox",
-            options: [
-                { id: "airconditioned", label: "Airconditioned" },
-                { id: "ordinary", label: "Ordinary" }
+                { id: "completed", label: "Completed" },
+                { id: "pending", label: "Pending" }
             ]
         },
         {
@@ -147,10 +90,10 @@ export default function BusManagement() {
             title: "Sort By",
             type: "radio",
             options: [
-                { id: "bodyNumber", label: "Body Number" },
-                { id: "bodyBuilder", label: "Body Builder" }
+                { id: "busMaintenanceDate", label: "Maintenance Date" },
+                { id: "bodyNumber", label: "Plate Number" }
             ],
-            defaultValue: "bodyNumber"
+            defaultValue: "busMaintenanceDate"
         },
         {
             id: "order",
@@ -174,33 +117,21 @@ export default function BusManagement() {
         // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
 
-        // Filter by bodyBuilder if selected
-        if (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) {
-            newData = newData.filter(item => filterValues.bodyBuilder.includes(item.bodyBuilder.toLowerCase())
-            );
+        // Filter by status if selected
+        if (filterValues.busMaintenanceStatus && filterValues.busMaintenanceStatus.length > 0) {
+            newData = newData.filter(item => filterValues.busMaintenanceStatus.includes(item.busMaintenanceStatus));
         }
 
-        // Filter by busStatus if selected
-        if (filterValues.busStatus && filterValues.busStatus.length > 0) {
-            newData = newData.filter(item => filterValues.busStatus.includes(item.busStatus));
-        }
-
-        // Filter by busType if selected
-        if (filterValues.busType && filterValues.busType.length > 0) {
-            newData = newData.filter(item => filterValues.busType.includes(item.busType.toLowerCase())
-            );
-        }
-
-        // Sort by bodyNumber or bodyBuilder
+        // Sort by plate number or date
         if (filterValues.sortBy === "bodyNumber") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
                 return a.bodyNumber.localeCompare(b.bodyNumber) * sortOrder;
             });
-        } else if (filterValues.sortBy === "bodyBuilder") {
+        } else if (filterValues.sortBy === "busMaintenanceDate") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyBuilder.localeCompare(b.bodyBuilder) * sortOrder;
+                return (a.busMaintenanceDate ?? "").localeCompare(b.busMaintenanceDate ?? "") * sortOrder;
             });
         }
 
@@ -208,45 +139,46 @@ export default function BusManagement() {
         setCurrentPage(1); // Reset to first page when filters change
     };
 
-    // for items busStatus formatting
-    const formatStatus = (busStatus: string) => {
-        switch (busStatus) {
-            case "active":
-                return "Active";
-            case "decommissioned":
-                return "Decommissioned";
-            case "maintenance":
-                return "Under Maintenance";
+    // for order status formatting
+    function formatStatus(busMaintenanceStatus: string) {
+        switch (busMaintenanceStatus) {
+            case "completed":
+                return "Completed";
+            case "pending":
+                return "Pending";
             default:
-                return busStatus;
+                return busMaintenanceStatus;
         }
-    };
+    }
 
     // for the modals of add, view, and edit
-    const openModal = (mode: "add-bus" | "view-bus" | "edit-bus", rowData?: any) => {
+    const openModal = (mode: "add-bus-maintenance" | "view-bus-maintenance" | "edit-bus-maintenance", rowData?: any) => {
         let content;
 
         switch (mode) {
-            case "add-bus":
-                content = <AddBusModal
-                    onSave={handleAddBus}
+            case "add-bus-maintenance":
+                content = <AddBusMaintenanceModal
+                    onSave={handleAddBusMaintenance}
                     onClose={closeModal}
                 />;
                 break;
-            case "view-bus":
-                content = <ViewBusModal
+            case "view-bus-maintenance":
+                content = <ViewBusMaintenanceModal
                     item={rowData}
                     formatStatus={formatStatus}
                     onClose={closeModal}
                 />;
                 break;
-            case "edit-bus":
-                content = <EditBusModal
+            case "edit-bus-maintenance":
+                content = <EditBusMaintenanceModal
                     item={rowData}
-                    onSave={handleEditBus}
+                    onSave={handleEditBusMaintenance}
                     onClose={closeModal}
                 />;
                 break;
+            // case "delete-order":
+            //     handleDeleteOrder(rowData);
+            //     return;
             default:
                 content = null;
         }
@@ -262,40 +194,25 @@ export default function BusManagement() {
         setActiveRow(null);
     };
 
-    // Handle add bus
-    const handleAddBus = (busForm: BusForm) => {
-        console.log("Saving forms:", busForm);
+    // Handle add bus maintenance
+    const handleAddBusMaintenance = (busMaintenanceForm: BusMaintenanceForm) => {
+        console.log("Saving form:", busMaintenanceForm);
         // Logic to add bus to the data
         // In a real app, this would likely be an API call
         closeModal();
     };
 
-    // Handle edit bus
-    const handleEditBus = (updatedItem: any) => {
+    // Handle edit bus maintenance
+    const handleEditBusMaintenance = (updatedItem: any) => {
         console.log("Updating item:", updatedItem);
         // Logic to update the item in the data
         // In a real app, this would likely be an API call
         closeModal();
     };
 
-    // Handle generate report
-    const handleGenerateReport = () => {
-        // You can customize the report title based on current filters
-        let title = "Bus Management Report";
-
-        // Add filter information to title if any filters are applied
-        const hasFilters = filteredData.length !== hardcodedData.length;
-        if (hasFilters) {
-            title += " (Filtered Results)";
-        }
-
-        setReportTitle(title);
-        handlePreviewReport();
-    };
-
     return (
         <div className="card">
-            <h1 className="title">Bus Management</h1>
+            <h1 className="title">Bus Maintenance</h1>
 
             {/* Search Engine and Filters */}
             <div className="elements">
@@ -313,14 +230,9 @@ export default function BusManagement() {
                         />
                     </div>
 
-                    {/* Generate Report Button */}
-                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
-                        <i className="ri-receipt-line" /> Generate Report
-                    </button>
-
-                    {/* Add Stocks Button */}
-                    <button className="main-btn" onClick={() => openModal("add-bus")}>
-                        <i className="ri-add-line" /> Add Bus
+                    {/* Add Bus Maintenance Button */}
+                    <button className="main-btn" onClick={() => openModal("add-bus-maintenance")}>
+                        <i className="ri-add-line" /> Add Maintenance
                     </button>
                 </div>
 
@@ -331,10 +243,9 @@ export default function BusManagement() {
                             <thead className="table-heading">
                                 <tr>
                                     <th>Body Number</th>
-                                    <th>Body Builder</th>
-                                    <th>Condition</th>
+                                    <th>Maintenance Type</th>
                                     <th>Status</th>
-                                    <th>Bus Type</th>
+                                    <th>Maintenance Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -345,18 +256,18 @@ export default function BusManagement() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.bodyNumber}</td>
-                                        <td>{item.bodyBuilder}</td>
-                                        <td>{item.condition}</td>
+                                        <td>{item.busMaintenanceType}</td>
                                         <td className="table-status">
-                                            <span className={`chip ${item.busStatus}`}>
-                                                {formatStatus(item.busStatus)}
+                                            <span className={`chip ${item.busMaintenanceStatus}`}>
+                                                {formatStatus(item.busMaintenanceStatus)}
                                             </span>
                                         </td>
-                                        <td>{item.busType}</td>
+                                        <td>{item.busMaintenanceDate}</td>
                                         <td>
                                             <ActionButtons
-                                                onView={() => openModal("view-bus", item)}
-                                                onEdit={() => openModal("edit-bus", item)}
+                                                onView={() => openModal("view-bus-maintenance", item)}
+                                                onEdit={() => openModal("edit-bus-maintenance", item)}
+                                                disableEdit={item.busMaintenanceStatus !== "pending" && item.busMaintenanceStatus !== "approved"}
                                             />
                                         </td>
                                     </tr>
@@ -382,14 +293,6 @@ export default function BusManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
-            />
-
-            {/* Bus Report Preview Modal */}
-            <BusReportPreviewModal
-                isOpen={showReportPreview}
-                onClose={handleCloseReportPreview}
-                busData={filteredData}
-                reportTitle={reportTitle}
             />
 
         </div>

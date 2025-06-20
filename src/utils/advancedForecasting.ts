@@ -347,7 +347,7 @@ export class AdvancedFuelForecasting {
                 method,
                 dataPoints: data.length,
                 seasonality: 'Insufficient Data',
-                trend: 'Insufficient Data',
+                trend: 'Volatile',
                 recommendations: ['Collect more historical data for better forecasting accuracy']
             }
         };

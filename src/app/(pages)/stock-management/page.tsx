@@ -148,7 +148,7 @@ export default function StocksManagement() {
                 { id: "asc", label: "Ascending" },
                 { id: "desc", label: "Descending" }
             ],
-            defaultValue: "asc"
+            defaultValue: "desc"
         }
     ];
 

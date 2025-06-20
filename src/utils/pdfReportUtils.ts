@@ -93,9 +93,9 @@ export const formatOrderStatus = (status: string): string => {
 
 export const formatBusStatus = (status: string): string => {
     const statusMap: Record<string, string> = {
-        'ACTIVE': 'Active',
-        'DECOMMISSIONED': 'Decommissioned',
-        'UNDER_MAINTENANCE': 'Under Maintenance'
+        'active': 'Active',
+        'decommissioned': 'Decommissioned',
+        'under-maintenance': 'Under Maintenance'
     };
     return statusMap[status] || status;
 };
@@ -132,9 +132,9 @@ export const getOrderStatusStyle = (status: string) => {
 
 export const getBusStatusStyle = (status: string) => {
     const statusStyleMap: Record<string, any> = {
-        'ACTIVE': [reportStyles.statusChip, statusColors.active],
-        'DECOMMISSIONED': [reportStyles.statusChip, statusColors.decommissioned],
-        'UNDER_MAINTENANCE': [reportStyles.statusChip, statusColors.underMaintenance]
+        'active': [reportStyles.statusChip, statusColors.active],
+        'decommissioned': [reportStyles.statusChip, statusColors.decommissioned],
+        'under-maintenance': [reportStyles.statusChip, statusColors.underMaintenance]
     };
     return statusStyleMap[status] || [reportStyles.statusChip];
 };
