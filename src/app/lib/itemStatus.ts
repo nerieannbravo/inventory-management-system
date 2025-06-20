@@ -29,7 +29,7 @@ export async function calculateAndUpdateStatus(item_id: string) {
   } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
     status = 'LOW_STOCK';
   } else {
-    status = item.status;
+    status = item.status as typeof status;
   }
 
   await prisma.inventoryItem.update({
