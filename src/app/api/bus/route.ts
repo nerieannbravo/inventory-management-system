@@ -1,52 +1,167 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
+import { generateId } from '@/app/lib/idGenerator';
+import type { BodyBuilder, BusType, BusStatus, BusCondition, AcquisitionMethod, RegistrationStatus, BusSource } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
-    // Destructure the expected fields from the request body
     const {
-      bus,
+      bus: busForm,
       secondHandDetails,
       brandNewDetails,
       busOtherFiles
     } = data;
 
-    // Create the main Bus record
-    const createdBus = await prisma.bus.create({
-      data: bus
-    });
+    // Generate bus_id
+    const bus_id = await generateId('bus', 'BUS');
 
-    // Conditionally create SecondHandDetails or BrandNewDetails
-    if (bus.condition === 'SECOND_HAND' && secondHandDetails) {
-      await prisma.secondHandDetails.create({
+    // Map frontend values to Prisma enums
+    const bodyBuilderMap = {
+      'agila': 'AGILA',
+      'hilltop': 'HILLTOP',
+      'rbm': 'RBM',
+      'darj': 'DARJ',
+    };
+    const busTypeMap = {
+      'airconditioned': 'AIRCONDITIONED',
+      'ordinary': 'ORDINARY',
+    };
+    const busStatusMap = {
+      'active': 'ACTIVE',
+      'decommissioned': 'DECOMMISSIONED',
+      'under_maintenance': 'UNDER_MAINTENANCE',
+    };
+    const busConditionMap = {
+      'brand-new': 'BRAND_NEW',
+      'second-hand': 'SECOND_HAND',
+    };
+    const acquisitionMethodMap = {
+      'purchased': 'PURCHASED',
+      'leased': 'LEASED',
+      'donated': 'DONATED',
+    };
+    const registrationStatusMap = {
+      'registered': 'REGISTERED',
+      'not_registered': 'NOT_REGISTERED',
+      'needs_renewal': 'NEEDS_RENEWAL',
+      'expired': 'EXPIRED',
+    };
+
+    const busSourceMap = {
+      'dealership': 'DEALERSHIP',
+      'auction': 'AUCTION',
+      'private-individual': 'PRIVATE_INDIVIDUAL',
+    };
+
+    // Helper function to safely map string to enum
+    function mapEnum<T extends Record<string, string>>(map: T, value: unknown, fallback: string): string {
+      if (typeof value === 'string') {
+        const key = value.toLowerCase();
+        if (key in map) return map[key];
+      }
+      return fallback;
+    }
+
+    let createdBus;
+    if (busForm.condition === 'second-hand' && !secondHandDetails) {
+      createdBus = await prisma.bus.create({
         data: {
-          ...secondHandDetails,
-          s_bus_id: createdBus.bus_id
+          bus_id,
+          item_id: "ITEM-00001", // Make sure to provide item_id from frontend or generate if needed
+          plate_number: busForm.plate_number,
+          body_number: busForm.body_number,
+          body_builder: mapEnum(bodyBuilderMap, busForm.bodyBuilder, 'AGILA') as BodyBuilder,
+          bus_type: mapEnum(busTypeMap, busForm.bus_type, 'ORDINARY') as BusType,
+          manufacturer: busForm.manufacturer,
+          status: mapEnum(busStatusMap, busForm.status, 'ACTIVE') as BusStatus,
+          chasis_number: busForm.chasis_number,
+          engine_number: busForm.engine_number,
+          seat_capacity: Number(busForm.seat_capacity),
+          model: busForm.model,
+          year_model: Number(busForm.year_model),
+          condition: mapEnum(busConditionMap, busForm.condition, 'BRAND_NEW') as BusCondition,
+          acquisition_date: new Date(busForm.acquisition_date),
+          acquisition_method: mapEnum(acquisitionMethodMap, busForm.acquisition_method, 'PURCHASED') as AcquisitionMethod,
+          warranty_expiration_date: busForm.warranty_expiration_date ? new Date(busForm.warranty_expiration_date) : null,
+          registration_status: mapEnum(registrationStatusMap, busForm.registration_status, 'REGISTERED') as RegistrationStatus,
+          date_created: new Date(),
+          created_by: 1, // Replace with actual user ID if available
+          secondHandDetails: {
+            create: {
+              previous_owner: busForm.previous_owner || null,
+              previous_owner_contact: busForm?.previous_owner_contact || null,
+              source: mapEnum(busSourceMap, busForm.source, 'DEALERSHIP') as BusSource,
+              odometer_reading: Number(busForm.odometer_reading),
+              last_registration_date: new Date(busForm.last_registration_date),
+              last_maintenance_date: new Date(busForm.last_maintenance_date),
+              bus_condition_notes: busForm?.bus_condition_notes || null,
+            }
+          }
         }
       });
-    } else if (bus.condition === 'BRAND_NEW' && brandNewDetails) {
-      await prisma.brandNewDetails.create({
+    } else if (busForm.condition === 'brand-new' && !brandNewDetails) {
+      createdBus = await prisma.bus.create({
         data: {
-          ...brandNewDetails,
-          b_bus_id: createdBus.bus_id
+          bus_id,
+          item_id: "ITEM-00001", // Make sure to provide item_id from frontend or generate if needed
+          plate_number: busForm.plate_number,
+          body_number: busForm.body_number,
+          body_builder: mapEnum(bodyBuilderMap, busForm.bodyBuilder, 'AGILA') as BodyBuilder,
+          bus_type: mapEnum(busTypeMap, busForm.bus_type, 'ORDINARY') as BusType,
+          manufacturer: busForm.manufacturer,
+          status: mapEnum(busStatusMap, busForm.status, 'ACTIVE') as BusStatus,
+          chasis_number: busForm.chasis_number,
+          engine_number: busForm.engine_number,
+          seat_capacity: Number(busForm.seat_capacity),
+          model: busForm.model,
+          year_model: Number(busForm.year_model),
+          condition: mapEnum(busConditionMap, busForm.condition, 'BRAND_NEW') as BusCondition,
+          acquisition_date: new Date(busForm.acquisition_date),
+          acquisition_method: mapEnum(acquisitionMethodMap, busForm.acquisition_method, 'PURCHASED') as AcquisitionMethod,
+          warranty_expiration_date: busForm.warranty_expiration_date ? new Date(busForm.warranty_expiration_date) : null,
+          registration_status: mapEnum(registrationStatusMap, busForm.registration_status, 'REGISTERED') as RegistrationStatus,
+          date_created: new Date(),
+          created_by: 1, // Replace with actual user ID if available
+          brandNewDetails: {
+            create: {
+              dealer_name: busForm.dealer_name,
+              dealer_contact: busForm.dealer_contact,
+            }
+          }
         }
       });
     }
 
-    // Create BusOtherFiles records if provided
-    if (Array.isArray(busOtherFiles) && busOtherFiles.length > 0) {
+    // Always create BusOtherFiles after the bus is created
+    if (createdBus && Array.isArray(busOtherFiles) && busOtherFiles.length > 0) {
       for (const file of busOtherFiles) {
         await prisma.busOtherFiles.create({
           data: {
-            ...file,
-            bus_id: createdBus.bus_id
+            bus_files_id: await generateId('busOtherFiles', 'FILE'), // Unique id for each file
+            file_name: file.file_name,
+            file_type: file.file_type,
+            file_url: file.file_url,
+            date_uploaded: new Date(),
+            bus_id: createdBus.bus_id, // Link file to the created bus
           }
         });
       }
     }
 
-    return NextResponse.json({ success: true, bus_id: createdBus.bus_id });
+    if (createdBus) {
+      // Count all buses using item_id 'ITEM-00001'
+      const busCount = await prisma.bus.count({
+        where: { item_id: 'ITEM-00001' }
+      });
+      // Update current_stock in inventoryItem
+      await prisma.inventoryItem.update({
+        where: { item_id: 'ITEM-00001' },
+        data: { current_stock: busCount }
+      });
+      return NextResponse.json({ success: true, bus_id: createdBus.bus_id });
+    }
+
   } catch (error) {
     console.error(error);
     let message = 'Unknown error';
@@ -55,64 +170,22 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
-
-
-// import { NextRequest, NextResponse } from "next/server";
-// import { prisma } from "../../lib/prisma";
-// import { generateId } from "../../lib/idGenerator";
-
-
-
-// export async function GET() {
-//   try {
-//     // Query buses that are not marked as deleted
-//     const buses = await prisma.bus.findMany({
-//       select: {
-//         bus_id: true,
-//         plate_number: true,
-//         body_number: true,
-//         body_builder: true,
-//         bus_type: true,
-//         manufacturer: true,
-//         status: true,
-//         chasis_number: true,
-//         engine_number: true,
-//         seat_capacity: true,
-//         date_created: true,
-//         date_updated: true,
-//         created_by: true,
-
-//         // Include linked inventory item details
-//         inventoryItem: {
-//           select: {
-//             item_id: true,
-//             item_name: true,
-//             status: true,
-//             reorder_level: true,
-//             current_stock: true, // <-- Show current stock count of the bus inventory item
-//             category: {
-//               select: {
-//                 category_id: true,
-//                 category_name: true,
-//               },
-//             },
-//           },
-//         },
-//       },
-//     });
-
-//     // Return successful JSON response with buses data
-//     return NextResponse.json({ success: true, buses });
-//   } catch (error: any) {
-//     // Log and return error response if query fails
-//     console.error("❌ Error fetching buses:", error);
-//     return NextResponse.json(
-//       { success: false, error: error.message },
-//       { status: 500 }
-//     );
-//   }
-// }
+export async function GET() {
+  try {
+    const buses = await prisma.bus.findMany({
+      include: {
+        secondHandDetails: true,
+        brandNewDetails: true,
+        busOtherFiles: true,
+      },
+    });
+    return NextResponse.json({ success: true, buses });
+  } catch (error) {
+    console.error('❌ Error fetching buses:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
 
 // // ===============================
 // // POST: Create a new bus and link it to an inventory item
@@ -339,44 +412,6 @@ export async function POST(req: NextRequest) {
 
 //     return NextResponse.json(
 //       { success: false, error: "Internal server error" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-
-
-
-// // ===============================
-// // PUT: Update bus details (Only editable fields)
-// // ===============================
-// export async function PUT(request: NextRequest) {
-//   try {
-//     const { bus_id, bus_type, seat_capacity, status } = await request.json();
-
-//     if (!bus_id || bus_id === "undefined") {
-//       return NextResponse.json(
-//         { success: false, error: "Missing or invalid bus_id" },
-//         { status: 400 }
-//       );
-//     }
-
-//     const updated = await prisma.bus.update({
-//       where: { bus_id: String(bus_id) },
-//       data: {
-//         bus_type: bus_type,
-//         seat_capacity: seat_capacity,
-//         status: status,
-//       },
-//     });
-//     return NextResponse.json({
-//       success: true,
-//       bus: updated,
-//       message: "Bus updated successfully",
-//     });
-//   } catch (error) {
-//     return NextResponse.json(
-//       { success: false, error: (error as Error).message },
 //       { status: 500 }
 //     );
 //   }

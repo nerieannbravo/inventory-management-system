@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function generateId(
-  model: 'category' | 'inventoryItem' | 'batch' | 'employeeRequest' | 'bus',
+  model: 'category' | 'inventoryItem' | 'batch' | 'employeeRequest' | 'bus' | 'busOtherFiles',
   prefix: string,
   idField?: string
 ): Promise<string> {
@@ -68,6 +68,18 @@ export async function generateId(
         }
       });
       idField = 'bus_id';
+      break;
+
+      case 'busOtherFiles':
+      lastEntry = await prisma.busOtherFiles.findFirst({
+        orderBy: {
+          bus_files_id: 'desc'
+        },
+        select: {
+          bus_files_id: true
+        }
+      });
+      idField = 'bus_files_id';
       break;
   }
 

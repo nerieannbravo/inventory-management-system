@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { uploadFile } from "@/app/lib/uploadFile";
 
 import {
     showBusSaveConfirmation, showBusSavedSuccess,
@@ -103,6 +104,11 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Add state to store uploaded file meta
+    const [orFileMeta, setOrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
+    const [crFileMeta, setCrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
+    const [otherFilesMeta, setOtherFilesMeta] = useState<{ file_name: string, file_url: string }[]>([]);
+
 
     // Track if any form has been modified
     useEffect(() => {
@@ -203,16 +209,20 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
 
         // Brandnew details validation
-        if (!busForm.dealer_name) errors.dealer_name = "Dealer name is required";
-        if (!busForm.dealer_contact) {
-            errors.dealer_contact = "Dealer contact is required";
-        } else if (!/^\d{11}$/.test(busForm.dealer_contact.toString())) {
-            errors.dealer_contact = "Dealer contact must be exactly 11 digits";
+        else if (busForm.condition === "brand-new") {
+            if (!busForm.dealer_name) errors.dealer_name = "Dealer name is required";
+            if (!busForm.dealer_contact) {
+                errors.dealer_contact = "Dealer contact is required";
+            } else if (!/^\d{11}$/.test(busForm.dealer_contact.toString())) {
+                errors.dealer_contact = "Dealer contact must be exactly 11 digits";
+            }
         }
 
         // Document Attachments validation
         if (!busForm.or_file) errors.or_file = "Official Receipt is required";
-        if (!busForm.cr_file) errors.cr_file = "Certification of Registration is required";
+        if (busForm.registration_status === "registered" && !busForm.cr_file) {
+            if (!busForm.cr_file) errors.cr_file = "Certification of Registration is required";
+        }
         if (busForm.otherDocuments.length === 0) {
             errors.otherDocuments = "At least one other document is required";
         } else {
@@ -234,68 +244,82 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
         const result = await showBusSaveConfirmation();
         if (result.isConfirmed) {
-            onSave(busForm);
-            await showBusSavedSuccess();
+            setIsSaving(true);
+            try {
+                // In handleSubmit, build busOtherFiles array for backend
+                const busOtherFiles = [];
+                if (orFileMeta) {
+                  busOtherFiles.push({
+                    file_name: orFileMeta.file_name,
+                    file_type: 'OR',
+                    file_url: orFileMeta.file_url,
+                  });
+                }
+                if (crFileMeta) {
+                  busOtherFiles.push({
+                    file_name: crFileMeta.file_name,
+                    file_type: 'CR',
+                    file_url: crFileMeta.file_url,
+                  });
+                }
+                if (otherFilesMeta.length > 0) {
+                  otherFilesMeta.forEach(meta => {
+                    busOtherFiles.push({
+                      file_name: meta.file_name,
+                      file_type: 'OTHER',
+                      file_url: meta.file_url,
+                    });
+                  });
+                }
+
+                const response = await fetch('/api/bus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bus: busForm, busOtherFiles }),
+                });
+
+                let result;
+    			try {
+    				result = await response.json();
+    			} catch (jsonError) {
+    				console.error('Error parsing JSON response:', jsonError);
+    				throw new Error('Failed to parse server response');
+    			}
+
+                if (!response.ok) {
+    				// Extract more detailed error information if available
+    				const errorMessage = result && result.error 
+    					? `Error: ${result.error}` 
+    					: `Failed to save bus (Status: ${response.status})`;
+
+    				if (result && result.details) {
+    					console.error('Error details:', result.details);
+    				}
+
+    				throw new Error(errorMessage);
+    			}
+
+                if (result.success) {
+                    // Show success message using SweetAlert
+                    await showBusSavedSuccess();
+
+                    // Call the onSave callback to close the modal or update the parent
+                    onSave(busForm);
+                    window.location.reload();
+                } else {
+                    setError(result.error || 'Failed to save bus');
+                }
+            } catch (error: any) {
+                console.error('Error saving bus:', error);
+                setError(error.message);
+
+                // Show error using SweetAlert
+                await showBusSaveError(error.message);
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
-
-    // const handleSubmit = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-
-    //     if (!validateForm()) return;
-
-    //     const result = await showBusSaveConfirmation();
-    //     if (result.isConfirmed) {
-    //         setIsSaving(true);
-    //         try {
-    //             const response = await fetch('/api/bus', {
-    // 				method: 'POST',
-    // 				headers: { 'Content-Type': 'application/json' },
-    // 				body: JSON.stringify({ requests: busForm }),
-    // 			});
-
-    //             let result;
-    // 			try {
-    // 				result = await response.json();
-    // 			} catch (jsonError) {
-    // 				console.error('Error parsing JSON response:', jsonError);
-    // 				throw new Error('Failed to parse server response');
-    // 			}
-
-    //             if (!response.ok) {
-    // 				// Extract more detailed error information if available
-    // 				const errorMessage = result && result.error 
-    // 					? `Error: ${result.error}` 
-    // 					: `Failed to save bus (Status: ${response.status})`;
-
-    // 				if (result && result.details) {
-    // 					console.error('Error details:', result.details);
-    // 				}
-
-    // 				throw new Error(errorMessage);
-    // 			}
-
-    //             if (result.success) {
-    //                 // Show success message using SweetAlert
-    //                 await showBusSavedSuccess();
-
-    //                 // Call the onSave callback to close the modal or update the parent
-    //                 onSave(busForm);
-    //                 window.location.reload();
-    //             } else {
-    //                 setError(result.error || 'Failed to save bus');
-    //             }
-    //         } catch (error: any) {
-    //             console.error('Error saving bus:', error);
-    //             setError(error.message);
-
-    //             // Show error using SweetAlert
-    //             await showBusSaveError(error.message);
-    //         } finally {
-    //             setIsSaving(false);
-    //         }
-    //     }
-    // };
 
     const handleClose = async () => {
         if (!isDirty) {
@@ -608,8 +632,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     >
                                         <option value="" disabled>--Select source--</option>
                                         <option value="dealership">Dealership</option>
-                                        <option value="action">Auction</option>
-                                        <option value="private individual">Private Individual</option>
+                                        <option value="auction">Auction</option>
+                                        <option value="private-individual">Private Individual</option>
                                     </select>
                                     <p className="add-error-message">{formErrors?.source}</p>
                                 </div>
@@ -848,9 +872,16 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         className={formErrors?.or_file ? "invalid-input" : ""}
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            handleChange("or_file", file ? file.name : "");
+                                        onChange={async (e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                            const { url, name } = await uploadFile(file, busForm.body_number);
+                                            handleChange("or_file", name); // for display
+                                            setOrFileMeta({ file_name: name, file_url: url });
+                                          } else {
+                                            handleChange("or_file", "");
+                                            setOrFileMeta(null);
+                                          }
                                         }}
                                     />
                                     <p className="add-error-message">{formErrors?.or_file}</p>
@@ -865,9 +896,16 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                             className={formErrors?.cr_file ? "invalid-input" : ""}
                                             type="file"
                                             accept=".pdf,.jpg,.jpeg,.png"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                handleChange("cr_file", file ? file.name : "");
+                                            onChange={async (e) => {
+                                              const file = e.target.files?.[0];
+                                              if (file) {
+                                                const { url, name } = await uploadFile(file, busForm.body_number);
+                                                handleChange("cr_file", name);
+                                                setCrFileMeta({ file_name: name, file_url: url });
+                                              } else {
+                                                handleChange("cr_file", "");
+                                                setCrFileMeta(null);
+                                              }
                                             }}
                                         />
                                         <p className="add-error-message">{formErrors?.cr_file}</p>
@@ -885,11 +923,15 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         multiple
-                                        onChange={(e) => {
-                                            const files = Array.from(e.target.files || []);
-                                            const newFileNames = files.map(f => f.name);
-                                            const allFiles = Array.from(new Set([...busForm.otherDocuments, ...newFileNames]));
-                                            handleChange("otherDocuments", allFiles);
+                                        onChange={async (e) => {
+                                          const files = Array.from(e.target.files || []);
+                                          const metas: { file_name: string, file_url: string }[] = [];
+                                          for (const file of files) {
+                                            const { url, name } = await uploadFile(file, busForm.body_number);
+                                            metas.push({ file_name: name, file_url: url });
+                                          }
+                                          handleChange("otherDocuments", metas.map(m => m.file_name));
+                                          setOtherFilesMeta(metas);
                                         }}
                                     />
                                     {/* Show all uploaded document names and remove buttons */}
@@ -924,7 +966,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
             <div className="modal-actions add">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
+                    <i className="ri-save-3-line" /> {isSaving ? 'Saving...' : 'Save'}
                 </button>
             </div>
 

@@ -1,397 +1,351 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+import Loading from "@/components/loading";
 
-import AddBusModal from "./addBusModal";
+import AddBusModal, { BusForm } from "./addBusModal";
 import ViewBusModal from "./viewBusModal";
 import EditBusModal from "./editBusModal";
-import { BusForm } from "./addBusModal";
-import { BusReportPreviewModal, useBusReportPDF } from "./busReportPDF";
 
-import "@/styles/filters.css"
-import "@/styles/tables.css"
-import "@/styles/chips.css"
-
-const hardcodedData = [
-    {
-        id: 1,
-        bodyNumber: "1001A",
-        bodyBuilder: "Agila",
-        condition: "Brand New",
-        busType: "Airconditioned",
-        busStatus: "active",
-    },
-    {
-        id: 2,
-        bodyNumber: "1002B",
-        bodyBuilder: "DARJ",
-        condition: "Second Hand",
-        busType: "Ordinary",
-        busStatus: "decommissioned",
-    },
-    {
-        id: 3,
-        bodyNumber: "1003C",
-        bodyBuilder: "Hilltop",
-        condition: "Second Hand",
-        busType: "Airconditioned",
-        busStatus: "maintenance",
-    },
-    {
-        id: 4,
-        bodyNumber: "1002A",
-        bodyBuilder: "Agila",
-        condition: "Brand New",
-        busType: "Airconditioned",
-        busStatus: "active",
-
-    },
-    {
-        id: 5,
-        bodyNumber: "1005D",
-        bodyBuilder: "RBM",
-        condition: "Brand New",
-        busType: "Ordinary",
-        busStatus: "active",
-    },
-];
+import "@/styles/filters.css";
+import "@/styles/tables.css";
+import "@/styles/chips.css";
+import "@/styles/loading.css"
 
 export default function BusManagement() {
-    // for modal
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeRow, setActiveRow] = useState<any>(null);
-    const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [busData, setBusData] = useState<any[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
-    // Add the bus report PDF hook
-    const {
-        showReportPreview,
-        handlePreviewReport,
-        handleCloseReportPreview,
-        reportTitle,
-        setReportTitle
-    } = useBusReportPDF(filteredData);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+  const [activeRow, setActiveRow] = useState<any>(null);
 
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10); // default number of rows per page
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Calculate paginated data
-    const paginatedData = useMemo(() => {
-        const startIndex = (currentPage - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        return filteredData.slice(startIndex, endIndex);
-    }, [filteredData, currentPage, pageSize]);
+  const fetchBuses = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/bus");
+      const result = await res.json();
+      if (result.success) {
+        setBusData(result.buses);
+      } else {
+        console.error("Fetch error:", result.error);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    // Calculate total pages
-    const totalPages = Math.ceil(filteredData.length / pageSize);
+  useEffect(() => {
+    fetchBuses();
+  }, []);
 
-    // Handle page change
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+  // Enhanced filter and search logic using useMemo
+  const filteredAndSearchedBuses = useMemo(() => {
+    let filtered = [...busData];
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(bus =>
+        (bus.plate_number?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (bus.body_number?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (bus.body_builder?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (bus.bus_type?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (bus.status?.toLowerCase() ?? "").includes(searchTerm.toLowerCase()) ||
+        (bus.seat_capacity?.toString() ?? "").includes(searchTerm) ||
+        (bus.condition?.toLowerCase() ?? "").includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply body builder filter
+    if (filterValues.bodyBuilder?.length) {
+      filtered = filtered.filter(bus =>
+        filterValues.bodyBuilder.includes(bus.body_builder.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (filterValues.busStatus?.length) {
+      filtered = filtered.filter(bus =>
+        filterValues.busStatus.includes(bus.status.toLowerCase())
+      );
+    }
+
+    // Apply bus type filter
+    if (filterValues.busType?.length) {
+      filtered = filtered.filter(bus =>
+        filterValues.busType.includes(bus.bus_type.toLowerCase())
+      );
+    }
+
+    // Apply sorting
+    const order = filterValues.order || "asc";
+    filtered.sort((a, b) => {
+      // Default sort by body number
+      const aValue = a.body_number?.toLowerCase() || "";
+      const bValue = b.body_number?.toLowerCase() || "";
+      
+      const comparison = aValue.localeCompare(bValue);
+      return order === "asc" ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [busData, searchTerm, filterValues]);
+
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredAndSearchedBuses.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedBuses = filteredAndSearchedBuses.slice(startIndex, startIndex + pageSize);
+
+  const filterSections: FilterSection[] = [
+    {
+      id: "bodyBuilder",
+      title: "Body Builder",
+      type: "checkbox",
+      options: [
+        { id: "agila", label: "Agila" },
+        { id: "hilltop", label: "Hilltop" },
+        { id: "rbm", label: "RBM" },
+        { id: "darj", label: "DARJ" }
+      ]
+    },
+    {
+      id: "busStatus",
+      title: "Status",
+      type: "checkbox",
+      options: [
+        { id: "active", label: "Active" },
+        { id: "decommissioned", label: "Decommissioned" },
+        { id: "under-maintenance", label: "Under Maintenance" }
+      ]
+    },
+    {
+      id: "busType",
+      title: "Bus Type",
+      type: "checkbox",
+      options: [
+        { id: "airconditioned", label: "Airconditioned" },
+        { id: "ordinary", label: "Ordinary" }
+      ]
+    },
+    {
+      id: "order",
+      title: "Order",
+      type: "radio",
+      options: [
+        { id: "asc", label: "Ascending" },
+        { id: "desc", label: "Descending" }
+      ],
+      defaultValue: "asc"
+    }
+  ];
+
+  // Handle filter application
+  const handleApplyFilters = (newFilterValues: Record<string, any>) => {
+    setFilterValues(newFilterValues);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when search changes
+  };
+
+  // Handle pagination
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
+
+  const formatStatus = (status: string) => {
+    const map: Record<string, string> = {
+      active: "Active",
+      decommissioned: "Decommissioned",
+      under_maintenance: "Under Maintenance"
     };
+    return map[status] || status;
+  };
 
-    // Handle page size change
-    const handlePageSizeChange = (size: number) => {
-        setPageSize(size);
-        setCurrentPage(1); // Reset to first page when changing page size
-    };
-
-    // Filter sections
-    const filterSections: FilterSection[] = [
-        {
-            id: "dateRange",
-            title: "Date Range",
-            type: "dateRange",
-            defaultValue: { from: "", to: "" }
-        },
-        {
-            id: "bodyBuilder",
-            title: "Body Builder",
-            type: "checkbox",
-            options: [
-                { id: "agila", label: "Agila" },
-                { id: "hilltop", label: "Hilltop" },
-                { id: "rbm", label: "RBM" },
-                { id: "darj", label: "DARJ" }
-            ]
-        },
-        {
-            id: "busStatus",
-            title: "Status",
-            type: "checkbox",
-            options: [
-                { id: "active", label: "Active" },
-                { id: "decommissioned", label: "Decommissioned" },
-                { id: "under-maintenance", label: "Under Maintenance" }
-            ]
-        },
-        {
-            id: "busType",
-            title: "Bus Type",
-            type: "checkbox",
-            options: [
-                { id: "airconditioned", label: "Airconditioned" },
-                { id: "ordinary", label: "Ordinary" }
-            ]
-        },
-        {
-            id: "sortBy",
-            title: "Sort By",
-            type: "radio",
-            options: [
-                { id: "bodyNumber", label: "Body Number" },
-                { id: "bodyBuilder", label: "Body Builder" }
-            ],
-            defaultValue: "bodyNumber"
-        },
-        {
-            id: "order",
-            title: "Order",
-            type: "radio",
-            options: [
-                { id: "asc", label: "Ascending" },
-                { id: "desc", label: "Descending" }
-            ],
-            defaultValue: "asc"
-        }
-    ];
-
-    // Handle filter application
-    const handleApplyFilters = (filterValues: Record<string, any>) => {
-        console.log("Applied filters:", filterValues);
-
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
-
-        // Example implementation for filtering and sorting:
-        let newData = [...hardcodedData];
-
-        // Filter by bodyBuilder if selected
-        if (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) {
-            newData = newData.filter(item => filterValues.bodyBuilder.includes(item.bodyBuilder.toLowerCase())
-            );
-        }
-
-        // Filter by busStatus if selected
-        if (filterValues.busStatus && filterValues.busStatus.length > 0) {
-            newData = newData.filter(item => filterValues.busStatus.includes(item.busStatus));
-        }
-
-        // Filter by busType if selected
-        if (filterValues.busType && filterValues.busType.length > 0) {
-            newData = newData.filter(item => filterValues.busType.includes(item.busType.toLowerCase())
-            );
-        }
-
-        // Sort by bodyNumber or bodyBuilder
-        if (filterValues.sortBy === "bodyNumber") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyNumber.localeCompare(b.bodyNumber) * sortOrder;
-            });
-        } else if (filterValues.sortBy === "bodyBuilder") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyBuilder.localeCompare(b.bodyBuilder) * sortOrder;
-            });
-        }
-
-        setFilteredData(newData);
-        setCurrentPage(1); // Reset to first page when filters change
-    };
-
-    // for items busStatus formatting
-    const formatStatus = (busStatus: string) => {
-        switch (busStatus) {
-            case "active":
-                return "Active";
-            case "decommissioned":
-                return "Decommissioned";
-            case "maintenance":
-                return "Under Maintenance";
+    function formatCondition(condition: string) {
+        switch (condition) {
+            case "BRAND_NEW":
+                return "Brand New";
+            case "SECOND_HAND":
+                return "Second Hand";
             default:
-                return busStatus;
+                return condition;
         }
-    };
+    }
 
-    // for the modals of add, view, and edit
-    const openModal = (mode: "add-bus" | "view-bus" | "edit-bus", rowData?: any) => {
-        let content;
+  const formatBodyBuilder = (builder?: string) => {
+    if (!builder) return "Unknown";
+    const upper = ["RBM", "DARJ"];
+    return upper.includes(builder.toUpperCase())
+      ? builder.toUpperCase()
+      : builder.charAt(0).toUpperCase() + builder.slice(1).toLowerCase();
+  };
 
-        switch (mode) {
-            case "add-bus":
-                content = <AddBusModal
-                    onSave={handleAddBus}
-                    onClose={closeModal}
-                />;
-                break;
-            case "view-bus":
-                content = <ViewBusModal
-                    item={rowData}
-                    formatStatus={formatStatus}
-                    onClose={closeModal}
-                />;
-                break;
-            case "edit-bus":
-                content = <EditBusModal
-                    item={rowData}
-                    onSave={handleEditBus}
-                    onClose={closeModal}
-                />;
-                break;
-            default:
-                content = null;
-        }
+  const formatBusType = (type?: string) => {
+    if (!type) return "Unknown";
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  };
 
-        setModalContent(content);
-        setActiveRow(rowData || null);
-        setIsModalOpen(true);
-    };
+  const openModal = (mode: "add-bus" | "view-bus" | "edit-bus", data?: any) => {
+    let content: React.ReactNode;
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setModalContent(null);
-        setActiveRow(null);
-    };
+    switch (mode) {
+      case "add-bus":
+        content = <AddBusModal onSave={handleAddBus} onClose={closeModal} />;
+        break;
+      case "view-bus":
+        content = <ViewBusModal item={data} formatStatus={formatStatus} onClose={closeModal} />;
+        break;
+      case "edit-bus":
+        content = <EditBusModal item={data} onSave={handleEditBus} onClose={closeModal} />;
+        break;
+    }
 
-    // Handle add bus
-    const handleAddBus = (busForm: BusForm) => {
-        console.log("Saving forms:", busForm);
-        // Logic to add bus to the data
-        // In a real app, this would likely be an API call
-        closeModal();
-    };
+    setModalContent(content);
+    setActiveRow(data || null);
+    setIsModalOpen(true);
+  };
 
-    // Handle edit bus
-    const handleEditBus = (updatedItem: any) => {
-        console.log("Updating item:", updatedItem);
-        // Logic to update the item in the data
-        // In a real app, this would likely be an API call
-        closeModal();
-    };
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalContent(null);
+    setActiveRow(null);
+  };
 
-    // Handle generate report
-    const handleGenerateReport = () => {
-        // You can customize the report title based on current filters
-        let title = "Bus Management Report";
+  const handleAddBus = async (busForm: BusForm) => {
+    closeModal();
+    setIsLoading(true);
+    await fetchBuses();
+  };
 
-        // Add filter information to title if any filters are applied
-        const hasFilters = filteredData.length !== hardcodedData.length;
-        if (hasFilters) {
-            title += " (Filtered Results)";
-        }
+  const handleEditBus = async () => {
+    closeModal();
+    setIsLoading(true);
+    await fetchBuses();
+  };
 
-        setReportTitle(title);
-        handlePreviewReport();
-    };
+  return (
+    <div className="card">
+      <h1 className="title">Bus Management</h1>
 
-    return (
-        <div className="card">
-            <h1 className="title">Bus Management</h1>
-
-            {/* Search Engine and Filters */}
-            <div className="elements">
-                <div className="entries">
-                    <div className="search">
-                        <i className="ri-search-line" />
-                        <input type="text" placeholder="Search here..." />
-                    </div>
-
-                    {/* Filter Button with Dropdown */}
-                    <div className="filter">
-                        <FilterDropdown
-                            sections={filterSections}
-                            onApply={handleApplyFilters}
-                        />
-                    </div>
-
-                    {/* Generate Report Button */}
-                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
-                        <i className="ri-receipt-line" /> Generate Report
-                    </button>
-
-                    {/* Add Stocks Button */}
-                    <button className="main-btn" onClick={() => openModal("add-bus")}>
-                        <i className="ri-add-line" /> Add Bus
-                    </button>
-                </div>
-
-                {/* Table */}
-                <div className="table-wrapper">
-                    <div className="table-container">
-                        <table className="data-table">
-                            <thead className="table-heading">
-                                <tr>
-                                    <th>Body Number</th>
-                                    <th>Body Builder</th>
-                                    <th>Condition</th>
-                                    <th>Status</th>
-                                    <th>Bus Type</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.bodyNumber}</td>
-                                        <td>{item.bodyBuilder}</td>
-                                        <td>{item.condition}</td>
-                                        <td className="table-status">
-                                            <span className={`chip ${item.busStatus}`}>
-                                                {formatStatus(item.busStatus)}
-                                            </span>
-                                        </td>
-                                        <td>{item.busType}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-bus", item)}
-                                                onEdit={() => openModal("edit-bus", item)}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Pagination */}
-                <PaginationComponent
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    pageSize={pageSize}
-                    totalItems={paginatedData.length}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                />
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <div className="elements">
+          <div className="entries">
+            <div className="search">
+              <i className="ri-search-line" />
+              <input
+                type="text"
+                placeholder="Search here..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
             </div>
 
-            {/* Dynamic Modal Manager */}
-            <ModalManager
-                isOpen={isModalOpen}
-                onClose={closeModal}
-                modalContent={modalContent}
-            />
+            <div className="filter">
+              <FilterDropdown sections={filterSections} onApply={handleApplyFilters} />
+            </div>
 
-            {/* Bus Report Preview Modal */}
-            <BusReportPreviewModal
-                isOpen={showReportPreview}
-                onClose={handleCloseReportPreview}
-                busData={filteredData}
-                reportTitle={reportTitle}
-            />
+            <button className="generate-btn">
+              <i className="ri-receipt-line" /> Generate Report
+            </button>
 
+            <button className="main-btn" onClick={() => openModal("add-bus")}> 
+              <i className="ri-add-line" /> Add Bus
+            </button>
+          </div>
+
+          <div className="table-wrapper">
+            <div className="table-container">
+              <table className="data-table">
+                <thead className="table-heading">
+                  <tr>
+                    <th>Body Number</th>
+                    <th>Plate Number</th>
+                    <th>Body Builder</th>
+                    <th>Condition</th>
+                    <th>Status</th>
+                    <th>Bus Type</th>
+                    <th>Seat Capacity</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="table-body">
+                  {paginatedBuses.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="no-records">
+                        {searchTerm || Object.keys(filterValues).some(key =>
+                          filterValues[key] &&
+                          (Array.isArray(filterValues[key]) ? filterValues[key].length > 0 : true)
+                        )
+                          ? 'No buses matched'
+                          : 'No buses available'
+                        }
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedBuses.map(bus => (
+                      <tr key={bus.bus_id}>
+                        <td>{bus.body_number}</td>
+                        <td>{bus.plate_number}</td>
+                        <td>{formatBodyBuilder(bus.body_builder)}</td>
+                        <td>{formatCondition(bus.condition)}</td>
+                        <td className="table-status">
+                          <span className={`chip ${bus.status?.toLowerCase() || "unknown"}`}>
+                            {formatStatus(bus.status?.toLowerCase() || "unknown")}
+                          </span>
+                        </td>
+                        <td>{formatBusType(bus.bus_type)}</td>
+                        <td>{bus.seat_capacity}</td>
+                        <td>
+                          <ActionButtons
+                            onView={() => openModal("view-bus", bus)}
+                            onEdit={() => openModal("edit-bus", bus)}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={paginatedBuses.length}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
         </div>
-    );
+      )}
+
+      <ModalManager isOpen={isModalOpen} onClose={closeModal} modalContent={modalContent} />
+    </div>
+  );
 }

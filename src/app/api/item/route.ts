@@ -19,6 +19,7 @@ export async function GET() {
         item_name: true,
         unit_measure: true,
         status: true,
+        current_stock: true,
         category_id: true,
         category: {
           select: {
@@ -53,8 +54,13 @@ export async function GET() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Calculate current stock: sum of all usable quantities from non-deleted batches
-    const current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
+    // Calculate current stock: use DB value for ITEM-00001, else sum usable quantities
+    let current_stock: number;
+    if (item.category_id === 'CAT-00002') {
+      current_stock = item.current_stock;
+    } else {
+      current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
+    }
 
     const hasExpiredBatch = batches.some(batch => {
       if (!batch.expiration_date) return false;

@@ -6,9 +6,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
   // url      = "postgresql://postgres:obGVLTjkBfaLNAuADJifzuVjTTEmpjcW@crossover.proxy.rlwy.net:36212/railway"
-  // url      = "postgresql://postgres:ahPlWkZoDRdvmKptXQPXqSHplILdXlbd@hopper.proxy.rlwy.net:29736/railway"
+  url      = "postgresql://postgres:ahPlWkZoDRdvmKptXQPXqSHplILdXlbd@hopper.proxy.rlwy.net:29736/railway"
 }
 
 model InventoryItem {
@@ -139,6 +139,8 @@ model BusOtherFiles {
 
   bus_id          String
   bus             Bus    @relation(fields: [bus_id], references: [bus_id], onDelete: Cascade)
+
+@@map("bus_other_files")
 }
 
 enum InventoryStatus {
@@ -203,6 +205,6 @@ enum RegistrationStatus {
 
 enum BusSource {
   DEALERSHIP
-  ACTION
+  AUCTION
   PRIVATE_INDIVIDUAL
 }
