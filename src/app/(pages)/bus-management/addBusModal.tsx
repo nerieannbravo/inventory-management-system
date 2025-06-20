@@ -102,7 +102,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     const [isDirty, setIsDirty] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
 
     // Track if any form has been modified
     useEffect(() => {
@@ -120,6 +120,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
     };
 
+    // Generate year options for the year model dropdown
+    const currentYear = new Date().getFullYear();
+    const startYear = 1980;
+    const yearOptions = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+    // Function to validate the form
     const validateForm = (): boolean => {
         const errors: FormError = {};
 
@@ -141,7 +147,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
         if (!busForm.condition) errors.condition = "Condition is required";
         if (!busForm.acquisition_date) {
-                errors.acquisition_date = "Acquisition date is required";
+            errors.acquisition_date = "Acquisition date is required";
         } else {
             const today = new Date();
             const selectedDate = new Date(busForm.acquisition_date);
@@ -164,33 +170,35 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 errors.warranty_expiration_date = "Warranty expiry date cannot be set to a past date";
             }
         }
+
         // Second hand details validation
-        
-        if (busForm.previous_owner_contact && !/^\d{11}$/.test(busForm.previous_owner_contact?.toString() || "")) {
-            errors.previous_owner_contact = "Previous owner contact must be exactly 11 digits";
-        }
-        if (!busForm.source) errors.source = "Source is required";       
-        if (busForm.odometer_reading !== undefined && busForm.odometer_reading <= 0) errors.odometer_reading = "Odometer reading must be more than 0";
-        if (!busForm.last_registration_date) {
-            errors.last_registration_date = "Last registration date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.last_registration_date);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.last_registration_date = "Last registration date cannot be set to a future date";
+        if (busForm.condition === "second-hand") {
+            if (busForm.previous_owner_contact && !/^\d{11}$/.test(busForm.previous_owner_contact?.toString() || "")) {
+                errors.previous_owner_contact = "Previous owner contact must be exactly 11 digits";
             }
-        }
-        if (!busForm.last_maintenance_date) {
-            errors.last_maintenance_date = "Last maintenance date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.last_maintenance_date);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.last_maintenance_date = "Last maintenance date cannot be set to a future date";
+            if (!busForm.source) errors.source = "Source is required";
+            if (busForm.odometer_reading !== undefined && busForm.odometer_reading <= 0) errors.odometer_reading = "Odometer reading must be more than 0";
+            if (!busForm.last_registration_date) {
+                errors.last_registration_date = "Last registration date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(busForm.last_registration_date);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.last_registration_date = "Last registration date cannot be set to a future date";
+                }
+            }
+            if (!busForm.last_maintenance_date) {
+                errors.last_maintenance_date = "Last maintenance date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(busForm.last_maintenance_date);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.last_maintenance_date = "Last maintenance date cannot be set to a future date";
+                }
             }
         }
 
@@ -241,36 +249,36 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     //         setIsSaving(true);
     //         try {
     //             const response = await fetch('/api/bus', {
-	// 				method: 'POST',
-	// 				headers: { 'Content-Type': 'application/json' },
-	// 				body: JSON.stringify({ requests: busForm }),
-	// 			});
+    // 				method: 'POST',
+    // 				headers: { 'Content-Type': 'application/json' },
+    // 				body: JSON.stringify({ requests: busForm }),
+    // 			});
 
     //             let result;
-	// 			try {
-	// 				result = await response.json();
-	// 			} catch (jsonError) {
-	// 				console.error('Error parsing JSON response:', jsonError);
-	// 				throw new Error('Failed to parse server response');
-	// 			}
+    // 			try {
+    // 				result = await response.json();
+    // 			} catch (jsonError) {
+    // 				console.error('Error parsing JSON response:', jsonError);
+    // 				throw new Error('Failed to parse server response');
+    // 			}
 
     //             if (!response.ok) {
-	// 				// Extract more detailed error information if available
-	// 				const errorMessage = result && result.error 
-	// 					? `Error: ${result.error}` 
-	// 					: `Failed to save bus (Status: ${response.status})`;
-					
-	// 				if (result && result.details) {
-	// 					console.error('Error details:', result.details);
-	// 				}
-					
-	// 				throw new Error(errorMessage);
-	// 			}
+    // 				// Extract more detailed error information if available
+    // 				const errorMessage = result && result.error 
+    // 					? `Error: ${result.error}` 
+    // 					: `Failed to save bus (Status: ${response.status})`;
+
+    // 				if (result && result.details) {
+    // 					console.error('Error details:', result.details);
+    // 				}
+
+    // 				throw new Error(errorMessage);
+    // 			}
 
     //             if (result.success) {
     //                 // Show success message using SweetAlert
     //                 await showBusSavedSuccess();
-                    
+
     //                 // Call the onSave callback to close the modal or update the parent
     //                 onSave(busForm);
     //                 window.location.reload();
@@ -280,7 +288,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     //         } catch (error: any) {
     //             console.error('Error saving bus:', error);
     //             setError(error.message);
-                
+
     //             // Show error using SweetAlert
     //             await showBusSaveError(error.message);
     //         } finally {
@@ -413,20 +421,19 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Year Model */}
                         <div className="form-group">
-                            <label> Year Model</label>
-                            <input
+                            <label>Year Model</label>
+                            <select
                                 className={formErrors?.year_model ? "invalid-input" : ""}
-                                type="text"
                                 value={busForm.year_model}
-                                onChange={(e) => {
-                                    // Only allow up to 4 digits
-                                    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
-                                    handleChange("year_model", value);
-                                }}
-                                placeholder="Enter year model here..."
-                                maxLength={4}
-                                inputMode="numeric"
-                            />
+                                onChange={(e) => handleChange("year_model", e.target.value)}
+                            >
+                                <option value="" disabled>--Select Year Model--</option>
+                                {yearOptions.map((year) => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
                             <p className="add-error-message">{formErrors?.year_model}</p>
                         </div>
                     </div>
@@ -601,7 +608,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     >
                                         <option value="" disabled>--Select source--</option>
                                         <option value="dealership">Dealership</option>
-                                        <option value="action">Action</option>
+                                        <option value="action">Auction</option>
                                         <option value="private individual">Private Individual</option>
                                     </select>
                                     <p className="add-error-message">{formErrors?.source}</p>
@@ -850,22 +857,22 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 </div>
                             </div>
                             {busForm.registration_status === "registered" && (
-                            <div className="form-row">
-                                {/* OR */}
-                                <div className="form-group">
-                                    <label>Certificate of Registration (CR) Attachment</label>
-                                    <input
-                                        className={formErrors?.cr_file ? "invalid-input" : ""}
-                                        type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            handleChange("cr_file", file ? file.name : "");
-                                        }}
-                                    />
-                                    <p className="add-error-message">{formErrors?.cr_file}</p>
+                                <div className="form-row">
+                                    {/* OR */}
+                                    <div className="form-group">
+                                        <label>Certificate of Registration (CR) Attachment</label>
+                                        <input
+                                            className={formErrors?.cr_file ? "invalid-input" : ""}
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                handleChange("cr_file", file ? file.name : "");
+                                            }}
+                                        />
+                                        <p className="add-error-message">{formErrors?.cr_file}</p>
+                                    </div>
                                 </div>
-                            </div>
                             )}
 
                             {/* Form row - Other Documents */}

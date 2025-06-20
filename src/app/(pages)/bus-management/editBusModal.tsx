@@ -92,38 +92,40 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         if (!formData.busStatus) errors.busStatus = "Bus status is required";
 
         // Second Hand Details Validation
-        if (formData.prevOwnerContact && !/^[0-9\s\-]+$/.test(formData.prevOwnerContact?.toString() || "")) {
-            errors.prevOwnerContact = "Previous owner contact must only contain numbers, spaces, and hyphens";
-        }
-        if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
-        if (!formData.lastRegistrationDate) {
-            errors.lastRegistrationDate = "Last registration date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(formData.lastRegistrationDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.lastRegistrationDate = "Last registration date cannot be set to a future date";
+        if (formData.condition === "second-hand") {
+            if (formData.prevOwnerContact && !/^[0-9\-]+$/.test(formData.prevOwnerContact?.toString() || "")) {
+                errors.prevOwnerContact = "Previous owner contact must only contain numbers and hyphens";
             }
-        }
-        if (!formData.lastMaintenanceDate) {
-            errors.lastMaintenanceDate = "Last maintenance date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(formData.lastMaintenanceDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.lastMaintenanceDate = "Last maintenance date cannot be set to a future date";
+            if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
+            if (!formData.lastRegistrationDate) {
+                errors.lastRegistrationDate = "Last registration date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(formData.lastRegistrationDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.lastRegistrationDate = "Last registration date cannot be set to a future date";
+                }
+            }
+            if (!formData.lastMaintenanceDate) {
+                errors.lastMaintenanceDate = "Last maintenance date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(formData.lastMaintenanceDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.lastMaintenanceDate = "Last maintenance date cannot be set to a future date";
+                }
             }
         }
 
         // Brand New Details Validation
         if (!formData.dealerContact) {
             errors.dealerContact = "Dealer contact is required";
-        } else if (!/^[A-Za-z\s\-]+$/.test(formData.dealerContact.toString())) {
-            errors.dealerContact = "Dealer contact must only contain letters, spaces, and hyphens";
+        } else if (!/^[0-9\-]+$/.test(formData.dealerContact.toString())) {
+            errors.dealerContact = "Dealer contact must only contain numbers and hyphens";
         }
         if (!formData.initialRegistrationStatus) errors.initialRegistrationStatus = "Initial registration status is required";
 
@@ -372,314 +374,314 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
             </div>
 
             {formData.condition === "Second Hand" && (
-            <div>
-            <p className="bus-details-title">II. Second Hand Details</p>
-            <div className="modal-content add">
-                {/* Second Hand Details */}
-                <form className="add-bus-form">
-                    {/* Form row - acquisition date and acquisition method */}
-                    <div className="form-row">
-                        {/* Acquisition Date */}
-                        <div className="form-group">
-                            <label>Acquisition Date</label>
-                            <input disabled
-                                className={formErrors?.secHandAcquiDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.secHandAcquiDate}
-                                onChange={(e) => handleChange("secHandAcquiDate", e.target.value)}
-                                placeholder="Select acquisition date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.secHandAcquiDate}</p>
-                        </div>
+                <div>
+                    <p className="bus-details-title">II. Second Hand Details</p>
+                    <div className="modal-content add">
+                        {/* Second Hand Details */}
+                        <form className="add-bus-form">
+                            {/* Form row - acquisition date and acquisition method */}
+                            <div className="form-row">
+                                {/* Acquisition Date */}
+                                <div className="form-group">
+                                    <label>Acquisition Date</label>
+                                    <input disabled
+                                        className={formErrors?.secHandAcquiDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.secHandAcquiDate}
+                                        onChange={(e) => handleChange("secHandAcquiDate", e.target.value)}
+                                        placeholder="Select acquisition date..."
+                                        max={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="add-error-message">{formErrors?.secHandAcquiDate}</p>
+                                </div>
 
-                        {/* Acquisition Method */}
-                        <div className="form-group">
-                            <label>Acquisition Method</label>
-                            <select disabled
-                                className={formErrors?.secHandAcquiMethod ? "invalid-input" : ""}
-                                value={formData.secHandAcquiMethod}
-                                onChange={(e) => handleChange("secHandAcquiMethod", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Acquisition Method--</option>
-                                <option value="purchased">Purchased</option>
-                                <option value="donated">Donated</option>
-                                <option value="leased">Leased</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.secHandAcquiMethod}</p>
-                        </div>
+                                {/* Acquisition Method */}
+                                <div className="form-group">
+                                    <label>Acquisition Method</label>
+                                    <select disabled
+                                        className={formErrors?.secHandAcquiMethod ? "invalid-input" : ""}
+                                        value={formData.secHandAcquiMethod}
+                                        onChange={(e) => handleChange("secHandAcquiMethod", e.target.value)}
+                                    >
+                                        <option value="" disabled>--Select Acquisition Method--</option>
+                                        <option value="purchased">Purchased</option>
+                                        <option value="donated">Donated</option>
+                                        <option value="leased">Leased</option>
+                                    </select>
+                                    <p className="add-error-message">{formErrors?.secHandAcquiMethod}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - previous owner name and age */}
+                            <div className="form-row">
+                                {/* Previous Owner */}
+                                <div className="form-group">
+                                    <label>Previous Owner</label>
+                                    <input
+                                        className={formErrors?.prevOwner ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.prevOwner}
+                                        onChange={(e) => handleChange("prevOwner", e.target.value)}
+                                        placeholder="Enter previous owner name here..."
+                                    />
+                                    <p className="add-error-message">{formErrors?.prevOwner}</p>
+                                </div>
+
+                                {/* Previous Owner Contact */}
+                                <div className="form-group">
+                                    <label>Previous Owner Contact</label>
+                                    <input
+                                        className={formErrors?.prevOwnerContact ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.prevOwnerContact}
+                                        onChange={(e) => {
+                                            // Only allow numbers, hyphens, and spaces
+                                            const value = e.target.value.replace(/[^0-9\- ]/g, "");
+                                            handleChange("prevOwnerContact", value);
+                                        }}
+                                        placeholder="Enter previous owner contact here..."
+                                        inputMode="tel"
+                                        pattern="[0-9\- ]*"
+                                    />
+                                    <p className="add-error-message">{formErrors?.prevOwnerContact}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - source and odometer reader */}
+                            <div className="form-row">
+                                {/* Source */}
+                                <div className="form-group">
+                                    <label>Source</label>
+                                    <select disabled
+                                        className={formErrors?.source ? "invalid-input" : ""}
+                                        value={formData.source}
+                                        onChange={(e) => handleChange("source", e.target.value)}
+                                    >
+                                        <option value="" disabled>--Select source--</option>
+                                        <option value="dealership">Dealership</option>
+                                        <option value="action">Auction</option>
+                                        <option value="private individual">Private Individual</option>
+                                    </select>
+                                    <p className="add-error-message">{formErrors?.source}</p>
+                                </div>
+
+                                {/* Odometer Reading */}
+                                <div className="form-group">
+                                    <label>Odometer Reading</label>
+                                    <input disabled
+                                        className={formErrors?.odometerReading ? "invalid-input" : ""}
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={formData.odometerReading}
+                                        onChange={(e) => {
+                                            // Only allow integers, ignore decimals
+                                            const value = e.target.value;
+                                            if (/^\d*$/.test(value)) {
+                                                handleChange("odometerReading", value === "" ? 0 : Number(value));
+                                            }
+                                        }}
+
+                                        inputMode="numeric"
+                                        pattern="\d*"
+                                        placeholder="Enter odometer reading..."
+                                    />
+                                    <p className="add-error-message">{formErrors?.odometerReading}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - warranty expiration date and registration status*/}
+                            <div className="form-row">
+                                {/* Warranty Expiration Date */}
+                                <div className="form-group">
+                                    <label>Warranty Expiration Date</label>
+                                    <input
+                                        className={formErrors?.secHandWarrantyExpiryDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.secHandWarrantyExpiryDate}
+                                        onChange={(e) => handleChange("secHandWarrantyExpiryDate", e.target.value)}
+                                        placeholder="Select warranty expiration date..."
+                                        min={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="add-error-message">{formErrors?.secHandWarrantyExpiryDate}</p>
+                                </div>
+
+                                {/* Registration Status */}
+                                <div className="form-group">
+                                    <label>Registration Status</label>
+                                    <select
+                                        className={formErrors?.registrationStatus ? "invalid-input" : ""}
+                                        value={formData.registrationStatus}
+                                        onChange={(e) => handleChange("registrationStatus", e.target.value)}
+                                    >
+                                        <option value="" disabled>--Select Registration Status--</option>
+                                        <option value="registered">Registered</option>
+                                        <option value="needs renewal">Needs Renewal</option>
+                                        <option value="expired">Expired</option>
+                                    </select>
+                                    <p className="add-error-message">{formErrors?.registrationStatus}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - last registration date and last maintenance date */}
+                            <div className="form-row">
+                                {/* Last Registration Date */}
+                                <div className="form-group">
+                                    <label>Last Registration Date</label>
+                                    <input disabled
+                                        className={formErrors?.lastRegistrationDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.lastRegistrationDate}
+                                        onChange={(e) => handleChange("lastRegistrationDate", e.target.value)}
+                                        placeholder="Select last registration date..."
+                                        max={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="add-error-message">{formErrors?.lastRegistrationDate}</p>
+                                </div>
+
+                                {/* Last Maintenance Date */}
+                                <div className="form-group">
+                                    <label>Last Maintenance Date</label>
+                                    <input disabled
+                                        className={formErrors?.lastMaintenanceDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.lastMaintenanceDate}
+                                        onChange={(e) => handleChange("lastMaintenanceDate", e.target.value)}
+                                        placeholder="Select last maintenance date..."
+                                        max={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="add-error-message">{formErrors?.lastMaintenanceDate}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - initial bus condition/notes */}
+                            <div className="form-row">
+                                {/* Initial Bus Condition/Notes */}
+                                <div className="form-group">
+                                    <label>Initial Bus Condition/Notes</label>
+                                    <textarea
+                                        className={formErrors?.initialBusCondition ? "invalid-input" : ""}
+                                        value={formData.initialBusCondition}
+                                        onChange={(e) => handleChange("initialBusCondition", e.target.value)}
+                                        placeholder="Enter initial bus condition or notes here..."
+                                        rows={3}
+                                    />
+                                    <p className="add-error-message">{formErrors?.initialBusCondition}</p>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-
-                    {/* Form row - previous owner name and age */}
-                    <div className="form-row">
-                        {/* Previous Owner */}
-                        <div className="form-group">
-                            <label>Previous Owner</label>
-                            <input
-                                className={formErrors?.prevOwner ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.prevOwner}
-                                onChange={(e) => handleChange("prevOwner", e.target.value)}
-                                placeholder="Enter previous owner name here..."
-                            />
-                            <p className="add-error-message">{formErrors?.prevOwner}</p>
-                        </div>
-
-                        {/* Previous Owner Contact */}
-                        <div className="form-group">
-                            <label>Previous Owner Contact</label>
-                            <input
-                                className={formErrors?.prevOwnerContact ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.prevOwnerContact}
-                                onChange={(e) => {
-                                    // Only allow numbers, hyphens, and spaces
-                                    const value = e.target.value.replace(/[^0-9\- ]/g, "");
-                                    handleChange("prevOwnerContact", value);
-                                }}
-                                placeholder="Enter previous owner contact here..."
-                                inputMode="tel"
-                                pattern="[0-9\- ]*"
-                            />
-                            <p className="add-error-message">{formErrors?.prevOwnerContact}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - source and odometer reader */}
-                    <div className="form-row">
-                        {/* Source */}
-                        <div className="form-group">
-                            <label>Source</label>
-                            <select disabled
-                                className={formErrors?.source ? "invalid-input" : ""}
-                                value={formData.source}
-                                onChange={(e) => handleChange("source", e.target.value)}
-                            >
-                                <option value="" disabled>--Select source--</option>
-                                <option value="dealership">Dealership</option>
-                                <option value="action">Action</option>
-                                <option value="private individual">Private Individual</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.source}</p>
-                        </div>
-
-                        {/* Odometer Reading */}
-                        <div className="form-group">
-                            <label>Odometer Reading</label>
-                            <input disabled
-                                className={formErrors?.odometerReading ? "invalid-input" : ""}
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={formData.odometerReading}
-                                onChange={(e) => {
-                                    // Only allow integers, ignore decimals
-                                    const value = e.target.value;
-                                    if (/^\d*$/.test(value)) {
-                                        handleChange("odometerReading", value === "" ? 0 : Number(value));
-                                    }
-                                }}
-
-                                inputMode="numeric"
-                                pattern="\d*"
-                                placeholder="Enter odometer reading..."
-                            />
-                            <p className="add-error-message">{formErrors?.odometerReading}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - warranty expiration date and registration status*/}
-                    <div className="form-row">
-                        {/* Warranty Expiration Date */}
-                        <div className="form-group">
-                            <label>Warranty Expiration Date</label>
-                            <input
-                                className={formErrors?.secHandWarrantyExpiryDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.secHandWarrantyExpiryDate}
-                                onChange={(e) => handleChange("secHandWarrantyExpiryDate", e.target.value)}
-                                placeholder="Select warranty expiration date..."
-                                min={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.secHandWarrantyExpiryDate}</p>
-                        </div>
-
-                        {/* Registration Status */}
-                        <div className="form-group">
-                            <label>Registration Status</label>
-                            <select
-                                className={formErrors?.registrationStatus ? "invalid-input" : ""}
-                                value={formData.registrationStatus}
-                                onChange={(e) => handleChange("registrationStatus", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Registration Status--</option>
-                                <option value="registered">Registered</option>
-                                <option value="needs renewal">Needs Renewal</option>
-                                <option value="expired">Expired</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.registrationStatus}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - last registration date and last maintenance date */}
-                    <div className="form-row">
-                        {/* Last Registration Date */}
-                        <div className="form-group">
-                            <label>Last Registration Date</label>
-                            <input disabled
-                                className={formErrors?.lastRegistrationDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.lastRegistrationDate}
-                                onChange={(e) => handleChange("lastRegistrationDate", e.target.value)}
-                                placeholder="Select last registration date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.lastRegistrationDate}</p>
-                        </div>
-
-                        {/* Last Maintenance Date */}
-                        <div className="form-group">
-                            <label>Last Maintenance Date</label>
-                            <input disabled
-                                className={formErrors?.lastMaintenanceDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.lastMaintenanceDate}
-                                onChange={(e) => handleChange("lastMaintenanceDate", e.target.value)}
-                                placeholder="Select last maintenance date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.lastMaintenanceDate}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - initial bus condition/notes */}
-                    <div className="form-row">
-                        {/* Initial Bus Condition/Notes */}
-                        <div className="form-group">
-                            <label>Initial Bus Condition/Notes</label>
-                            <textarea
-                                className={formErrors?.initialBusCondition ? "invalid-input" : ""}
-                                value={formData.initialBusCondition}
-                                onChange={(e) => handleChange("initialBusCondition", e.target.value)}
-                                placeholder="Enter initial bus condition or notes here..."
-                                rows={3}
-                            />
-                            <p className="add-error-message">{formErrors?.initialBusCondition}</p>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            </div>
+                </div>
             )}
 
             {formData.condition === "Brand New" && (
-            <div>
-            <p className="bus-details-title">II. Brand New Details</p>
-            <div className="modal-content add">
-                {/* Brand New Details */}
-                <form className="add-bus-form">
-                    {/* Form row - acquisition date and acquisition method */}
-                    <div className="form-row">
-                        {/* Acquisition Date */}
-                        <div className="form-group">
-                            <label>Acquisition Date</label>
-                            <input disabled
-                                className={formErrors?.newAcquiDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.newAcquiDate}
-                                onChange={(e) => handleChange("newAcquiDate", e.target.value)}
-                                placeholder="Select acquisition date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.newAcquiDate}</p>
-                        </div>
+                <div>
+                    <p className="bus-details-title">II. Brand New Details</p>
+                    <div className="modal-content add">
+                        {/* Brand New Details */}
+                        <form className="add-bus-form">
+                            {/* Form row - acquisition date and acquisition method */}
+                            <div className="form-row">
+                                {/* Acquisition Date */}
+                                <div className="form-group">
+                                    <label>Acquisition Date</label>
+                                    <input disabled
+                                        className={formErrors?.newAcquiDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.newAcquiDate}
+                                        onChange={(e) => handleChange("newAcquiDate", e.target.value)}
+                                        placeholder="Select acquisition date..."
+                                        max={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="add-error-message">{formErrors?.newAcquiDate}</p>
+                                </div>
 
-                        {/* Acquisition Method */}
-                        <div className="form-group">
-                            <label>Acquisition Method</label>
-                            <select disabled
-                                className={formErrors?.newAcquiMethod ? "invalid-input" : ""}
-                                value={formData.newAcquiMethod}
-                                onChange={(e) => handleChange("newAcquiMethod", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Acquisition Method--</option>
-                                <option value="purchased">Purchased</option>
-                                <option value="donated">Donated</option>
-                                <option value="leased">Leased</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.newAcquiMethod}</p>
-                        </div>
+                                {/* Acquisition Method */}
+                                <div className="form-group">
+                                    <label>Acquisition Method</label>
+                                    <select disabled
+                                        className={formErrors?.newAcquiMethod ? "invalid-input" : ""}
+                                        value={formData.newAcquiMethod}
+                                        onChange={(e) => handleChange("newAcquiMethod", e.target.value)}
+                                    >
+                                        <option value="" disabled>--Select Acquisition Method--</option>
+                                        <option value="purchased">Purchased</option>
+                                        <option value="donated">Donated</option>
+                                        <option value="leased">Leased</option>
+                                    </select>
+                                    <p className="add-error-message">{formErrors?.newAcquiMethod}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - dealer name and dealer contact */}
+                            <div className="form-row">
+                                {/* Dealer Name */}
+                                <div className="form-group">
+                                    <label>Dealer Name</label>
+                                    <input
+                                        className={formErrors?.dealerName ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.dealerName}
+                                        onChange={(e) => handleChange("dealerName", e.target.value)}
+                                        placeholder="Enter dealer name here..."
+                                    />
+                                    <p className="add-error-message">{formErrors?.dealerName}</p>
+                                </div>
+
+                                {/* Dealer Contact */}
+                                <div className="form-group">
+                                    <label>Dealer Contact</label>
+                                    <input
+                                        className={formErrors?.dealerContact ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.dealerContact}
+                                        onChange={(e) => {
+                                            // Only allow numbers, hyphens, and spaces
+                                            const value = e.target.value.replace(/[^0-9\- ]/g, "");
+                                            handleChange("dealerContact", value);
+                                        }}
+                                        placeholder="Enter dealer owner contact here..."
+                                        inputMode="tel"
+                                        pattern="[0-9\- ]*"
+                                    />
+                                    <p className="add-error-message">{formErrors?.dealerContact}</p>
+                                </div>
+                            </div>
+
+                            {/* Form row - warranty expiration date and initial registration status */}
+                            <div className="form-row">
+                                {/* Warranty Expiration Date */}
+                                <div className="form-group">
+                                    <label>Warranty Expiration Date</label>
+                                    <input
+                                        className={formErrors?.newWarrantyExpiryDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.newWarrantyExpiryDate}
+                                        onChange={(e) => handleChange("newWarrantyExpiryDate", e.target.value)}
+                                        placeholder="Select warranty expiration date..."
+                                        min={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="add-error-message">{formErrors?.newWarrantyExpiryDate}</p>
+                                </div>
+
+                                {/* Registration Status */}
+                                <div className="form-group">
+                                    <label>Registration Status</label>
+                                    <select
+                                        className={formErrors?.initialRegistrationStatus ? "invalid-input" : ""}
+                                        value={formData.initialRegistrationStatus}
+                                        onChange={(e) => handleChange("initialRegistrationStatus", e.target.value)}
+                                    >
+                                        <option value="" disabled>--Select Registration Status--</option>
+                                        <option value="registered">Registered</option>
+                                        <option value="not-registered">Not Registered</option>
+                                    </select>
+                                    <p className="add-error-message">{formErrors?.initialRegistrationStatus}</p>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-
-                    {/* Form row - dealer name and dealer contact */}
-                    <div className="form-row">
-                        {/* Dealer Name */}
-                        <div className="form-group">
-                            <label>Dealer Name</label>
-                            <input
-                                className={formErrors?.dealerName ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.dealerName}
-                                onChange={(e) => handleChange("dealerName", e.target.value)}
-                                placeholder="Enter dealer name here..."
-                            />
-                            <p className="add-error-message">{formErrors?.dealerName}</p>
-                        </div>
-
-                        {/* Dealer Contact */}
-                        <div className="form-group">
-                            <label>Dealer Contact</label>
-                            <input
-                                className={formErrors?.dealerContact ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.dealerContact}
-                                onChange={(e) => {
-                                    // Only allow numbers, hyphens, and spaces
-                                    const value = e.target.value.replace(/[^0-9\- ]/g, "");
-                                    handleChange("dealerContact", value);
-                                }}
-                                placeholder="Enter dealer owner contact here..."
-                                inputMode="tel"
-                                pattern="[0-9\- ]*"
-                            />
-                            <p className="add-error-message">{formErrors?.dealerContact}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - warranty expiration date and initial registration status */}
-                    <div className="form-row">
-                        {/* Warranty Expiration Date */}
-                        <div className="form-group">
-                            <label>Warranty Expiration Date</label>
-                            <input
-                                className={formErrors?.newWarrantyExpiryDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.newWarrantyExpiryDate}
-                                onChange={(e) => handleChange("newWarrantyExpiryDate", e.target.value)}
-                                placeholder="Select warranty expiration date..."
-                                min={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.newWarrantyExpiryDate}</p>
-                        </div>
-
-                        {/* Registration Status */}
-                        <div className="form-group">
-                            <label>Registration Status</label>
-                            <select
-                                className={formErrors?.initialRegistrationStatus ? "invalid-input" : ""}
-                                value={formData.initialRegistrationStatus}
-                                onChange={(e) => handleChange("initialRegistrationStatus", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Registration Status--</option>
-                                <option value="registered">Registered</option>
-                                <option value="not-registered">Not Registered</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.initialRegistrationStatus}</p>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            </div>
+                </div>
             )}
 
             <p className="bus-details-title">III. Document Attachments</p>
