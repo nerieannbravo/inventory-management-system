@@ -4,10 +4,10 @@ import { generateId } from '@/app/lib/idGenerator';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { bus_id: string } }
+  { params }: { params: Promise<{ bus_id: string }> }
 ) {
   try {
-    const busId = params.bus_id;
+    const { bus_id: busId } = await params;
     const data = await req.json();
     const { newlyUploadedFiles, busOtherFiles, ...busData } = data;
 
