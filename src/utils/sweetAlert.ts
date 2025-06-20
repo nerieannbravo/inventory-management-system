@@ -533,6 +533,20 @@ export const showBusSavedSuccess = () => {
     });
 };
 
+// ----- Bus Save Error ----- //
+export const showBusSaveError = (errorMessage?: string) => {
+    return Swal.fire({
+        title: 'Error',
+        html: errorMessage || 'Failed to save bus. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 // ----- Edit Bus Confirmation ----- //
 export const showBusUpdateConfirmation = (bodyNumber: string) => {
     return Swal.fire({
@@ -566,6 +580,73 @@ export const showBusUpdatedSuccess = () => {
     });
 };
 
+//-------------------- BUS MAINTENANCE SPECIFIC -------------------//
+
+// ----- Add Bus Maintenance Confirmation ----- //
+export const showBusMaintenanceSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this bus maintenance details?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Bus Maintenance Success ----- //
+export const showBusMaintenanceSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Bus maintenance added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Maintenance Confirmation ----- //
+export const showBusMaintenanceUpdateConfirmation = (plateNumber: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the bus maintenance details for <strong>${plateNumber}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Maintenance Success ----- //
+export const showBusMaintenanceUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Bus maintenance detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
 
 //-------------------- GENERATE REPORT SPECIFIC -------------------//
 export const showGenerateReportConfirmation = () => {

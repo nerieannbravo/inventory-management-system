@@ -173,8 +173,33 @@
     justify-content: right;
 }
 
+.add-maintenance-btn-wrapper,
+.remove-maintenance-btn-wrapper {
+    margin-top: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-maintenance-btn-wrapper .add-maintenance-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--secondary-text-color);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+
 .remove-btn-wrapper .remove-stock-btn,
-.remove-btn-wrapper .remove-request-btn {
+.remove-btn-wrapper .remove-request-btn,
+.remove-maintenance-btn-wrapper .remove-maintenance-btn {
     display: flex;
     justify-content: center;
     align-items: center;

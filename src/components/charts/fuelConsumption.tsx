@@ -140,14 +140,14 @@ const MLFuelDashboard: React.FC = () => {
         }
     };
 
-    // const getReliabilityColor = (reliability: string) => {
-    //     switch (reliability) {
-    //         case 'High': return 'text-green-600 bg-green-50';
-    //         case 'Medium': return 'text-yellow-600 bg-yellow-50';
-    //         case 'Low': return 'text-red-600 bg-red-50';
-    //         default: return 'text-gray-600 bg-gray-50';
-    //     }
-    // };
+    const getReliabilityColor = (reliability: string) => {
+        switch (reliability) {
+            case 'High': return 'text-green-600 bg-green-50';
+            case 'Medium': return 'text-yellow-600 bg-yellow-50';
+            case 'Low': return 'text-red-600 bg-red-50';
+            default: return 'text-gray-600 bg-gray-50';
+        }
+    };
 
     if (loading) {
         return <div className="flex items-center justify-center h-full">Loading...</div>;
@@ -380,7 +380,7 @@ const MLFuelDashboard: React.FC = () => {
                                         <div className="info-item">
                                             <span className="text-sm font-medium text-gray-700">Reliability</span>
                                             <span className={`reliability-badge ${currentForecast.accuracy.reliability.toLowerCase()}`}>
-                                                {currentForecast.accuracy.reliability}
+                                                {getReliabilityColor(currentForecast.accuracy.reliability)}
                                             </span>
                                         </div>
                                     )}
@@ -441,7 +441,7 @@ const MLFuelDashboard: React.FC = () => {
                                                         <div className="flex justify-between">
                                                             <span className="text-sm text-gray-600">Reliability</span>
                                                             <span className={`reliability-badge ${forecast.accuracy.reliability.toLowerCase()}`}>
-                                                                {forecast.accuracy.reliability}
+                                                                {getReliabilityColor(forecast.accuracy.reliability)}
                                                             </span>
                                                         </div>
                                                     </>
