@@ -132,6 +132,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                     }
                   : undefined;
                 const finalData = { 
+                    bus_id: item.bus_id,
                     ...formData, 
                     newlyUploadedFiles,
                     warranty_expiration_date: formData.warranty_expiration_date ? new Date(formData.warranty_expiration_date).toISOString() : null,
@@ -139,7 +140,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                     brandNewDetails: completeBrandNewDetails,
                 };
                 
-                const response = await fetch(`/api/bus/${item.bus_id}`, {
+                const response = await fetch(`/api/bus`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(finalData),
