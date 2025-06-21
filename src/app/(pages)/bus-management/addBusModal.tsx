@@ -333,6 +333,52 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
     };
 
+    // Simplified file upload handler
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fileType: 'OR' | 'CR' | 'OTHER') => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setIsSaving(true);
+        try {
+            if (fileType === 'OTHER') {
+                const newFilesMeta = await Promise.all(
+                    files.map(async (file) => {
+                        const { url, name } = await uploadFile(file, busForm.body_number);
+                        return { file_name: name, file_url: url };
+                    })
+                );
+                setOtherFilesMeta(prev => [...prev, ...newFilesMeta]);
+                handleChange("otherDocuments", [...busForm.otherDocuments, ...newFilesMeta.map(f => f.file_name)]);
+            } else {
+                const file = files[0];
+                const { url, name } = await uploadFile(file, busForm.body_number);
+                const fileMeta = { file_name: name, file_url: url };
+                if (fileType === 'OR') {
+                    setOrFileMeta(fileMeta);
+                    handleChange("or_file", name);
+                } else if (fileType === 'CR') {
+                    setCrFileMeta(fileMeta);
+                    handleChange("cr_file", name);
+                }
+            }
+        } catch (error) {
+            await showBusSaveError("File upload failed. Please try again.");
+            console.error("File upload error:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleRemoveOtherFile = (index: number) => {
+        const newFilesMeta = [...otherFilesMeta];
+        newFilesMeta.splice(index, 1);
+        setOtherFilesMeta(newFilesMeta);
+
+        const newOtherDocuments = [...busForm.otherDocuments];
+        newOtherDocuments.splice(index, 1);
+        handleChange("otherDocuments", newOtherDocuments);
+    };
+
     return (
         <>
             <div className="modal-heading">
@@ -861,115 +907,79 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 <>
                     <p className="bus-details-title">III. Document Attachments</p>
                     <div className="modal-content add">
-                        {/* Attached Documents */}
                         <form className="add-bus-form">
-                            {/* Form row - OR/CR */}
+                            {/* Form row - Official Receipt Attachment */}
                             <div className="form-row">
-                                {/* OR */}
                                 <div className="form-group">
                                     <label>Official Receipt (OR) Attachment</label>
                                     <input
-                                        className={formErrors?.or_file ? "invalid-input" : ""}
                                         type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        onChange={async (e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            const { url, name } = await uploadFile(file, busForm.body_number);
-                                            handleChange("or_file", name); // for display
-                                            setOrFileMeta({ file_name: name, file_url: url });
-                                          } else {
-                                            handleChange("or_file", "");
-                                            setOrFileMeta(null);
-                                          }
-                                        }}
+                                        className={formErrors.or_file ? "invalid-input" : ""}
+                                        onChange={(e) => handleFileUpload(e, 'OR')}
                                     />
-                                    <p className="add-error-message">{formErrors?.or_file}</p>
+                                    {orFileMeta && <p className="file-name-display">{orFileMeta.file_name}</p>}
+                                    <p className="add-error-message">{formErrors.or_file}</p>
                                 </div>
                             </div>
-                            {busForm.registration_status === "registered" && (
-                                <div className="form-row">
-                                    {/* OR */}
-                                    <div className="form-group">
-                                        <label>Certificate of Registration (CR) Attachment</label>
-                                        <input
-                                            className={formErrors?.cr_file ? "invalid-input" : ""}
-                                            type="file"
-                                            accept=".pdf,.jpg,.jpeg,.png"
-                                            onChange={async (e) => {
-                                              const file = e.target.files?.[0];
-                                              if (file) {
-                                                const { url, name } = await uploadFile(file, busForm.body_number);
-                                                handleChange("cr_file", name);
-                                                setCrFileMeta({ file_name: name, file_url: url });
-                                              } else {
-                                                handleChange("cr_file", "");
-                                                setCrFileMeta(null);
-                                              }
-                                            }}
-                                        />
-                                        <p className="add-error-message">{formErrors?.cr_file}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Form row - Other Documents */}
+                            {/* Form row - Certification of Registration Attachment */}
                             <div className="form-row">
-                                {/* Other Documents */}
+                                <div className="form-group">
+                                    <label>Certificate of Registration (CR) Attachment</label>
+                                    <input
+                                        type="file"
+                                        className={formErrors.cr_file ? "invalid-input" : ""}
+                                        onChange={(e) => handleFileUpload(e, 'CR')}
+                                        disabled={busForm.registration_status !== 'registered'}
+                                    />
+                                    {crFileMeta && <p className="file-name-display">{crFileMeta.file_name}</p>}
+                                    <p className="add-error-message">{formErrors.cr_file}</p>
+                                </div>
+                            </div>
+                            {/* Form row - Other Attachments */}
+                            <div className="form-row">
                                 <div className="form-group">
                                     <label>Other Attachments</label>
                                     <input
-                                        className={formErrors?.otherDocuments ? "invalid-input" : ""}
                                         type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
                                         multiple
-                                        onChange={async (e) => {
-                                          const files = Array.from(e.target.files || []);
-                                          const metas: { file_name: string, file_url: string }[] = [];
-                                          for (const file of files) {
-                                            const { url, name } = await uploadFile(file, busForm.body_number);
-                                            metas.push({ file_name: name, file_url: url });
-                                          }
-                                          handleChange("otherDocuments", metas.map(m => m.file_name));
-                                          setOtherFilesMeta(metas);
-                                        }}
+                                        className={formErrors.otherDocuments ? "invalid-input" : ""}
+                                        onChange={(e) => handleFileUpload(e, 'OTHER')}
                                     />
-                                    {/* Show all uploaded document names and remove buttons */}
-                                    {busForm.otherDocuments.length > 0 && (
-                                        <ul className="uploaded-documents-list">
-                                            {busForm.otherDocuments.map((doc, idx) => (
-                                                <li key={idx} className="uploaded-document-item">
-                                                    <span>{doc}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const updated = busForm.otherDocuments.filter((_, i) => i !== idx);
-                                                            handleChange("otherDocuments", updated);
-                                                        }}
-                                                        className="remove-document-button"
-                                                        aria-label={`Remove document ${doc}`}
-                                                    >
+                                    <p className="add-error-message">{formErrors.otherDocuments}</p>
+                                </div>
+                            </div>
+
+                            {/* Display uploaded other files */}
+                            {otherFilesMeta.length > 0 && (
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Uploaded Other Documents:</label>
+                                        <ul className="uploaded-files-list">
+                                            {otherFilesMeta.map((file, index) => (
+                                                <li key={index}>
+                                                    <span>{file.file_name}</span>
+                                                    <button type="button" onClick={() => handleRemoveOtherFile(index)}>
                                                         <i className="ri-close-line"></i>
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
-                                    )}
-
-                                    <p className="add-error-message">{formErrors?.otherDocuments}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </form>
                     </div>
                 </>
             )}
 
-            <div className="modal-actions add">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> {isSaving ? 'Saving...' : 'Save'}
+            <div className="modal-actions">
+                <button type="button" className="close-btn" onClick={handleClose}>
+                    Cancel
+                </button>
+                <button type="submit" className="submit-btn" disabled={isSaving} onClick={handleSubmit}>
+                    {isSaving ? "Saving..." : "Add Bus"}
                 </button>
             </div>
-
         </>
     );
 }
