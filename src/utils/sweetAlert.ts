@@ -580,6 +580,18 @@ export const showBusUpdatedSuccess = () => {
     });
 };
 
+// ----- Edit Bus File Confirmation ----- //
+export function showRemoveFileConfirmation(fileName: string) {
+    return Swal.fire({
+        title: "Remove File?",
+        text: `Are you sure you want to remove "${fileName}"?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, remove it",
+        cancelButtonText: "Cancel",
+    });
+}
+
 //-------------------- BUS MAINTENANCE SPECIFIC -------------------//
 
 // ----- Add Bus Maintenance Confirmation ----- //

@@ -263,7 +263,7 @@
 
 /* ----- MODAL FORMS STYLING: FONT UPLOADED FILES ----- */
 .uploaded-documents-list {
-    margin-top: 8px;
+    margin-bottom: 5px;
     padding-left: 0;
     list-style: none;
 }
@@ -282,6 +282,14 @@
     padding-right: 20px;
     border-radius: 30px;
     width: fit-content;
+    font-size: 14px;
+}
+
+.existing-cr-note {
+    font-size: 12px;
+    font-style: italic;
+    margin: 5px;
+    color: var(--secondary-text-color);
 }
 
 .remove-document-button {
@@ -290,62 +298,45 @@
     color: var(--error-color);
     cursor: pointer;
     padding: 0;
-    font-size: 1rem;
+    font-size: 16px;
 }
 
 /* ----- DOCUMENT LINKS STYLING ----- */
-.document-link {
-    display: inline-block;
-    color: var(--primary-color);
-    text-decoration: none;
-    padding: 8px 12px;
-    margin: 4px 0;
-    background-color: var(--foreground-color);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+.view-documents-list {
+    margin-bottom: 5px;
+    padding-left: 0;
+}
+
+.view-document-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 10px 20px 6px;
+    background-color: var(--table-header-color);
+    color: var(--secondary-text-color);
+    padding: 8px 20px;
+    border-radius: 30px;
+    width: fit-content;
     font-size: 14px;
+    min-width: 200px;
+    text-decoration: none;
     transition: all 0.3s ease-in-out;
+}
+
+.view-document-item.link:hover {
+    background-color: var(--border-color);
+    color: var(--secondary-text-color);
     cursor: pointer;
 }
 
-.document-link:hover {
-    background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-    text-decoration: none;
-}
-
-.document-link:active {
-    transform: translateY(1px);
-}
-
-.document-link-error {
-    display: inline-block;
-    color: var(--error-color);
-    padding: 8px 12px;
-    margin: 4px 0;
+.view-document-item.error {
     background-color: var(--error-chip-bg-color);
-    border: 1px solid var(--error-color);
-    border-radius: 6px;
-    font-size: 14px;
-    width: 100%;
-    text-align: left;
+    color:  var(--error-chip-text-color);
 }
 
-/* View modal specific document styling */
-.view-bus-form .uploaded-document-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    margin: 10px 0;
-    background: none;
-    padding: 0;
-    border-radius: 0;
-    width: 100%;
-}
-
-.view-bus-form .uploaded-document-item .document-link {
-    width: 100%;
-    text-align: left;
+.view-document-item.no-files {
+    background-color: var(--table-header-color);
+    color:  var(--secondary-text-color);
+    font-style: italic;
 }

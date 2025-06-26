@@ -3,7 +3,8 @@ import { uploadFile } from "@/app/lib/uploadFile";
 
 import {
     showBusSaveConfirmation, showBusSavedSuccess,
-    showCloseWithoutSavingConfirmation, showBusSaveError
+    showCloseWithoutSavingConfirmation, showBusSaveError,
+    showRemoveFileConfirmation
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
@@ -107,7 +108,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     // Add state to store uploaded file meta
     const [orFileMeta, setOrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
     const [crFileMeta, setCrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
-    const [otherFilesMeta, setOtherFilesMeta] = useState<{ file_name: string, file_url: string }[]>([]);
+    const [otherFilesMeta, setOtherFilesMeta] = useState<{ file_name: string, file_url: string, file_type: string }[]>([]);
 
 
     // Track if any form has been modified
@@ -223,14 +224,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         if (busForm.registration_status === "registered" && !busForm.cr_file) {
             if (!busForm.cr_file) errors.cr_file = "Certification of Registration is required";
         }
-        if (busForm.otherDocuments.length === 0) {
+        if (otherFilesMeta.length === 0) {
             errors.otherDocuments = "At least one other document is required";
-        } else {
-            busForm.otherDocuments.forEach((doc, index) => {
-                if (!doc) {
-                    errors[`otherDocument${index}`] = `Document ${index + 1} is required`;
-                }
-            });
         }
 
         setFormErrors(errors);
@@ -249,27 +244,27 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 // In handleSubmit, build busOtherFiles array for backend
                 const busOtherFiles = [];
                 if (orFileMeta) {
-                  busOtherFiles.push({
-                    file_name: orFileMeta.file_name,
-                    file_type: 'OR',
-                    file_url: orFileMeta.file_url,
-                  });
+                    busOtherFiles.push({
+                        file_name: orFileMeta.file_name,
+                        file_type: 'OR',
+                        file_url: orFileMeta.file_url,
+                    });
                 }
                 if (crFileMeta) {
-                  busOtherFiles.push({
-                    file_name: crFileMeta.file_name,
-                    file_type: 'CR',
-                    file_url: crFileMeta.file_url,
-                  });
+                    busOtherFiles.push({
+                        file_name: crFileMeta.file_name,
+                        file_type: 'CR',
+                        file_url: crFileMeta.file_url,
+                    });
                 }
                 if (otherFilesMeta.length > 0) {
-                  otherFilesMeta.forEach(meta => {
-                    busOtherFiles.push({
-                      file_name: meta.file_name,
-                      file_type: 'OTHER',
-                      file_url: meta.file_url,
+                    otherFilesMeta.forEach(meta => {
+                        busOtherFiles.push({
+                            file_name: meta.file_name,
+                            file_type: 'OTHER',
+                            file_url: meta.file_url,
+                        });
                     });
-                  });
                 }
 
                 const response = await fetch('/api/bus', {
@@ -279,25 +274,25 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 });
 
                 let result;
-    			try {
-    				result = await response.json();
-    			} catch (jsonError) {
-    				console.error('Error parsing JSON response:', jsonError);
-    				throw new Error('Failed to parse server response');
-    			}
+                try {
+                    result = await response.json();
+                } catch (jsonError) {
+                    console.error('Error parsing JSON response:', jsonError);
+                    throw new Error('Failed to parse server response');
+                }
 
                 if (!response.ok) {
-    				// Extract more detailed error information if available
-    				const errorMessage = result && result.error 
-    					? `Error: ${result.error}` 
-    					: `Failed to save bus (Status: ${response.status})`;
+                    // Extract more detailed error information if available
+                    const errorMessage = result && result.error
+                        ? `Error: ${result.error}`
+                        : `Failed to save bus (Status: ${response.status})`;
 
-    				if (result && result.details) {
-    					console.error('Error details:', result.details);
-    				}
+                    if (result && result.details) {
+                        console.error('Error details:', result.details);
+                    }
 
-    				throw new Error(errorMessage);
-    			}
+                    throw new Error(errorMessage);
+                }
 
                 if (result.success) {
                     // Show success message using SweetAlert
@@ -873,15 +868,15 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         onChange={async (e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                            const { url, name } = await uploadFile(file, busForm.body_number);
-                                            handleChange("or_file", name); // for display
-                                            setOrFileMeta({ file_name: name, file_url: url });
-                                          } else {
-                                            handleChange("or_file", "");
-                                            setOrFileMeta(null);
-                                          }
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                const { url, name } = await uploadFile(file, busForm.body_number);
+                                                handleChange("or_file", name); // for display
+                                                setOrFileMeta({ file_name: name, file_url: url });
+                                            } else {
+                                                handleChange("or_file", "");
+                                                setOrFileMeta(null);
+                                            }
                                         }}
                                     />
                                     <p className="add-error-message">{formErrors?.or_file}</p>
@@ -897,15 +892,15 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                             type="file"
                                             accept=".pdf,.jpg,.jpeg,.png"
                                             onChange={async (e) => {
-                                              const file = e.target.files?.[0];
-                                              if (file) {
-                                                const { url, name } = await uploadFile(file, busForm.body_number);
-                                                handleChange("cr_file", name);
-                                                setCrFileMeta({ file_name: name, file_url: url });
-                                              } else {
-                                                handleChange("cr_file", "");
-                                                setCrFileMeta(null);
-                                              }
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const { url, name } = await uploadFile(file, busForm.body_number);
+                                                    handleChange("cr_file", name);
+                                                    setCrFileMeta({ file_name: name, file_url: url });
+                                                } else {
+                                                    handleChange("cr_file", "");
+                                                    setCrFileMeta(null);
+                                                }
                                             }}
                                         />
                                         <p className="add-error-message">{formErrors?.cr_file}</p>
@@ -924,30 +919,42 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         multiple
                                         onChange={async (e) => {
-                                          const files = Array.from(e.target.files || []);
-                                          const metas: { file_name: string, file_url: string }[] = [];
-                                          for (const file of files) {
-                                            const { url, name } = await uploadFile(file, busForm.body_number);
-                                            metas.push({ file_name: name, file_url: url });
-                                          }
-                                          handleChange("otherDocuments", metas.map(m => m.file_name));
-                                          setOtherFilesMeta(metas);
+                                            const files = Array.from(e.target.files || []);
+                                            if (files.length === 0) return;
+
+                                            try {
+                                                for (const file of files) {
+                                                    const { url, name } = await uploadFile(file, busForm.body_number);
+                                                    // Add to metadata array
+                                                    setOtherFilesMeta(prev => [...prev, {
+                                                        file_name: name,
+                                                        file_url: url,
+                                                        file_type: 'OTHER'
+                                                    }]);
+                                                }
+                                            } catch (error) {
+                                                // Handle upload error (you might want to show an error message)
+                                                console.error('File upload failed:', error);
+                                            }
                                         }}
                                     />
-                                    {/* Show all uploaded document names and remove buttons */}
-                                    {busForm.otherDocuments.length > 0 && (
+
+                                    {/* Display uploaded documents list */}
+                                    {otherFilesMeta.length > 0 && (
                                         <ul className="uploaded-documents-list">
-                                            {busForm.otherDocuments.map((doc, idx) => (
+                                            {otherFilesMeta.map((file, idx) => (
                                                 <li key={idx} className="uploaded-document-item">
-                                                    <span>{doc}</span>
+                                                    <span>{file.file_name}</span>
                                                     <button
                                                         type="button"
-                                                        onClick={() => {
-                                                            const updated = busForm.otherDocuments.filter((_, i) => i !== idx);
-                                                            handleChange("otherDocuments", updated);
+                                                        onClick={async () => {
+                                                            const result = await showRemoveFileConfirmation(file.file_name);
+                                                            if (result.isConfirmed) {
+                                                                setOtherFilesMeta(prev => prev.filter((_, i) => i !== idx));
+                                                            }
                                                         }}
                                                         className="remove-document-button"
-                                                        aria-label={`Remove document ${doc}`}
+                                                        aria-label={`Remove ${file.file_name}`}
                                                     >
                                                         <i className="ri-close-line"></i>
                                                     </button>
