@@ -110,6 +110,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     const [crFileMeta, setCrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
     const [otherFilesMeta, setOtherFilesMeta] = useState<{ file_name: string, file_url: string, file_type: string }[]>([]);
 
+    // New: Store selected files before upload
+    const [pendingOrFile, setPendingOrFile] = useState<File | null>(null);
+    const [pendingCrFile, setPendingCrFile] = useState<File | null>(null);
+    const [pendingOtherFiles, setPendingOtherFiles] = useState<File[]>([]);
 
     // Track if any form has been modified
     useEffect(() => {
@@ -145,6 +149,43 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         if (!busForm.chasis_number) errors.chasis_number = "Chasis number is required";
         if (!busForm.engine_number) errors.engine_number = "Engine number is required";
 
+            // Ensure unique values among identifiers
+        const plateNumber = busForm.plate_number.trim();
+        const bodyNumber = busForm.body_number.trim();
+        const chasisNumber = busForm.chasis_number.trim();
+        const engineNumber = busForm.engine_number.trim();
+
+        if (plateNumber && plateNumber === bodyNumber) {
+        const msg = "Plate/Body number must not be the same";
+        errors.plate_number = msg;
+        errors.body_number = msg;
+        }
+        if (plateNumber && plateNumber === chasisNumber) {
+        const msg = "Plate/Chasis number must not be the same";
+        errors.plate_number = msg;
+        errors.chasis_number = msg;
+        }
+        if (plateNumber && plateNumber === engineNumber) {
+        const msg = "Plate/Engine number must not be the same";
+        errors.plate_number = msg;
+        errors.engine_number = msg;
+        }
+        if (bodyNumber && bodyNumber === chasisNumber) {
+        const msg = "Body/Chasis number must not be the same";
+        errors.body_number = msg;
+        errors.chasis_number = msg;
+        }
+        if (bodyNumber && bodyNumber === engineNumber) {
+        const msg = "Body/Engine number must not be the same";
+        errors.body_number = msg;
+        errors.engine_number = msg;
+        }
+        if (chasisNumber && chasisNumber === engineNumber) {
+        const msg = "Chasis/Engine number must not be the same";
+        errors.chasis_number = msg;
+        errors.engine_number = msg;
+        }
+
         // New basic fields validation 
         if (!busForm.model) errors.model = "Model is required";
         if (!busForm.year_model) {
@@ -166,20 +207,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         }
         if (!busForm.acquisition_method) errors.acquisition_method = "Acquisition method is required";
         if (!busForm.registration_status) errors.registration_status = "Registration status is required";
-        if (!busForm.warranty_expiration_date) {
-            errors.warranty_expiration_date = "Warranty expiry date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.warranty_expiration_date);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate < today) {
-                errors.warranty_expiration_date = "Warranty expiry date cannot be set to a past date";
-            }
-        }
+        
 
         // Second hand details validation
         if (busForm.condition === "second-hand") {
+            if (!busForm.previous_owner) errors.previous_owner = "Previous owner is required";
+            if (!busForm.previous_owner_contact) errors.previous_owner_contact = "Previous owner contact is required";
             if (busForm.previous_owner_contact && !/^\d{11}$/.test(busForm.previous_owner_contact?.toString() || "")) {
                 errors.previous_owner_contact = "Previous owner contact must be exactly 11 digits";
             }
@@ -211,6 +244,17 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
         // Brandnew details validation
         else if (busForm.condition === "brand-new") {
+            if (!busForm.warranty_expiration_date) {
+            errors.warranty_expiration_date = "Warranty expiry date is required";
+        } else {
+            const today = new Date();
+            const selectedDate = new Date(busForm.warranty_expiration_date);
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                errors.warranty_expiration_date = "Warranty expiry date cannot be set to a past date";
+            }
+        }
             if (!busForm.dealer_name) errors.dealer_name = "Dealer name is required";
             if (!busForm.dealer_contact) {
                 errors.dealer_contact = "Dealer contact is required";
@@ -224,11 +268,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         if (busForm.registration_status === "registered" && !busForm.cr_file) {
             if (!busForm.cr_file) errors.cr_file = "Certification of Registration is required";
         }
-        if (otherFilesMeta.length === 0) {
+        if (pendingOtherFiles.length === 0) {
             errors.otherDocuments = "At least one other document is required";
         }
 
         setFormErrors(errors);
+        console.log('Validation errors:', errors);
         return Object.keys(errors).length === 0;
     };
 
@@ -241,24 +286,50 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         if (result.isConfirmed) {
             setIsSaving(true);
             try {
+                // Upload files only after confirmation
+                let orMeta = orFileMeta;
+                let crMeta = crFileMeta;
+                let otherMeta = [...otherFilesMeta];
+
+                // OR file
+                if (pendingOrFile) {
+                    const { url, name } = await uploadFile(pendingOrFile, busForm.body_number);
+                    orMeta = { file_name: name, file_url: url };
+                    setOrFileMeta(orMeta);
+                }
+                // CR file
+                if (pendingCrFile) {
+                    const { url, name } = await uploadFile(pendingCrFile, busForm.body_number);
+                    crMeta = { file_name: name, file_url: url };
+                    setCrFileMeta(crMeta);
+                }
+                // Other files
+                if (pendingOtherFiles.length > 0) {
+                    for (const file of pendingOtherFiles) {
+                        const { url, name } = await uploadFile(file, busForm.body_number);
+                        otherMeta.push({ file_name: name, file_url: url, file_type: 'OTHER' });
+                    }
+                    setOtherFilesMeta(otherMeta);
+                }
+
                 // In handleSubmit, build busOtherFiles array for backend
                 const busOtherFiles = [];
-                if (orFileMeta) {
+                if (orMeta) {
                     busOtherFiles.push({
-                        file_name: orFileMeta.file_name,
+                        file_name: `${busForm.body_number}OR${orMeta.file_name}`,
                         file_type: 'OR',
-                        file_url: orFileMeta.file_url,
+                        file_url: orMeta.file_url,
                     });
                 }
-                if (crFileMeta) {
+                if (crMeta) {
                     busOtherFiles.push({
-                        file_name: crFileMeta.file_name,
+                        file_name: `${busForm.body_number}CR${crMeta.file_name}`,
                         file_type: 'CR',
-                        file_url: crFileMeta.file_url,
+                        file_url: crMeta.file_url,
                     });
                 }
-                if (otherFilesMeta.length > 0) {
-                    otherFilesMeta.forEach(meta => {
+                if (otherMeta.length > 0) {
+                    otherMeta.forEach(meta => {
                         busOtherFiles.push({
                             file_name: meta.file_name,
                             file_type: 'OTHER',
@@ -284,8 +355,18 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 if (!response.ok) {
                     // Extract more detailed error information if available
                     const errorMessage = result && result.error
-                        ? `Error: ${result.error}`
+                        ? result.error
                         : `Failed to save bus (Status: ${response.status})`;
+
+                    if (errorMessage.includes("Plate number already exists")) {
+                        await showBusSaveError("Plate number already exists. Cannot add duplicate bus.");
+                        return;
+                    }
+
+                    if (errorMessage.includes("Body number already exists")) {
+                        await showBusSaveError("Body number already exists. Cannot add duplicate bus.");
+                        return;
+                    }
 
                     if (result && result.details) {
                         console.error('Error details:', result.details);
@@ -870,12 +951,11 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         onChange={async (e) => {
                                             const file = e.target.files?.[0];
                                             if (file) {
-                                                const { url, name } = await uploadFile(file, busForm.body_number);
-                                                handleChange("or_file", name); // for display
-                                                setOrFileMeta({ file_name: name, file_url: url });
+                                                setPendingOrFile(file);
+                                                handleChange("or_file", file.name); // for display
                                             } else {
+                                                setPendingOrFile(null);
                                                 handleChange("or_file", "");
-                                                setOrFileMeta(null);
                                             }
                                         }}
                                     />
@@ -894,12 +974,11 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0];
                                                 if (file) {
-                                                    const { url, name } = await uploadFile(file, busForm.body_number);
-                                                    handleChange("cr_file", name);
-                                                    setCrFileMeta({ file_name: name, file_url: url });
+                                                    setPendingCrFile(file);
+                                                    handleChange("cr_file", file.name);
                                                 } else {
+                                                    setPendingCrFile(null);
                                                     handleChange("cr_file", "");
-                                                    setCrFileMeta(null);
                                                 }
                                             }}
                                         />
@@ -921,40 +1000,30 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         onChange={async (e) => {
                                             const files = Array.from(e.target.files || []);
                                             if (files.length === 0) return;
-
-                                            try {
-                                                for (const file of files) {
-                                                    const { url, name } = await uploadFile(file, busForm.body_number);
-                                                    // Add to metadata array
-                                                    setOtherFilesMeta(prev => [...prev, {
-                                                        file_name: name,
-                                                        file_url: url,
-                                                        file_type: 'OTHER'
-                                                    }]);
-                                                }
-                                            } catch (error) {
-                                                // Handle upload error (you might want to show an error message)
-                                                console.error('File upload failed:', error);
-                                            }
+                                            setPendingOtherFiles(prev => [...prev, ...files]);
+                                            // For display only
+                                            files.forEach(file => {
+                                                handleChange("otherDocuments", file.name);
+                                            });
                                         }}
                                     />
 
                                     {/* Display uploaded documents list */}
-                                    {otherFilesMeta.length > 0 && (
+                                    {pendingOtherFiles.length > 0 && (
                                         <ul className="uploaded-documents-list">
-                                            {otherFilesMeta.map((file, idx) => (
+                                            {pendingOtherFiles.map((file, idx) => (
                                                 <li key={idx} className="uploaded-document-item">
-                                                    <span>{file.file_name}</span>
+                                                    <span>{file.name}</span>
                                                     <button
                                                         type="button"
                                                         onClick={async () => {
-                                                            const result = await showRemoveFileConfirmation(file.file_name);
+                                                            const result = await showRemoveFileConfirmation(file.name);
                                                             if (result.isConfirmed) {
-                                                                setOtherFilesMeta(prev => prev.filter((_, i) => i !== idx));
+                                                                setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
                                                             }
                                                         }}
                                                         className="remove-document-button"
-                                                        aria-label={`Remove ${file.file_name}`}
+                                                        aria-label={`Remove ${file.name}`}
                                                     >
                                                         <i className="ri-close-line"></i>
                                                     </button>

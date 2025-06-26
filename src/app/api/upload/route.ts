@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs/promises';
+import { supabase } from '@/app/lib/supabaseServer';
 
 export const runtime = 'nodejs';
 
@@ -11,24 +10,33 @@ export async function POST(req: NextRequest) {
     const bodyNumber = formData.get('body_number') as string | null;
 
     if (!file) {
-      console.error('No file uploaded');
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    await fs.mkdir(uploadsDir, { recursive: true });
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Use body_number if provided, else fallback to timestamp
+    // Generate a unique file name
     const safeBodyNumber = bodyNumber ? bodyNumber.replace(/[^a-zA-Z0-9_-]/g, '') : Date.now().toString();
     const fileName = `${safeBodyNumber}-${file.name}`;
-    const filePath = path.join(uploadsDir, fileName);
-    console.log('Saving file to:', filePath);
-    await fs.writeFile(filePath, buffer);
 
-    const fileUrl = `/api/upload?file=${fileName}`;
-    console.log('File saved. URL:', fileUrl);
-    return NextResponse.json({ url: fileUrl, name: file.name });
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('bus-files')
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: true,
+      });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      return NextResponse.json({ error: 'File upload failed', details: error.message }, { status: 500 });
+    }
+
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage.from('bus-files').getPublicUrl(fileName);
+
+    return NextResponse.json({ url: publicUrlData.publicUrl, name: file.name });
   } catch (err) {
     console.error('File upload error:', err);
     return NextResponse.json({ error: 'File upload failed', details: String(err) }, { status: 500 });
@@ -44,39 +52,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Filename parameter is required' }, { status: 400 });
     }
 
-    const filePath = path.join(process.cwd(), 'public', 'uploads', filename);
-    
-    // Check if file exists
-    try {
-      await fs.access(filePath);
-    } catch {
+    // Download file from Supabase Storage
+    const { data, error } = await supabase.storage.from('bus-files').download(filename);
+
+    if (error || !data) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    // Read file
-    const fileBuffer = await fs.readFile(filePath);
-    
-    // Determine content type based on file extension
-    const ext = path.extname(filename).toLowerCase();
+    // Infer content type from file extension
+    const ext = filename.split('.').pop()?.toLowerCase();
     let contentType = 'application/octet-stream';
-    
-    switch (ext) {
-      case '.pdf':
-        contentType = 'application/pdf';
-        break;
-      case '.jpg':
-      case '.jpeg':
-        contentType = 'image/jpeg';
-        break;
-      case '.png':
-        contentType = 'image/png';
-        break;
-    }
+    if (ext === 'pdf') contentType = 'application/pdf';
+    else if (ext === 'jpg' || ext === 'jpeg') contentType = 'image/jpeg';
+    else if (ext === 'png') contentType = 'image/png';
 
-    return new NextResponse(fileBuffer, {
+    // Convert ReadableStream to Buffer
+    const arrayBuffer = await data.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    return new NextResponse(buffer, {
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${path.basename(filename)}"`,
+        'Content-Disposition': `inline; filename="${filename}"`,
       },
     });
   } catch (error) {

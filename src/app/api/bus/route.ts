@@ -63,6 +63,27 @@ export async function POST(req: NextRequest) {
       return fallback;
     }
 
+    // Check for duplicate plate number
+    const existingBus = await prisma.bus.findFirst({
+      where: { plate_number: busForm.plate_number },
+    });
+    if (existingBus) {
+      return NextResponse.json(
+        { success: false, error: "Plate number already exists. Cannot add duplicate bus." },
+        { status: 400 }
+      );
+    }
+    // Check for duplicate body number
+    const existingBodyNumber = await prisma.bus.findFirst({
+      where: { body_number: busForm.body_number },
+    });
+    if (existingBodyNumber) {
+      return NextResponse.json(
+        { success: false, error: "Body number already exists. Cannot add duplicate bus." },
+        { status: 400 }
+      );
+    }
+
     let createdBus;
     if (busForm.condition === 'second-hand' && !secondHandDetails) {
       createdBus = await prisma.bus.create({
@@ -147,19 +168,6 @@ export async function POST(req: NextRequest) {
           }
         });
       }
-    }
-
-    if (createdBus) {
-      // Count all buses using item_id 'ITEM-00001'
-      const busCount = await prisma.bus.count({
-        where: { item_id: 'ITEM-00001' }
-      });
-      // Update current_stock in inventoryItem
-      await prisma.inventoryItem.update({
-        where: { item_id: 'ITEM-00001' },
-        data: { current_stock: busCount }
-      });
-      return NextResponse.json({ success: true, bus_id: createdBus.bus_id });
     }
 
   } catch (error) {

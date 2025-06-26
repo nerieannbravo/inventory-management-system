@@ -32,15 +32,24 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
     const [isSaving, setIsSaving] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+    // Add state for pending files
+    const [pendingCRFile, setPendingCRFile] = useState<File | null>(null);
+    const [pendingOtherFiles, setPendingOtherFiles] = useState<File[]>([]);
+
     useEffect(() => {
         const originalItem = JSON.stringify(item);
         const currentItem = JSON.stringify(formData);
-        if (originalItem !== currentItem || newlyUploadedFiles.length > 0) {
+        if (
+            originalItem !== currentItem ||
+            newlyUploadedFiles.length > 0 ||
+            !!pendingCRFile ||
+            pendingOtherFiles.length > 0
+        ) {
             setIsFormDirty(true);
         } else {
             setIsFormDirty(false);
         }
-    }, [formData, item, newlyUploadedFiles]);
+    }, [formData, item, newlyUploadedFiles.length, !!pendingCRFile, pendingOtherFiles.length]);
 
     const handleChange = (field: string, value: any) => {
         setFormData((prev: any) => ({ ...prev, [field]: value }));
@@ -58,7 +67,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
         // Basic Information Validation
         if (!formData.status) errors.bus_status = "Bus status is required";
-        if (!formData.bus_type) errors.bus_type = "Bus status is required";
+        if (!formData.bus_type) errors.bus_type = "Bus type is required";
         if (!formData.body_builder) errors.body_builder = "Body builder is required.";
 
         // Second Hand Details Validation
@@ -131,40 +140,19 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         }
     };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
+    // Replace handleFileUpload with handlers that only store files
+    const handleCRFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setPendingCRFile(file);
+        } else {
+            setPendingCRFile(null);
+        }
+    };
+    const handleOtherFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
-        setIsSaving(true);
-        try {
-            for (const file of files) {
-                const { url, name } = await uploadFile(file, formData.body_number);
-
-                if (fileType === 'CR') {
-                    // Check if CR file already exists
-                    const existingCRFile = formData.busOtherFiles.find((f: any) => f.file_type === 'CR');
-
-                    if (existingCRFile) {
-                        // Update existing CR file
-                        const updatedFiles = formData.busOtherFiles.map((f: any) =>
-                            f.bus_files_id === existingCRFile.bus_files_id
-                                ? { ...f, file_name: name, file_url: url, date_uploaded: new Date().toISOString() }
-                                : f
-                        );
-                        handleChange("busOtherFiles", updatedFiles);
-                    } else {
-                        // Add new CR file
-                        setNewlyUploadedFiles(prev => [...prev, { file_name: name, file_url: url, file_type: fileType }]);
-                    }
-                } else {
-                    // For other file types, just add as new
-                    setNewlyUploadedFiles(prev => [...prev, { file_name: name, file_url: url, file_type: fileType }]);
-                }
-            }
-        } catch (error) {
-            showBusSaveError("File upload failed. Please try again.");
-        } finally {
-            setIsSaving(false);
-        }
+        setPendingOtherFiles(prev => [...prev, ...files]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -175,6 +163,28 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         if (result.isConfirmed) {
             setIsSaving(true);
             try {
+                // Upload files only after confirmation
+                let newFiles: FileMeta[] = [...newlyUploadedFiles];
+                // CR file
+                if (pendingCRFile) {
+                    const { url, name } = await uploadFile(pendingCRFile, formData.body_number);
+                    newFiles.push({
+                        file_name: `${formData.body_number}CR${name}`,
+                        file_url: url,
+                        file_type: 'CR',
+                    });
+                }
+                // Other files
+                if (pendingOtherFiles.length > 0) {
+                    for (const file of pendingOtherFiles) {
+                        const { url, name } = await uploadFile(file, formData.body_number);
+                        newFiles.push({
+                            file_name: name, // keep as is for OTHER
+                            file_url: url,
+                            file_type: 'OTHER',
+                        });
+                    }
+                }
                 // Prepare the data for the API
                 const completeSecondHandDetails = formData.secondHandDetails
                     ? {
@@ -196,23 +206,20 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                 const finalData = {
                     bus_id: item.bus_id,
                     ...formData,
-                    newlyUploadedFiles,
+                    newlyUploadedFiles: newFiles,
                     warranty_expiration_date: formData.warranty_expiration_date ? new Date(formData.warranty_expiration_date).toISOString() : null,
                     secondHandDetails: completeSecondHandDetails,
                     brandNewDetails: completeBrandNewDetails,
                 };
-
                 const response = await fetch(`/api/bus`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(finalData),
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Failed to update bus');
                 }
-
                 await showBusUpdatedSuccess();
                 onSave(); // Refresh the data
                 onClose(); // Close the modal
@@ -439,7 +446,11 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                             className={formErrors?.previous_owner_contact ? "invalid-input" : ""}
                                             type="text"
                                             value={formData.secondHandDetails.previous_owner_contact || ''}
-                                            onChange={(e) => handleDetailChange("secondHandDetails", "previous_owner_contact", e.target.value)}
+                                            onChange={(e) => {
+                                                // Only allow numbers
+                                                const value = e.target.value.replace(/[^0-9]/g, "");
+                                                handleDetailChange("secondHandDetails", "previous_owner_contact", value);
+                                            }}
                                             placeholder="Enter previous owner contact here..."
                                             inputMode="tel"
                                             pattern="[0-9]*"
@@ -582,7 +593,14 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                             className={formErrors.dealer_contact ? "invalid-input" : ""}
                                             type="text"
                                             value={formData.brandNewDetails.dealer_contact || ''}
-                                            onChange={(e) => handleDetailChange("brandNewDetails", "dealer_contact", e.target.value)}
+                                            onChange={(e) => {
+                                                // Only allow numbers
+                                                const value = e.target.value.replace(/[^0-9]/g, "");
+                                                handleDetailChange("brandNewDetails", "dealer_contact", value);
+                                            }}
+                                            inputMode="tel"
+                                            pattern="[0-9]*"
+                                            maxLength={11}
                                         />
                                         <p className="edit-error-message">{formErrors.dealer_contact}</p>
                                     </div>
@@ -630,29 +648,51 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                         <li key={file.bus_files_id}
                                             className="uploaded-document-item">
                                             <span>{file.file_name}</span>
-                                            <button type="button"
-                                                onClick={() => handleRemoveExistingFile(file.bus_files_id)}
-                                                className="remove-document-button" aria-label={`Remove ${file.file_name}`}>
-                                                <i className="ri-close-line"></i>
-                                            </button>
+                                            {file.file_type !== 'OR' && (
+                                                <button type="button"
+                                                    onClick={() => handleRemoveExistingFile(file.bus_files_id)}
+                                                    className="remove-document-button" aria-label={`Remove ${file.file_name}`}>
+                                                    <i className="ri-close-line"></i>
+                                                </button>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             ) : <p className="existing-cr-note">No existing attachments.</p>}
                         </div>
 
-                        {newlyUploadedFiles.length > 0 && (
+                        {(newlyUploadedFiles.length > 0 || pendingCRFile || pendingOtherFiles.length > 0) && (
                             // New Attachments
                             <div className="form-group">
                                 <label>New Attachments</label>
                                 <ul className="uploaded-documents-list">
+                                    {/* Show already uploaded new files */}
                                     {newlyUploadedFiles.map((file) => (
-                                        <li key={file.file_url}
-                                            className="uploaded-document-item">
+                                        <li key={file.file_url} className="uploaded-document-item">
                                             <span>{file.file_name}</span>
-                                            <button type="button"
-                                                onClick={() => handleRemoveNewFile(file.file_url)}
-                                                className="remove-document-button" aria-label={`Remove ${file.file_name}`}>
+                                            <button 
+                                            type="button" 
+                                            onClick={() => handleRemoveNewFile(file.file_url)} 
+                                            className="remove-document-button" 
+                                            aria-label={`Remove ${file.file_name}`}>
+                                                <i className="ri-close-line"></i>
+                                            </button>
+                                        </li>
+                                    ))}
+                                    {/* Show pending CR file */}
+                                    {pendingCRFile && (
+                                        <li className="uploaded-document-item">
+                                            <span>{pendingCRFile.name}</span>
+                                            <button type="button" onClick={() => setPendingCRFile(null)} className="remove-document-button" aria-label={`Remove ${pendingCRFile.name}`}>
+                                                <i className="ri-close-line"></i>
+                                            </button>
+                                        </li>
+                                    )}
+                                    {/* Show pending OTHER files */}
+                                    {pendingOtherFiles.map((file, idx) => (
+                                        <li key={file.name + idx} className="uploaded-document-item">
+                                            <span>{file.name}</span>
+                                            <button type="button" onClick={() => setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx))} className="remove-document-button" aria-label={`Remove ${file.name}`}>
                                                 <i className="ri-close-line"></i>
                                             </button>
                                         </li>
@@ -665,9 +705,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                             {/* Upload New CR */}
                             <div className="form-group">
                                 <label>Upload New CR</label>
-                                <input type="file"
-                                    onChange={(e) => handleFileUpload(e, 'CR')}
-                                />
+                                <input type="file" onChange={handleCRFileChange} />
                                 {existingCRFile && (
                                     <small className="existing-cr-note">
                                         Note: This will replace the existing CR file ({existingCRFile.file_name})
@@ -680,9 +718,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                             {/* Upload Other Documents */}
                             <div className="form-group">
                                 <label>Upload Other Documents</label>
-                                <input type="file" multiple
-                                    onChange={(e) => handleFileUpload(e, 'OTHER')}
-                                />
+                                <input type="file" multiple onChange={handleOtherFilesChange} />
                             </div>
                         </div>
                     </div>

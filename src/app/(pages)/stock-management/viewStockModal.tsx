@@ -66,9 +66,9 @@ export default function ViewStockModal({ item, formatStatus, onClose, onBatchDel
 	};
 
 	// Handle remove expired batch
-	const handleRemoveExpired = async (batchId: string) => {
+	const handleRemoveExpired = async (batch_id: string) => {
 		try {
-			const result = await showDeleteExpiredConfirmation(batchId);
+			const result = await showDeleteExpiredConfirmation();
 			if (result.isConfirmed) {
 				// Call the API to delete the batch
 				const response = await fetch('/api/stock', {
@@ -76,13 +76,13 @@ export default function ViewStockModal({ item, formatStatus, onClose, onBatchDel
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({ batch_id: batchId }),
+					body: JSON.stringify({ batch_id: batch_id }),
 				});
 
 				const data = await response.json();
 
 				if (data.success) {
-					await showDeleteExpiredSuccess(batchId);
+					await showDeleteExpiredSuccess();
 					// Call the callback to refresh data if provided
 					if (onBatchDeleted) {
 						onBatchDeleted();

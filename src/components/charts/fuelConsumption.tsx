@@ -304,42 +304,45 @@ const MLFuelDashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="chart-content">
-                            <ResponsiveContainer width="100%" height={300}>
-                                <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                    <XAxis
-                                        dataKey="month"
-                                        stroke="#666"
-                                        tick={{ fontSize: 12 }}
-                                        angle={360}
-                                        textAnchor="end"
-                                        height={60}
-                                    />
-                                    <YAxis
-                                        stroke="#666"
-                                        tick={{ fontSize: 12 }}
-                                        label={{ value: 'Gallons', angle: -90, position: 'insideLeft' }}
-                                    />
-                                    <Tooltip content={customTooltip} />
-                                    <Bar
-                                        dataKey="consumption"
-                                        fill="#3b82f6"
-                                        radius={[4, 4, 0, 0]}
-                                        maxBarSize={40}
-                                        name="Actual Consumption"
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="predicted"
-                                        stroke="#10b981"
-                                        strokeWidth={3}
-                                        dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
-                                        connectNulls={true}
-                                        name="Predicted Consumption"
-                                    />
-                                </ComposedChart>
-                            </ResponsiveContainer>
+                        {/* Horizontally scrollable chart */}
+                        <div style={{ width: '100%', overflowX: 'auto' }}>
+                            <div style={{ width: Math.max(data.length * 80, 600) }}>
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <ComposedChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                            dataKey="month"
+                                            stroke="#666"
+                                            tick={{ fontSize: 12 }}
+                                            angle={360}
+                                            textAnchor="end"
+                                            height={60}
+                                        />
+                                        <YAxis
+                                            stroke="#666"
+                                            tick={{ fontSize: 12 }}
+                                            label={{ value: 'Gallons', angle: -90, position: 'insideLeft' }}
+                                        />
+                                        <Tooltip content={customTooltip} />
+                                        <Bar
+                                            dataKey="consumption"
+                                            fill="#3b82f6"
+                                            radius={[4, 4, 0, 0]}
+                                            maxBarSize={40}
+                                            name="Actual Consumption"
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="predicted"
+                                            stroke="#10b981"
+                                            strokeWidth={3}
+                                            dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
+                                            connectNulls={true}
+                                            name="Predicted Consumption"
+                                        />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
 
@@ -380,7 +383,7 @@ const MLFuelDashboard: React.FC = () => {
                                         <div className="info-item">
                                             <span className="text-sm font-medium text-gray-700">Reliability</span>
                                             <span className={`reliability-badge ${currentForecast.accuracy.reliability.toLowerCase()}`}>
-                                                {getReliabilityColor(currentForecast.accuracy.reliability)}
+                                                {currentForecast.accuracy.reliability}
                                             </span>
                                         </div>
                                     )}
@@ -441,7 +444,7 @@ const MLFuelDashboard: React.FC = () => {
                                                         <div className="flex justify-between">
                                                             <span className="text-sm text-gray-600">Reliability</span>
                                                             <span className={`reliability-badge ${forecast.accuracy.reliability.toLowerCase()}`}>
-                                                                {getReliabilityColor(forecast.accuracy.reliability)}
+                                                                {forecast.accuracy.reliability}
                                                             </span>
                                                         </div>
                                                     </>
