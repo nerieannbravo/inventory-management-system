@@ -17,9 +17,9 @@ export async function GET() {
         // Convert /upload/filename to /api/upload/filename
         newUrl = file.file_url.replace('/upload/', '/api/upload/');
         needsUpdate = true;
-      } else if (file.file_url.startsWith('/uploads/')) {
+      } else if (file.file_url.startsWith('/upload/')) {
         // Convert /uploads/filename to /api/upload/filename
-        newUrl = file.file_url.replace('/uploads/', '/api/upload/');
+        newUrl = file.file_url.replace('/upload/', '/api/upload/');
         needsUpdate = true;
       }
       

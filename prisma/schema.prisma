@@ -7,12 +7,11 @@ generator client {
 datasource db {
   provider = "postgresql"
   // url      = env("DATABASE_URL")
-  // url      = "postgresql://postgres:obGVLTjkBfaLNAuADJifzuVjTTEmpjcW@crossover.proxy.rlwy.net:36212/railway"
-  url      = "postgresql://postgres:ahPlWkZoDRdvmKptXQPXqSHplILdXlbd@hopper.proxy.rlwy.net:29736/railway"
+  url      = "postgresql://postgres:QZfSMQJLSQKywVPRsAcyjLqzKoTvIIuT@interchange.proxy.rlwy.net:34432/railway"
 }
 
 model InventoryItem {
-  item_id       String          @id @db.VarChar(10)
+  item_id       String          @id @db.VarChar(20)
   category_id   String
   item_name     String          @db.VarChar(100)
   unit_measure  String          @db.VarChar(20)
@@ -32,9 +31,9 @@ model InventoryItem {
 }
 
 model Batch {
-  batch_id           String        @id @db.VarChar(10)
+  batch_id           String        @id @db.VarChar(20)
   item_id            String
-  f_item_id          String        @db.VarChar(10)
+  f_item_id          String        @db.VarChar(20)
   usable_quantity    Int           @default(0)
   defective_quantity Int           @default(0)
   missing_quantity   Int           @default(0)
@@ -49,7 +48,7 @@ model Batch {
 }
 
 model Category {
-  category_id    String          @id @db.VarChar(10)
+  category_id    String          @id @db.VarChar(20)
   category_name  String          @unique @db.VarChar(100)
   date_created   DateTime        @default(now())
   isdeleted      Boolean         @default(false)
@@ -59,9 +58,9 @@ model Category {
 }
 
 model EmployeeRequest {
-  request_id    String          @id @db.VarChar(10)
+  request_id    String          @id @db.VarChar(20)
   item_id       String            
-  emp_id        String          @db.VarChar(10)
+  emp_id        String          @db.VarChar(20)
   request_type  RequestType     
   quantity      Int
   req_purpose   String          @db.VarChar(255)
@@ -78,7 +77,7 @@ model EmployeeRequest {
 }
 
 model Bus {
-  bus_id          String          @id @db.VarChar(10)
+  bus_id          String          @id @db.VarChar(20)
   item_id         String
   plate_number    String          @unique
   body_number     String          @unique @db.VarChar(20)
@@ -131,7 +130,7 @@ model BrandNewDetails {
 }
 
 model BusOtherFiles {
-  bus_files_id    String    @id @db.VarChar(10)
+  bus_files_id    String    @id @db.VarChar(20)
   file_name       String
   file_type       String
   file_url       String

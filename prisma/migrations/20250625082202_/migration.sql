@@ -30,7 +30,7 @@ CREATE TYPE "BusSource" AS ENUM ('DEALERSHIP', 'AUCTION', 'PRIVATE_INDIVIDUAL');
 
 -- CreateTable
 CREATE TABLE "inventory_items" (
-    "item_id" VARCHAR(10) NOT NULL,
+    "item_id" VARCHAR(20) NOT NULL,
     "category_id" TEXT NOT NULL,
     "item_name" VARCHAR(100) NOT NULL,
     "unit_measure" VARCHAR(20) NOT NULL,
@@ -47,9 +47,9 @@ CREATE TABLE "inventory_items" (
 
 -- CreateTable
 CREATE TABLE "batches" (
-    "batch_id" VARCHAR(10) NOT NULL,
+    "batch_id" VARCHAR(20) NOT NULL,
     "item_id" TEXT NOT NULL,
-    "f_item_id" VARCHAR(10) NOT NULL,
+    "f_item_id" VARCHAR(20) NOT NULL,
     "usable_quantity" INTEGER NOT NULL DEFAULT 0,
     "defective_quantity" INTEGER NOT NULL DEFAULT 0,
     "missing_quantity" INTEGER NOT NULL DEFAULT 0,
@@ -64,7 +64,7 @@ CREATE TABLE "batches" (
 
 -- CreateTable
 CREATE TABLE "categories" (
-    "category_id" VARCHAR(10) NOT NULL,
+    "category_id" VARCHAR(20) NOT NULL,
     "category_name" VARCHAR(100) NOT NULL,
     "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isdeleted" BOOLEAN NOT NULL DEFAULT false,
@@ -74,9 +74,9 @@ CREATE TABLE "categories" (
 
 -- CreateTable
 CREATE TABLE "employee_requests" (
-    "request_id" VARCHAR(10) NOT NULL,
+    "request_id" VARCHAR(20) NOT NULL,
     "item_id" TEXT NOT NULL,
-    "emp_id" VARCHAR(10) NOT NULL,
+    "emp_id" VARCHAR(20) NOT NULL,
     "request_type" "RequestType" NOT NULL,
     "quantity" INTEGER NOT NULL,
     "req_purpose" VARCHAR(255) NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE "employee_requests" (
 
 -- CreateTable
 CREATE TABLE "bus" (
-    "bus_id" VARCHAR(10) NOT NULL,
+    "bus_id" VARCHAR(20) NOT NULL,
     "item_id" TEXT NOT NULL,
     "plate_number" TEXT NOT NULL,
     "body_number" VARCHAR(20) NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE "BrandNewDetails" (
 
 -- CreateTable
 CREATE TABLE "bus_other_files" (
-    "bus_files_id" VARCHAR(10) NOT NULL,
+    "bus_files_id" VARCHAR(20) NOT NULL,
     "file_name" TEXT NOT NULL,
     "file_type" TEXT NOT NULL,
     "file_url" TEXT NOT NULL,

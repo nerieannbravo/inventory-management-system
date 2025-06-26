@@ -1,17 +1,20 @@
 export interface Employee {
-  emp_id: string;
-  emp_first_name: string;
-  emp_last_name: string;
+  employeeNumber: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  phone: string;
+  position: string;
+  departmentId: number;
+  department: string;
 }
 
 export async function fetchEmployees(): Promise<Employee[]> {
   try {
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/employees`;
+    const url = 'http://192.168.1.140:3001/employees/inv';
     
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
         "Content-Type": "application/json",
         "Prefer": "return=representation"
       },
@@ -31,12 +34,10 @@ export async function fetchEmployees(): Promise<Employee[]> {
 
 export async function fetchEmployeeById(id: string): Promise<Employee | null> {
   try {
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/employees?emp_id=eq.${id}`;
+    const url = `http://192.168.1.140:3001/employees/inv/${id}`;
     
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
         "Content-Type": "application/json",
         "Prefer": "return=representation"
       },
@@ -47,7 +48,18 @@ export async function fetchEmployeeById(id: string): Promise<Employee | null> {
     }
 
     const data = await res.json();
-    return data.length > 0 ? data[0] : null;
+    if (!data || data.length === 0) return null;
+    const emp = data[0];
+    return {
+      employeeNumber: emp.employeeNumber,
+      firstName: emp.firstName,
+      middleName: emp.middleName,
+      lastName: emp.lastName,
+      phone: emp.phone,
+      position: emp.position,
+      departmentId: emp.departmentId,
+      department: emp.department,
+    };
   } catch (error) {
     console.error(`Error fetching employee with ID ${id}:`, error);
     throw error;

@@ -206,12 +206,10 @@ export const showStockDeletedSuccess = (item_name: string) => {
 };
 
 // ----- Remove Expired Confirmation ----- //
-export const showDeleteExpiredConfirmation = (batch_id: string) => {
+export const showDeleteExpiredConfirmation = () => {
     return Swal.fire({
         title: 'Remove Expired Item',
-        html: 
-            `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>
-            <span id="hidden-batch-id" style="display: none;">${batch_id}</span>`,
+        html: `<p>Are you sure you want to delete this expired batch? You will not be able to undo this.</p>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Delete',
@@ -225,11 +223,10 @@ export const showDeleteExpiredConfirmation = (batch_id: string) => {
 };
 
 // ----- Remove Expired Success ----- //
-export const showDeleteExpiredSuccess = (batch_id: string) => {
+export const showDeleteExpiredSuccess = () => {
     return Swal.fire({
         title: 'Deleted!',
-        html: `<p>An expired item has been deleted.</p>
-                <span id="hidden-batch-id" style="display: none;">${batch_id}</span>`,
+        html: `<p>An expired item has been deleted.</p>`,
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -289,10 +286,10 @@ export const showRequestSavedSuccess = (count: number) => {
 };
 
 // ----- Edit Request Confirmation ----- //
-export const showRequestUpdateConfirmation = (item_name: string) => {
+export const showRequestUpdateConfirmation = (itemName: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the request details for <strong>${item_name}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the request details for <strong>${itemName}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -335,10 +332,10 @@ export const showEditError = (status: string) => {
 };
 
 // ----- Delete Request Confirmation ----- //
-export const showRequestDeleteConfirmation = (item_name: string) => {
+export const showRequestDeleteConfirmation = (itemName: string) => {
     return Swal.fire({
         title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the request for <strong>${item_name}</strong>? You will not be able to undo this.</p>`,
+        html: `<p>Are you sure you want to delete the request for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Delete',
@@ -628,10 +625,10 @@ export const showBusMaintenanceSavedSuccess = () => {
 };
 
 // ----- Edit Bus Maintenance Confirmation ----- //
-export const showBusMaintenanceUpdateConfirmation = (plateNumber: string) => {
+export const showBusMaintenanceUpdateConfirmation = (bodyNumber: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the bus maintenance details for <strong>${plateNumber}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the bus maintenance details for <strong>${bodyNumber}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -660,30 +657,31 @@ export const showBusMaintenanceUpdatedSuccess = () => {
     });
 };
 
-//-------------------- GENERATE REPORT SPECIFIC -------------------//
-export const showGenerateReportConfirmation = () => {
+//-------------------- BUS DISPOSAL SPECIFIC -------------------//
+
+// ----- Add Bus Maintenance Confirmation ----- //
+export const showBusDisposalSaveConfirmation = () => {
     return Swal.fire({
-        title: 'Generate Report',
-        html: '<p>Are you sure you want to generate a report with the current data?</p>',
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this bus disposal details?',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'Generate Report',
+        confirmButtonText: 'Save',
         cancelButtonText: 'Cancel',
         background: 'white',
-        confirmButtonColor: '#961C1E',
-        cancelButtonColor: '#ECECEC',
+        reverseButtons: true,
         customClass: {
             popup: 'swal-custom-popup'
         }
     });
 };
 
-export const showReportGeneratedSuccess = () => {
+// ----- Add Bus Disposal Success ----- //
+export const showBusDisposalSavedSuccess = () => {
     return Swal.fire({
         icon: 'success',
-        title: 'Report Generated!',
-        text: 'Your report has been generated successfully.',
-        confirmButtonColor: '#961C1E',
+        title: 'Saved!',
+        text: 'Bus disposal added successfully.',
         background: 'white',
         timer: 2000,
         timerProgressBar: true,
@@ -693,3 +691,174 @@ export const showReportGeneratedSuccess = () => {
         }
     });
 };
+
+// ----- Edit Bus Disposal Confirmation ----- //
+export const showBusDisposalUpdateConfirmation = (bodyNumber: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the bus disposal details for <strong>${bodyNumber}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Bus Disposal Success ----- //
+export const showBusDisposalUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Bus disposal detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+
+//-------------------- STOCK MAINTENANCE SPECIFIC -------------------//
+
+// ----- Add Stock Maintenance Confirmation ----- //
+export const showStockMaintenanceSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this stock maintenance details?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Stock Maintenance Success ----- //
+export const showStockMaintenanceSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Stock maintenance added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Stock Maintenance Confirmation ----- //
+export const showStockMaintenanceUpdateConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the stock maintenance details for <strong>${itemName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Stock Maintenance Success ----- //
+export const showStockMaintenanceUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Stock maintenance detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+//-------------------- STOCK DISPOSAL SPECIFIC -------------------//
+
+// ----- Add Stock Maintenance Confirmation ----- //
+export const showStockDisposalSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this stock disposal details?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Stock Disposal Success ----- //
+export const showStockDisposalSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Stock disposal added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Stock Disposal Confirmation ----- //
+export const showStockDisposalUpdateConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the stock disposal details for <strong>${itemName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Stock Disposal Success ----- //
+export const showStockDisposalUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Stock disposal detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+

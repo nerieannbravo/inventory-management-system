@@ -31,6 +31,9 @@ export interface RequestForm {
     reqQuantity: number,
     purpose: string,
     expectedDate: string,
+	role: string,
+	department: string,
+	contact_number: string,
 }
 
 interface FormError {
@@ -54,6 +57,9 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		reqQuantity: 0,
 		purpose: "",
 		expectedDate: "",
+		role: "",
+		department: "",
+		contact_number: "",
 	};
 
 	const [requestForms, setRequestForms] = useState<RequestForm[]>([initialFormState]);
@@ -71,18 +77,22 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 		const loadEmployees = async () => {
 			try {
 				setIsLoadingEmployees(true);
-				const employeeData = await fetchEmployees();
+				const response = await fetch('/api/employees');
+				if (!response.ok) {
+					throw new Error(`Failed to fetch employees: ${response.status} ${response.statusText}`);
+				}
+				const { employees } = await response.json();
 
-				// Sort employees alphabetically by full name (first name + last name)
-				const sortedEmployees = employeeData.sort((a, b) => {
-					const fullNameA = `${a.emp_first_name} ${a.emp_last_name}`.toLowerCase();
-					const fullNameB = `${b.emp_first_name} ${b.emp_last_name}`.toLowerCase();
+				// Sort employees alphabetically by full name (firstName + lastName)
+				const sortedEmployees = employees.sort((a: Employee, b: Employee) => {
+					const fullNameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+					const fullNameB = `${b.firstName} ${b.lastName}`.toLowerCase();
 					return fullNameA.localeCompare(fullNameB);
 				});
-
 				setEmployees(sortedEmployees);
 			} catch (error) {
 				console.error('Failed to load employees:', error);
+				setError('Could not load employees. Please check your network connection or contact your administrator.');
 			} finally {
 				setIsLoadingEmployees(false);
 			}
@@ -134,9 +144,17 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 
 	const handleFormChange = (index: number, field: string, value: any) => {
 		if (field === "empName") {
-			// Update empName for all forms
+			// Find the selected employee
+			const selectedEmployee = employees.find(emp => emp.employeeNumber === value);
+			// Update empName and also department, role, contact_number for all forms
 			setRequestForms((prev) =>
-				prev.map((form) => ({ ...form, empName: value }))
+				prev.map((form) => ({
+					...form,
+					empName: value,
+					department: selectedEmployee ? selectedEmployee.department : "",
+					role: selectedEmployee ? selectedEmployee.position : "",
+					contact_number: selectedEmployee ? selectedEmployee.phone : "",
+				}))
 			);
 
 			// Clear empName error in the first form (index 0)
@@ -353,8 +371,8 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								{isLoadingEmployees ? "Loading employees..." : "Select employee name..."}
 							</option>
 							{employees.map((employee) => (
-								<option key={employee.emp_id} value={employee.emp_id}>
-									{`${employee.emp_first_name} ${employee.emp_last_name}`}
+								<option key={employee.employeeNumber} value={employee.employeeNumber}>
+									{`${employee.firstName} ${employee.lastName}`}
 								</option>
 							))}
 						</select>
@@ -366,7 +384,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								<input
 									disabled
 									type="text"
-									value=""
+									value={requestForms[0].department}
 									placeholder="Department"
 								/>
 							</div>
@@ -375,7 +393,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								<input
 									disabled
 									type="text"
-									value=""
+									value={requestForms[0].role}
 									placeholder="Role"
 								/>
 							</div>
@@ -384,7 +402,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 								<input
 									disabled
 									type="text"
-									value=""
+									value={requestForms[0].contact_number}
 									placeholder="Contact Number"
 								/>
 							</div>

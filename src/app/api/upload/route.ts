@@ -71,24 +71,6 @@ export async function GET(req: NextRequest) {
       case '.png':
         contentType = 'image/png';
         break;
-      case '.gif':
-        contentType = 'image/gif';
-        break;
-      case '.txt':
-        contentType = 'text/plain';
-        break;
-      case '.doc':
-        contentType = 'application/msword';
-        break;
-      case '.docx':
-        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-        break;
-      case '.xls':
-        contentType = 'application/vnd.ms-excel';
-        break;
-      case '.xlsx':
-        contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-        break;
     }
 
     return new NextResponse(fileBuffer, {

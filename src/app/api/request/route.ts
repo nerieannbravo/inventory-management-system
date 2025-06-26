@@ -37,18 +37,23 @@ export async function GET() {
       }
     });
 
-    // Attach employee data from Supabase
+    // Attach employee data from new employee structure
     const requestWithEmployee = request.map((req: any) => {
-      const employee = employees.find((emp: any) => emp.emp_id === req.emp_id);
+      const employee = employees.find((emp: any) => emp.employeeNumber === req.emp_id);
       return {
         ...req,
-        emp_first_name: employee?.emp_first_name || '',
-        emp_last_name: employee?.emp_last_name || '',
-        empName: employee ? `${employee.emp_first_name} ${employee.emp_last_name}`.trim() : 'Unknown Employee',
+        firstName: employee?.firstName || '',
+        lastName: employee?.lastName || '',
+        empName: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee',
         employee: employee ? {
-          emp_id: employee.emp_id,
-          emp_first_name: employee.emp_first_name,
-          emp_last_name: employee.emp_last_name
+          employeeNumber: employee.employeeNumber,
+          firstName: employee.firstName,
+          middleName: employee.middleName,
+          lastName: employee.lastName,
+          phone: employee.phone,
+          position: employee.position,
+          departmentId: employee.departmentId,
+          department: employee.department
         } : null
       };
     });

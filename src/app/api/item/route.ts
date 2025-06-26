@@ -92,6 +92,16 @@ export async function GET() {
       };
     }));
 
+    // Count all buses using item_id 'ITEM-00001'
+          const busCount = await prisma.bus.count({
+            where: { item_id: 'ITEM-00001' }
+          });
+          // Update current_stock in inventoryItem
+          await prisma.inventoryItem.update({
+            where: { item_id: 'ITEM-00001' },
+            data: { current_stock: busCount }
+          });
+
     // Also return all batches separately if needed
     const batches = await prisma.batch.findMany({
       where: { isdeleted: false },
