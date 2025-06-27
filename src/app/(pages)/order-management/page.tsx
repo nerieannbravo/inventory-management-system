@@ -10,6 +10,7 @@ import AddOrderModal from "./addOrderModal";
 import ViewOrderModal from "./viewOrderModal";
 import EditOrderModal from "./editOrderModal";
 import { OrderForm } from "./addOrderModal";
+import { showEditError } from "@/utils/sweetAlert";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -18,31 +19,143 @@ import "@/styles/chips.css"
 const hardcodedData = [
     {
         id: 1,
-        itemName: "Example Order Item A",
-        ordQuantity: 12,
-        ordReqDate: "3/12/2025",
+        itemName: "Brake Disc",
+        ordQuantity: 8,
+        ordReqDate: "3/10/2025",
         ordStatus: "completed",
     },
     {
         id: 2,
-        itemName: "Example Order Item B",
-        ordQuantity: 10,
-        ordReqDate: "5/19/2025",
+        itemName: "Head Lights",
+        ordQuantity: 12,
+        ordReqDate: "3/15/2025",
         ordStatus: "pending",
     },
     {
         id: 3,
-        itemName: "Example Order Item C",
-        ordQuantity: 72,
-        ordReqDate: "4/28/2025",
-        ordStatus: "completed",
+        itemName: "Red Paint",
+        ordQuantity: 5,
+        ordReqDate: "3/20/2025",
+        ordStatus: "approved",
     },
     {
         id: 4,
-        itemName: "Example Order Item D",
-        ordQuantity: 43,
-        ordReqDate: "5/11/2025",
+        itemName: "Brake Lining",
+        ordQuantity: 20,
+        ordReqDate: "4/05/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 5,
+        itemName: "Diesel",
+        ordQuantity: 200,
+        ordReqDate: "4/10/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 6,
+        itemName: "Hub Bolt",
+        ordQuantity: 50,
+        ordReqDate: "4/18/2025",
+        ordStatus: "pending",
+    },
+    {
+        id: 7,
+        itemName: "Red Paint",
+        ordQuantity: 6,
+        ordReqDate: "4/20/2025",
         ordStatus: "approved",
+    },
+    {
+        id: 8,
+        itemName: "Oil Filter",
+        ordQuantity: 15,
+        ordReqDate: "4/25/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 9,
+        itemName: "Diesel Exhaust Fluid",
+        ordQuantity: 30,
+        ordReqDate: "5/01/2025",
+        ordStatus: "pending",
+    },
+    {
+        id: 10,
+        itemName: "Diesel",
+        ordQuantity: 180,
+        ordReqDate: "5/05/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 11,
+        itemName: "Fuel Filter",
+        ordQuantity: 10,
+        ordReqDate: "5/08/2025",
+        ordStatus: "approved",
+    },
+    {
+        id: 12,
+        itemName: "Head Lights",
+        ordQuantity: 8,
+        ordReqDate: "5/10/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 13,
+        itemName: "Hub Bolt",
+        ordQuantity: 40,
+        ordReqDate: "5/14/2025",
+        ordStatus: "pending",
+    },
+    {
+        id: 14,
+        itemName: "Brake Lining",
+        ordQuantity: 18,
+        ordReqDate: "5/20/2025",
+        ordStatus: "approved",
+    },
+    {
+        id: 15,
+        itemName: "Oil Filter",
+        ordQuantity: 12,
+        ordReqDate: "5/22/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 16,
+        itemName: "Fuel Filter",
+        ordQuantity: 9,
+        ordReqDate: "5/25/2025",
+        ordStatus: "pending",
+    },
+    {
+        id: 17,
+        itemName: "Brake Disc",
+        ordQuantity: 6,
+        ordReqDate: "5/26/2025",
+        ordStatus: "approved",
+    },
+    {
+        id: 18,
+        itemName: "Diesel",
+        ordQuantity: 150,
+        ordReqDate: "5/27/2025",
+        ordStatus: "completed",
+    },
+    {
+        id: 19,
+        itemName: "Diesel Exhaust Fluid",
+        ordQuantity: 25,
+        ordReqDate: "5/28/2025",
+        ordStatus: "approved",
+    },
+    {
+        id: 20,
+        itemName: "Head Lights",
+        ordQuantity: 10,
+        ordReqDate: "5/30/2025",
+        ordStatus: "pending",
     },
 ];
 
@@ -192,6 +305,10 @@ export default function OrderManagement() {
                 />;
                 break;
             case "edit-order":
+                if (rowData && rowData.ordStatus && rowData.ordStatus.toLowerCase() === "completed") {
+                    showEditError(rowData.ordStatus, `This order cannot be edited because it has already been marked as <strong>${rowData.ordStatus}</strong>.`);
+                    return;
+                }
                 content = <EditOrderModal
                     item={rowData}
                     onSave={handleEditOrder}

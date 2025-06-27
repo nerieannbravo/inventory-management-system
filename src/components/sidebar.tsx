@@ -24,13 +24,13 @@ const Sidebar: React.FC = () => {
         '/bus-maintenance': 'bus-maintenance',
         '/machine-equipment-maintenance': 'machine-equipment-maintenance',
         '/bus-disposal': 'bus-disposal',
-        '/stock-disposal': 'stock-disposal',
-        '/notification': 'notification',
-        '/history': 'history',
-        '/reports': 'reports'
+        '/stock-disposal': 'stock-disposal'
+        // '/notification': 'notification',
+        // '/history': 'history',
+        // '/reports': 'reports'
     };
 
-    const activitySubItems = ['/notification', '/history', '/reports'];
+    // activitySubItems = ['/notification', '/history', '/reports'];
     const maintenanceSubItems = ['/bus-maintenance', '/machine-equipment-maintenance'];
     const disposalSubItems = ['/bus-disposal', '/stock-disposal'];
 
@@ -40,9 +40,10 @@ const Sidebar: React.FC = () => {
         setActiveItem(current);
 
         // Auto-open submenu if current route is a sub-item
-        if (activitySubItems.includes(pathname)) {
-            setOpenSubMenu('activity-submenu');
-        } else if (maintenanceSubItems.includes(pathname)) {
+        // if (activitySubItems.includes(pathname)) {
+        //     setOpenSubMenu('activity-submenu');
+        // } else 
+        if (maintenanceSubItems.includes(pathname)) {
             setOpenSubMenu('maintenance-submenu');
         } else if (disposalSubItems.includes(pathname)) {
             setOpenSubMenu('disposal-submenu');
@@ -58,7 +59,7 @@ const Sidebar: React.FC = () => {
     // };
 
     // Determine if any subitem in each category is active
-    const isActivityItemActive = activitySubItems.includes(pathname);
+    // const isActivityItemActive = activitySubItems.includes(pathname);
     const isMaintenanceItemActive = maintenanceSubItems.includes(pathname);
     const isDisposalItemActive = disposalSubItems.includes(pathname);
 
@@ -176,7 +177,7 @@ const Sidebar: React.FC = () => {
                     )}
 
                     {/* Sidebar Activities Sub-item */}
-                    <div
+                    {/* <div
                         className={`nav-item module ${isActivityItemActive ? 'active' : ''}`}
                         onClick={() => toggleSubMenu('activity-submenu')}
                     >
@@ -203,7 +204,7 @@ const Sidebar: React.FC = () => {
                                 History
                             </Link>
                         </div>
-                    )}
+                    )} */}
 
                 </div>
 

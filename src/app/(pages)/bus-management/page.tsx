@@ -10,6 +10,7 @@ import Loading from "@/components/loading";
 import AddBusModal, { BusForm } from "./addBusModal";
 import ViewBusModal from "./viewBusModal";
 import EditBusModal from "./editBusModal";
+import { BusReportPreviewModal } from "./busReportPDF";
 
 import "@/styles/filters.css";
 import "@/styles/tables.css";
@@ -22,13 +23,17 @@ export default function BusManagement() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterValues, setFilterValues] = useState<Record<string, any>>({});
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<React.ReactNode>(null);
   const [activeRow, setActiveRow] = useState<any>(null);
+
+  // PDF Report state
+  const [showReportPreview, setShowReportPreview] = useState(false);
+  const [reportTitle, setReportTitle] = useState("Bus Management Report");
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -104,35 +109,35 @@ export default function BusManagement() {
       let aValue, bValue;
 
       switch (sortBy) {
-          case "date_updated":
-              aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
-              bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
-              break;
-          case "body_number":
-              aValue = a.body_number.toLowerCase();
-              bValue = b.body_number.toLowerCase();
-              break;
-          case "plate_number":
-              aValue = a.plate_number.toLowerCase();
-              bValue = b.plate_number.toLowerCase();
-              break;
-          case "seat_capacity":
-              aValue = a.seat_capacity;
-              bValue = b.seat_capacity;
-              break;
-          default:
-              aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
-              bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+        case "date_updated":
+          aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+          bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+          break;
+        case "body_number":
+          aValue = a.body_number.toLowerCase();
+          bValue = b.body_number.toLowerCase();
+          break;
+        case "plate_number":
+          aValue = a.plate_number.toLowerCase();
+          bValue = b.plate_number.toLowerCase();
+          break;
+        case "seat_capacity":
+          aValue = a.seat_capacity;
+          bValue = b.seat_capacity;
+          break;
+        default:
+          aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+          bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
       }
 
       if (typeof aValue === "string" && typeof bValue === "string") {
-          const comparison = aValue.localeCompare(bValue);
-          return order === "asc" ? comparison : -comparison;
+        const comparison = aValue.localeCompare(bValue);
+        return order === "asc" ? comparison : -comparison;
       } else if (typeof aValue === "number" && typeof bValue === "number") {
-          const comparison = aValue - bValue;
-          return order === "asc" ? comparison : -comparison;
+        const comparison = aValue - bValue;
+        return order === "asc" ? comparison : -comparison;
       } else {
-          return 0;
+        return 0;
       }
     });
 
@@ -185,15 +190,15 @@ export default function BusManagement() {
       ]
     },
     {
-        id: "sortBy",
-        title: "Sort By",
-        type: "radio",
-        options: [
-            { id: "body_number", label: "Body Number" },
-            { id: "plate_number", label: "Plate Number" },
-            { id: "seat_capacity", label: "Seat Capacity" }
-        ],
-        defaultValue: "body_number"
+      id: "sortBy",
+      title: "Sort By",
+      type: "radio",
+      options: [
+        { id: "body_number", label: "Body Number" },
+        { id: "plate_number", label: "Plate Number" },
+        { id: "seat_capacity", label: "Seat Capacity" }
+      ],
+      defaultValue: "body_number"
     },
     {
       id: "order",
@@ -238,16 +243,16 @@ export default function BusManagement() {
     return map[status] || status;
   };
 
-    function formatCondition(condition: string) {
-        switch (condition) {
-            case "BRAND_NEW":
-                return "Brand New";
-            case "SECOND_HAND":
-                return "Second Hand";
-            default:
-                return condition;
-        }
+  function formatCondition(condition: string) {
+    switch (condition) {
+      case "BRAND_NEW":
+        return "Brand New";
+      case "SECOND_HAND":
+        return "Second Hand";
+      default:
+        return condition;
     }
+  }
 
   const formatBodyBuilder = (builder?: string) => {
     if (!builder) return "Unknown";
@@ -300,6 +305,26 @@ export default function BusManagement() {
     await fetchBuses();
   };
 
+  // Handle generate report
+  const handleGenerateReport = () => {
+    // Check if any filters or search are applied
+    const hasFilters = searchTerm.trim() ||
+      (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) ||
+      (filterValues.busStatus && filterValues.busStatus.length > 0) ||
+      (filterValues.busType && filterValues.busType.length > 0) ||
+      (filterValues.condition && filterValues.condition.length > 0);
+
+    const title = hasFilters ? "Bus Management Report - Filtered" : "Bus Management Report";
+
+    setReportTitle(title);
+    setShowReportPreview(true);
+  };
+
+  // Handle close report
+  const handleCloseReportPreview = () => {
+    setShowReportPreview(false);
+  };
+
   return (
     <div className="card">
       <h1 className="title">Bus Management</h1>
@@ -323,11 +348,16 @@ export default function BusManagement() {
               <FilterDropdown sections={filterSections} onApply={handleApplyFilters} />
             </div>
 
-            <button className="generate-btn">
+            {/* Generate Report Button */}
+            <button
+              type="button"
+              className="generate-btn"
+              onClick={handleGenerateReport}
+            >
               <i className="ri-receipt-line" /> Generate Report
             </button>
 
-            <button className="main-btn" onClick={() => openModal("add-bus")}> 
+            <button className="main-btn" onClick={() => openModal("add-bus")}>
               <i className="ri-add-line" /> Add Bus
             </button>
           </div>
@@ -399,7 +429,19 @@ export default function BusManagement() {
         </div>
       )}
 
-      <ModalManager isOpen={isModalOpen} onClose={closeModal} modalContent={modalContent} />
+      <ModalManager
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        modalContent={modalContent}
+      />
+
+      {/* PDF Report Modal */}
+      <BusReportPreviewModal
+        isOpen={showReportPreview}
+        onClose={handleCloseReportPreview}
+        busData={filteredAndSearchedBuses}
+        reportTitle={reportTitle}
+      />
     </div>
   );
 }

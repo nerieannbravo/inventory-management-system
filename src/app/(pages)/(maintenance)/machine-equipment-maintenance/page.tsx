@@ -9,6 +9,7 @@ import PaginationComponent from "@/components/pagination";
 import AddStockMaintenanceModal, { StockMaintenanceForm } from "./addStockMaintenanceModal";
 import ViewStockMaintenanceModal from "./viewStockMaintenanceModal";
 import EditStockMaintenanceModal from "./editStockMaintenanceModal";
+import { showEditError } from "@/utils/sweetAlert";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -29,7 +30,7 @@ const hardcodedData = [
         itemName: "Welding Machine",
         stockMaintenanceType: "Corrective",
         stockMaintenanceDate: "2024-06-01",
-        stockMaintenanceStatus: "pending",
+        stockMaintenanceStatus: "completed",
     },
     {
         id: 3,
@@ -47,7 +48,136 @@ const hardcodedData = [
         stockMaintenanceDate: "2024-06-05",
         stockMaintenanceStatus: "pending",
     },
+    {
+        id: 5,
+        sku: "ME-005",
+        itemName: "CNC Milling Machine",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-04-15",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 6,
+        sku: "EQ-006",
+        itemName: "Hydraulic Press",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-10",
+        stockMaintenanceStatus: "pending",
+    },
+    {
+        id: 7,
+        sku: "ME-007",
+        itemName: "Surface Grinder",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-05-25",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 8,
+        sku: "EQ-008",
+        itemName: "Forklift",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-15",
+        stockMaintenanceStatus: "pending",
+    },
+    {
+        id: 9,
+        sku: "ME-009",
+        itemName: "Bench Grinder",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-05-18",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 10,
+        sku: "EQ-010",
+        itemName: "Electric Hoist",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-12",
+        stockMaintenanceStatus: "pending",
+    },
+    {
+        id: 11,
+        sku: "ME-011",
+        itemName: "Cutting Machine",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-04-30",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 12,
+        sku: "EQ-012",
+        itemName: "Air Dryer",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-08",
+        stockMaintenanceStatus: "pending",
+    },
+    {
+        id: 13,
+        sku: "ME-013",
+        itemName: "Grinder Polisher",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-05-28",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 14,
+        sku: "EQ-014",
+        itemName: "Power Generator",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-11",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 15,
+        sku: "ME-015",
+        itemName: "Laser Cutter",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-04-22",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 16,
+        sku: "EQ-016",
+        itemName: "Plasma Cutter",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-18",
+        stockMaintenanceStatus: "pending",
+    },
+    {
+        id: 17,
+        sku: "ME-017",
+        itemName: "3D Printer",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-05-12",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 18,
+        sku: "EQ-018",
+        itemName: "Vacuum Pump",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-04",
+        stockMaintenanceStatus: "pending",
+    },
+    {
+        id: 19,
+        sku: "ME-019",
+        itemName: "Sandblaster",
+        stockMaintenanceType: "Preventive",
+        stockMaintenanceDate: "2024-05-05",
+        stockMaintenanceStatus: "completed",
+    },
+    {
+        id: 20,
+        sku: "EQ-020",
+        itemName: "Conveyor Belt",
+        stockMaintenanceType: "Corrective",
+        stockMaintenanceDate: "2024-06-20",
+        stockMaintenanceStatus: "pending",
+    },
 ];
+
 
 export default function StockMaintenance() {
     // for modal
@@ -192,6 +322,10 @@ export default function StockMaintenance() {
                 />;
                 break;
             case "edit-stock-maintenance":
+                if (rowData && rowData.stockMaintenanceStatus && rowData.stockMaintenanceStatus.toLowerCase() === "completed") {
+                    showEditError(rowData.stockMaintenanceStatus, `This stock maintenance cannot be edited because it has already been marked as <strong>${rowData.stockMaintenanceStatus}</strong>.`);
+                    return;
+                }
                 content = <EditStockMaintenanceModal
                     item={rowData}
                     onSave={handleEditStockMaintenance}

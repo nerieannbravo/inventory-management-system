@@ -10,6 +10,7 @@ import AddBusMaintenanceModal, { BusMaintenanceForm } from "./addBusMaintenanceM
 import ViewBusMaintenanceModal from "./viewBusMaintenanceModal";
 import EditBusMaintenanceModal from "./editBusMaintenanceModal";
 // import { BusMaintenanceForm } from "./addBusMaintenanceModal";
+import { showEditError } from "@/utils/sweetAlert";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -31,7 +32,134 @@ const hardcodedData = [
         busMaintenanceDate: "2023-10-05",
         busMaintenanceStatus: "pending",
     },
+    {
+        id: 3,
+        bodyNumber: "BUS789",
+        busMaintenanceType: "Oil Change",
+        busMaintenanceDate: "2023-10-10",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 4,
+        bodyNumber: "BUS101",
+        busMaintenanceType: "Brake Inspection",
+        busMaintenanceDate: "2023-10-12",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 5,
+        bodyNumber: "BUS202",
+        busMaintenanceType: "Transmission Repair",
+        busMaintenanceDate: "2023-10-15",
+        busMaintenanceStatus: "pending",
+    },
+    {
+        id: 6,
+        bodyNumber: "BUS303",
+        busMaintenanceType: "Air Filter Replacement",
+        busMaintenanceDate: "2023-10-17",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 7,
+        bodyNumber: "BUS404",
+        busMaintenanceType: "Battery Check",
+        busMaintenanceDate: "2023-10-20",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 8,
+        bodyNumber: "BUS505",
+        busMaintenanceType: "Wheel Alignment",
+        busMaintenanceDate: "2023-10-21",
+        busMaintenanceStatus: "pending",
+    },
+    {
+        id: 9,
+        bodyNumber: "BUS606",
+        busMaintenanceType: "Coolant Flush",
+        busMaintenanceDate: "2023-10-23",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 10,
+        bodyNumber: "BUS707",
+        busMaintenanceType: "Headlight Replacement",
+        busMaintenanceDate: "2023-10-24",
+        busMaintenanceStatus: "pending",
+    },
+    {
+        id: 11,
+        bodyNumber: "BUS808",
+        busMaintenanceType: "Wiper Blade Replacement",
+        busMaintenanceDate: "2023-10-26",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 12,
+        bodyNumber: "BUS909",
+        busMaintenanceType: "Suspension Check",
+        busMaintenanceDate: "2023-10-27",
+        busMaintenanceStatus: "pending",
+    },
+    {
+        id: 13,
+        bodyNumber: "BUS111",
+        busMaintenanceType: "AC Maintenance",
+        busMaintenanceDate: "2023-10-29",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 14,
+        bodyNumber: "BUS222",
+        busMaintenanceType: "Fuel System Cleaning",
+        busMaintenanceDate: "2023-11-01",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 15,
+        bodyNumber: "BUS333",
+        busMaintenanceType: "Electrical System Check",
+        busMaintenanceDate: "2023-11-03",
+        busMaintenanceStatus: "pending",
+    },
+    {
+        id: 16,
+        bodyNumber: "BUS444",
+        busMaintenanceType: "Exhaust System Inspection",
+        busMaintenanceDate: "2023-11-06",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 17,
+        bodyNumber: "BUS555",
+        busMaintenanceType: "Paint Touch-Up",
+        busMaintenanceDate: "2023-11-08",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 18,
+        bodyNumber: "BUS666",
+        busMaintenanceType: "Interior Cleaning",
+        busMaintenanceDate: "2023-11-10",
+        busMaintenanceStatus: "completed",
+    },
+    {
+        id: 19,
+        bodyNumber: "BUS777",
+        busMaintenanceType: "Mirror Replacement",
+        busMaintenanceDate: "2023-11-12",
+        busMaintenanceStatus: "pending",
+    },
+    {
+        id: 20,
+        bodyNumber: "BUS888",
+        busMaintenanceType: "Door Mechanism Repair",
+        busMaintenanceDate: "2023-11-14",
+        busMaintenanceStatus: "completed",
+    },
 ];
+
 
 export default function BusMaintenance() {
     // for modal
@@ -170,6 +298,10 @@ export default function BusMaintenance() {
                 />;
                 break;
             case "edit-bus-maintenance":
+                if (rowData && rowData.busMaintenanceStatus && rowData.busMaintenanceStatus.toLowerCase() === "completed") {
+                    showEditError(rowData.busMaintenanceStatus, `This bus maintenance cannot be edited because it has already been marked as <strong>${rowData.busMaintenanceStatus}</strong>.`);
+                    return;
+                }
                 content = <EditBusMaintenanceModal
                     item={rowData}
                     onSave={handleEditBusMaintenance}
