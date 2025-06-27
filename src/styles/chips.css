@@ -31,6 +31,7 @@
     color: var(--info-chip-text-color);
 }
 
+.chip.in-use,
 .chip.low-stock,
 .chip.pending {
     background-color: var(--warning-chip-bg-color);

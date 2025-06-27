@@ -471,7 +471,8 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 											return item.category.category_name.toLowerCase() === "consumable";
 										}
 										if (form.type === RequestType.BORROW) {
-											return item.category.category_name.toLowerCase() !== "consumable";
+											return item.category.category_name.toLowerCase() !== "consumable" && 
+											item.category.category_name.toLowerCase() !== "bus";
 										}
 										return true; // Show all if no type selected
 									})

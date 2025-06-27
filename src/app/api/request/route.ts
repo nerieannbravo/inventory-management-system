@@ -138,10 +138,44 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing or invalid request_id" }, { status: 400 });
     }
 
-    // If status is 'returned' and actual_return_date is not provided, set it to now
+    // Fetch the original request to get previous status, item_id, and quantity
+    const originalRequest = await prisma.employeeRequest.findUnique({
+      where: { request_id: String(request_id) },
+      select: { status: true, item_id: true, quantity: true }
+    });
+
+    if (!originalRequest) {
+      return NextResponse.json({ success: false, error: "Request not found" }, { status: 404 });
+    }
+
+    // If status is 'RETURNED' and actual_return_date is not provided, set it to now
     let updatedActualReturnDate = actual_return_date;
     if (status === "RETURNED") {
       updatedActualReturnDate = new Date();
+    }
+
+    // If marking as RETURNED and it was not previously RETURNED, add back the quantity to the batch
+    if (status === "RETURNED" && originalRequest.status !== "RETURNED") {
+      let remainingQty = originalRequest.quantity;
+      // Find all batches for the item (LIFO: latest expiration first)
+      const batches = await prisma.batch.findMany({
+        where: {
+          item_id: originalRequest.item_id,
+          isdeleted: false,
+        },
+        orderBy: { expiration_date: "desc" },
+      });
+      for (const batch of batches) {
+        if (remainingQty <= 0) break;
+        // Add as much as possible to each batch (could be split across batches)
+        await prisma.batch.update({
+          where: { batch_id: batch.batch_id },
+          data: { usable_quantity: batch.usable_quantity + remainingQty },
+        });
+        await calculateAndUpdateStatus(batch.item_id);
+        // All returned to the first batch (LIFO), so break after one update
+        break;
+      }
     }
 
     const updated = await prisma.employeeRequest.update({

@@ -69,13 +69,15 @@ export async function GET() {
       return expirationDate <= today;
     });
 
-    let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE';
+    let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE'| 'IN_USED';
     if (hasExpiredBatch) {
       status = 'EXPIRED';
     } else if (item.category.category_name === "Consumable" && current_stock === 0) {
       status = 'OUT_OF_STOCK';
     } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
       status = 'LOW_STOCK';
+    } else if (["Machine", "Tool", "Equipment"].includes(item.category.category_name) && current_stock === 0) {
+      status = 'IN_USED';
     } else {
       status = item.status as typeof status;
     }

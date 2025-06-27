@@ -623,7 +623,9 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                         {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
-                            <select value={busForm.status}
+                            <select 
+                                    disabled 
+                                    value={busForm.status}
                                     onChange={(e) => handleChange("status", e.target.value)}
                             >
                                 <option value="active">Active</option>
@@ -770,7 +772,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 </div>
 
                                 {/* Registration Status */}
-                                <div className="form-group">
+                                {/* <div className="form-group">
                                     <label>Registration Status</label>
                                     <select
                                         className={formErrors?.registration_status ? "invalid-input" : ""}
@@ -783,7 +785,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         <option value="expired">Expired</option>
                                     </select>
                                     <p className="add-error-message">{formErrors?.registration_status}</p>
-                                </div>
+                                </div> */}
                             </div>
 
                             {/* Form row - last registration date and last maintenance date */}
@@ -929,7 +931,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 </div>
 
                                 {/* Registration Status */}
-                                <div className="form-group">
+                                {/* <div className="form-group">
                                     <label>Registration Status</label>
                                     <select
                                         className={formErrors?.registration_status ? "invalid-input" : ""}
@@ -941,7 +943,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         <option value="not-registered">Not Registered</option>
                                     </select>
                                     <p className="add-error-message">{formErrors?.registration_status}</p>
-                                </div>
+                                </div> */}
                             </div>
                         </form>
                     </div>

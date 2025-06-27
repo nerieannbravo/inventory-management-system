@@ -408,6 +408,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                 <label>Status</label>
                                 <select
                                     className={formErrors?.status ? "invalid-input" : ""}
+                                    disabled
                                     value={formData.status || ''}
                                     onChange={(e) => handleChange("status", e.target.value)}
                                 >
@@ -453,6 +454,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                         <label>Dealer Name</label>
                                         <input
                                             className={formErrors?.previous_owner ? "invalid-input" : ""}
+                                            disabled
                                             type="text"
                                             value={formData.secondHandDetails.previous_owner || ''}
                                             onChange={(e) => handleDetailChange("secondHandDetails", "previous_owner", e.target.value)}
@@ -514,7 +516,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                     </div>
 
                                     {/* Registration Status */}
-                                    <div className="form-group">
+                                    {/* <div className="form-group">
                                         <label>Registration Status</label>
                                         <select
                                             className={formErrors?.registration_status ? "invalid-input" : ""}
@@ -526,7 +528,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                             <option value="EXPIRED">Expired</option>
                                         </select>
                                         <p className="edit-error-message">{formErrors.registration_status}</p>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 <div className="form-row">
@@ -601,6 +603,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                         <label>Dealer Name</label>
                                         <input
                                             className={formErrors.dealer_name ? "invalid-input" : ""}
+                                            disabled
                                             type="text"
                                             value={formData.brandNewDetails.dealer_name || ''}
                                             onChange={(e) => handleDetailChange("brandNewDetails", "dealer_name", e.target.value)}
@@ -640,7 +643,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                     </div>
 
                                     {/* Registration Status */}
-                                    <div className="form-group">
+                                    {/* <div className="form-group">
                                         <label>Registration Status</label>
                                         <select
                                             className={formErrors?.registration_status ? "invalid-input" : ""}
@@ -651,7 +654,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                             <option value="NOT_REGISTERED">Not Registered</option>
                                         </select>
                                         <p className="edit-error-message">{formErrors.registration_status}</p>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         </div>

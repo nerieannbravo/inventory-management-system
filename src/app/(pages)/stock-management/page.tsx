@@ -322,6 +322,8 @@ export default function StocksManagement() {
                 return "Under Maintenance";
             case "EXPIRED":
                 return "Expired";
+            case "IN_USED":
+                return "In Use";
             default:
                 return status;
         }
@@ -340,6 +342,8 @@ export default function StocksManagement() {
                 return "maintenance";
             case "EXPIRED":
                 return "expired";
+            case "IN_USED":
+                return "in-use";
             default:
                 return status.toLowerCase().replace(/_/g, '-');
         }
