@@ -935,10 +935,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     <label>Registration Status</label>
                                     <select
                                         className={formErrors?.registration_status ? "invalid-input" : ""}
+                                        disabled
                                         value={busForm.registration_status}
                                         onChange={(e) => handleChange("registration_status", e.target.value)}
                                     >
-                                        <option value="" disabled>--Select Registration Status--</option>
                                         <option value="registered">Registered</option>
                                         <option value="not-registered">Not Registered</option>
                                     </select>
@@ -984,7 +984,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     <p className="add-error-message">{formErrors?.or_file}</p>
                                 </div>
                             </div>
-                            {busForm.registration_status === "registered" && (
                                 <div className="form-row">
                                     {/* OR */}
                                     <div className="form-group">
@@ -1011,7 +1010,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         <p className="add-error-message">{formErrors?.cr_file}</p>
                                     </div>
                                 </div>
-                            )}
 
                             {/* Form row - Other Documents */}
                             <div className="form-row">

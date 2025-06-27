@@ -520,6 +520,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                         <label>Registration Status</label>
                                         <select
                                             className={formErrors?.registration_status ? "invalid-input" : ""}
+                                            disabled
                                             value={formData.registration_status || ''}
                                             onChange={(e) => handleChange("registration_status", e.target.value)}
                                         >
