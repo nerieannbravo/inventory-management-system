@@ -91,7 +91,7 @@ export const reportStyles = StyleSheet.create({
         fontSize: 9,
         backgroundColor: 'white',
         alignItems: 'center',
-        minHeight: 40,
+        minHeight: 30,
     },
     alternateRow: {
         backgroundColor: '#F3F2F9',

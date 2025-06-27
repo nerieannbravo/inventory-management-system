@@ -14,20 +14,23 @@ import {
     formatTime,
     generateFileName,
     formatBusStatus,
+    formatBodyBuilder,
+    formatBusCondition,
+    formatBusType,
     getBusStatusStyle
 } from '@/utils/pdfReportUtils';
 import "@/styles/pdfModal.css";
 
-// Interface definitions
+// Interface definitions - Updated to match your data structure
 interface BusItem {
-    id: number;
-    bodyNumber: string;
-    plateNumber: string;
-    bodyBuilder: string;
+    bus_id: number;
+    body_number: string;
+    plate_number: string;
+    body_builder: string;
     condition: string;
-    busStatus: string;
-    busType: string;
-    seatCapacity: number;
+    status: string; // Changed from busStatus to status
+    bus_type: string;
+    seat_capacity: number;
 }
 
 interface BusReportPDFProps {
@@ -45,11 +48,11 @@ const BusReportDocument: React.FC<{
 
     const today = new Date();
 
-    // Calculate summary statistics
+    // Calculate summary statistics - fixed to use 'status' instead of 'busStatus'
     const totalBus = busData.length;
-    const activeBus = busData.filter(item => item.busStatus === 'active').length;
-    const decommissionedBus = busData.filter(item => item.busStatus === 'decommissioned').length;
-    const maintenanceBus = busData.filter(item => item.busStatus === 'under-maintenance').length;
+    const activeBus = busData.filter(item => item.status === 'ACTIVE').length;
+    const decommissionedBus = busData.filter(item => item.status === 'DECOMMISSIONED').length;
+    const maintenanceBus = busData.filter(item => item.status === 'UNDER_MAINTENANCE').length;
 
     return (
         <Document>
@@ -91,32 +94,47 @@ const BusReportDocument: React.FC<{
                     <View style={reportStyles.tableHeader}>
                         <Text style={reportStyles.columnSmall}>Body No.</Text>
                         <Text style={reportStyles.columnSmall}>Plate No.</Text>
-                        <Text style={reportStyles.columnMedium}>Body Builder</Text>
-                        <Text style={reportStyles.columnSmall}>Condition</Text>
-                        <Text style={reportStyles.columnSmall}>Status</Text>
+                        <Text style={reportStyles.columnSmall}>Body Builder</Text>
+                        <Text style={reportStyles.columnMedium}>Condition</Text>
                         <Text style={reportStyles.columnSmall}>Type</Text>
                         <Text style={reportStyles.columnSmall}>Seats</Text>
+                        <Text style={reportStyles.columnMedium}>Status</Text>
                     </View>
 
                     {/* Table Rows */}
                     {busData.map((item, index) => (
                         <View
-                            key={item.id}
+                            key={item.bus_id}
                             style={[
                                 reportStyles.tableRow,
                                 index % 2 === 1 ? reportStyles.alternateRow : {}
                             ]}
                         >
-                            <Text style={reportStyles.columnSmall}>{item.bodyNumber}</Text>
-                            <Text style={reportStyles.columnSmall}>{item.plateNumber}</Text>
-                            <Text style={reportStyles.columnMedium}>{formatBodyBuilder(item.bodyBuilder)}</Text>
-                            <Text style={reportStyles.columnSmall}>{formatCondition(item.condition)}</Text>
-                            <Text style={reportStyles.columnSmall}>{getBusStatusStyle(item.busStatus)}</Text>
-                            <Text style={reportStyles.columnSmall}>{formatBusType(item.busType)}</Text>
-                            <Text style={reportStyles.columnSmall}>{item.seatCapacity}</Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {item.body_number}
+                            </Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {item.plate_number}
+                            </Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {formatBodyBuilder(item.body_builder)}
+                            </Text>
+                            <Text style={reportStyles.columnMedium}>
+                                {formatBusCondition(item.condition)}
+                            </Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {formatBusType(item.bus_type)}
+                            </Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {item.seat_capacity}
+                            </Text>
+                            <View style={reportStyles.statusContainer}>
+                                <Text style={getBusStatusStyle(item.status)}>
+                                    {formatBusStatus(item.status)}
+                                </Text>
+                            </View>
                         </View>
                     ))}
-
                 </View>
 
                 {/* Footer */}

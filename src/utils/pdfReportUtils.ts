@@ -93,11 +93,38 @@ export const formatOrderStatus = (status: string): string => {
 
 export const formatBusStatus = (status: string): string => {
     const statusMap: Record<string, string> = {
-        'active': 'Active',
-        'decommissioned': 'Decommissioned',
-        'under-maintenance': 'Under Maintenance'
+        'ACTIVE': 'Active',
+        'DECOMMISSIONED': 'Decommissioned',
+        'UNDER_MAINTENANCE': 'Under Maintenance'
     };
     return statusMap[status] || status;
+};
+
+// Bus-specific formatting functions
+export const formatBodyBuilder = (builder?: string): string => {
+    if (!builder) return "Unknown";
+    const upper = ["RBM", "DARJ"];
+    return upper.includes(builder.toUpperCase())
+        ? builder.toUpperCase()
+        : builder.charAt(0).toUpperCase() + builder.slice(1).toLowerCase();
+};
+
+export const formatBusCondition = (condition: string): string => {
+    switch (condition) {
+        case "BRAND_NEW":
+        case "brand_new":
+            return "Brand New";
+        case "SECOND_HAND":
+        case "second_hand":
+            return "Second Hand";
+        default:
+            return condition;
+    }
+};
+
+export const formatBusType = (type?: string): string => {
+    if (!type) return "Unknown";
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 };
 
 // Status style functions - Updated to handle original API status format
@@ -132,9 +159,9 @@ export const getOrderStatusStyle = (status: string) => {
 
 export const getBusStatusStyle = (status: string) => {
     const statusStyleMap: Record<string, any> = {
-        'active': [reportStyles.statusChip, statusColors.active],
-        'decommissioned': [reportStyles.statusChip, statusColors.decommissioned],
-        'under-maintenance': [reportStyles.statusChip, statusColors.underMaintenance]
+        'ACTIVE': [reportStyles.statusChip, statusColors.active],
+        'DECOMMISIONED': [reportStyles.statusChip, statusColors.decommissioned],
+        'UNDER_MAINTENANCE': [reportStyles.statusChip, statusColors.underMaintenance]
     };
     return statusStyleMap[status] || [reportStyles.statusChip];
 };
