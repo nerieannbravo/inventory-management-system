@@ -9,7 +9,6 @@
     gap: 2rem;
 }
 
-
 /* ----- HEADER SECTION ----- */
 .dashboard-header {
     display: flex;
@@ -39,13 +38,16 @@
     font-size: 12px;
     padding: 0.25rem 0.5rem;
     color: var(--secondary-text-color);
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    transition: all 0.2s ease;
 }
 
 .range:focus {
     outline: none;
-    border-color: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
-
 
 /* ----- SUMMARY CARDS ----- */
 .summary-groups {
@@ -63,23 +65,189 @@
 
 .dash-card {
     background-color: var(--foreground-color);
-    padding: 1rem;
-    border-radius: 8px;
+    padding: 1.5rem;
+    border-radius: 12px;
     flex: 1;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
     font-weight: 500;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    min-height: 80px;
+}
+
+.dash-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Card Content Layout */
+.dash-card-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dash-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.dash-card:hover .dash-card-icon {
+    transform: scale(1.1);
+}
+
+.dash-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    margin: 0;
 }
 
 .dash-card span {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    min-width: 60px;
+    text-align: center;
+    transition: transform 0.3s ease;
 }
 
+.dash-card:hover span {
+    transform: scale(1.05);
+}
+
+.dash-card span b,
+.dash-card span strong {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Low Stocks Card - Orange Theme */
+.dash-card.low-stocks {
+    border-left-color: #f59e0b;
+}
+
+.dash-card.low-stocks:hover {
+    background-color: #fef3e2;
+}
+
+.dash-card.low-stocks .dash-card-icon {
+    background-color: #fef3e2;
+    color: #d97706;
+}
+
+.dash-card.low-stocks span {
+    /* background-color: #fef3e2; */
+    color: #d97706;
+}
+
+/* Out of Stock Card - Red Theme */
+.dash-card.out-of-stock {
+    border-left-color: #ef4444;
+}
+
+.dash-card.out-of-stock:hover {
+    background-color: #fef2f2;
+}
+
+.dash-card.out-of-stock .dash-card-icon {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.dash-card.out-of-stock span {
+    /* background-color: #fef2f2; */
+    color: #dc2626;
+}
+
+/* On Order Card - Blue Theme */
+.dash-card.on-order {
+    border-left-color: #3b82f6;
+}
+
+.dash-card.on-order:hover {
+    background-color: #eff6ff;
+}
+
+.dash-card.on-order .dash-card-icon {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.dash-card.on-order span {
+    /* background-color: #eff6ff; */
+    color: #2563eb;
+}
+
+/* Unreturned Items Card - Purple Theme */
+.dash-card.unreturned {
+    border-left-color: #8b5cf6;
+}
+
+.dash-card.unreturned:hover {
+    background-color: #f5f3ff;
+}
+
+.dash-card.unreturned .dash-card-icon {
+    background-color: #f5f3ff;
+    color: #7c3aed;
+}
+
+.dash-card.unreturned span {
+    /* background-color: #f5f3ff; */
+    color: #7c3aed;
+}
+
+/* Progress Bar Animation */
+.dash-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background: linear-gradient(90deg, currentColor, currentColor);
+    transition: width 0.5s ease;
+    border-radius: 0 0 12px 12px;
+}
+
+.dash-card.low-stocks::after {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.dash-card.out-of-stock::after {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.dash-card.on-order::after {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.dash-card.unreturned::after {
+    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+}
+
+.dash-card:hover::after {
+    width: 100%;
+}
+
+/* Icon Styles */
+.dash-card-icon svg {
+    width: 20px;
+    height: 20px;
+}
 
 /* ----- CHARTS SECTION ----- */
 .charts-grid {
@@ -103,7 +271,6 @@
     font-size: 16px;
 }
 
-
 /* ----- CHART WRAPPER ----- */
 .placeholder {
     flex: 1;
@@ -114,7 +281,6 @@
     align-items: center;
     justify-content: center;
 }
-
 
 /* ----- RESPONSIVENESS ----- */
 @media (max-width: 600px) {
@@ -130,5 +296,25 @@
     .summary-groups,
     .charts-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .dash-card {
+        padding: 1.25rem;
+        min-height: 70px;
+    }
+    
+    .dash-card span {
+        font-size: 1.75rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .dash-card-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .dash-card-icon svg {
+        width: 18px;
+        height: 18px;
     }
 }
