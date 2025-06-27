@@ -11,7 +11,7 @@ export interface Employee {
 
 export async function fetchEmployees(): Promise<Employee[]> {
   try {
-    const url = 'http://192.168.1.140:3001/employees/inv';
+    const url = 'https://3e56-136-158-60-234.ngrok-free.app/employees/inv';
     
     const res = await fetch(url, {
       headers: {
@@ -34,7 +34,7 @@ export async function fetchEmployees(): Promise<Employee[]> {
 
 export async function fetchEmployeeById(id: string): Promise<Employee | null> {
   try {
-    const url = `http://192.168.1.140:3001/employees/inv/${id}`;
+    const url = `https://3e56-136-158-60-234.ngrok-free.app/employees/inv/${id}`;
     
     const res = await fetch(url, {
       headers: {

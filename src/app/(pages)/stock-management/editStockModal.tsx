@@ -259,6 +259,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						<div className="form-group category">
 							<label>Category</label>
 							<select
+								disabled={formData.category.toLowerCase() === "consumable"}
 								className={formErrors?.category ? "invalid-input" : ""}
 								value={formData.category}
 								onChange={(e) => handleChange("category", e.target.value)}

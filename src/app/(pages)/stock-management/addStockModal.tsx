@@ -5,11 +5,12 @@ import {
 	showStockSaveError, showPartialSuccessWarning
 } from "@/utils/sweetAlert";
 import "@/styles/forms.css";
-import { fetchAvailableItems, Item as SupabaseItem } from '../../lib/fetchItems';
+import { fetchAvailableItems, Item as ExternalItem } from '../../lib/fetchItems';
 
 // Export the interface so it can be imported by other components
 export interface StockForm {
-	name: string,
+	transaction_id: string, // external transaction id
+	item_id: string,
 	itemName: string,
 	quantity: number,
 	unit: string,
@@ -40,18 +41,19 @@ interface Category {
 export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	// Initial stock form state
 	const initialFormState: StockForm = {
-		name: "",
-		itemName: "",
+		transaction_id: '',
+		item_id: '',
+		itemName: '',
 		quantity: 0,
-		unit: "",
+		unit: '',
 		reorder: 0,
 		usable: 0,
 		defective: 0,
 		missing: 0,
 		// remarks: "",
-		category: "",
-		status: "AVAILABLE",
-		expiration: "",
+		category: '',
+		status: 'AVAILABLE',
+		expiration: '',
 	};
 
 	const [stockForms, setStockForms] = useState<StockForm[]>([initialFormState]);
@@ -60,7 +62,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	const [isSaving, setIsSaving] = useState(false);
 
 	// State for items fetched from Supabase
-	const [items, setItems] = useState<SupabaseItem[]>([]);
+	const [items, setItems] = useState<ExternalItem[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
@@ -120,15 +122,15 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	}, [stockForms]);
 
 	// Handle item selection - populate unit and category from the selected item
-	const handleItemSelection = async (index: number, itemId: string) => {
+	const handleItemSelection = async (index: number, transactionId: string) => {
 		try {
 			// Find the selected item in our already fetched items array
-			const selectedItem = items.find(item => item.f_item_id === itemId);
+			const selectedItem = items.find(item => item.transaction_id === transactionId);
 
 			if (selectedItem) {
 				// Check if this item is already selected in another form
 				const isDuplicate = stockForms.some((form, i) =>
-					i !== index && form.name === itemId
+					i !== index && form.transaction_id === transactionId
 				);
 
 				if (isDuplicate) {
@@ -136,7 +138,6 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 					await showDuplicateItemError();
 					return;
 				}
-				const fullItemName = getItemDisplayName(selectedItem);
 				console.log('Selected item:', selectedItem); // Debug log
 				console.log('Item name for check:', selectedItem.item_name); // Debug log
 
@@ -146,7 +147,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 				// Check if item already exists in local database
 				try {
-					const existingItemResponse = await fetch(`/api/stock?action=check-existing&itemName=${encodeURIComponent(fullItemName)}`);
+					const existingItemResponse = await fetch(`/api/stock?action=check-existing&itemName=${encodeURIComponent(selectedItem.item_name)}`);
 
 					console.log('API Response status:', existingItemResponse.status); // Debug log
 
@@ -175,12 +176,12 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						i === index
 							? {
 								...form,
-								name: itemId,
-								itemName: getItemDisplayName(selectedItem),
-								unit: selectedItem.unit_measure || form.unit,
-								quantity: selectedItem.purchased_quantity || form.quantity,
-								// Set default values for quantities
-								usable: selectedItem.purchased_quantity || 0,
+								transaction_id: selectedItem.transaction_id,
+								item_id: selectedItem.item_id,
+								itemName: selectedItem.item_name,
+								unit: selectedItem.item_unit,
+								quantity: selectedItem.quantity,
+								usable: selectedItem.quantity,
 								defective: 0,
 								missing: 0,
 								// Pre-fill category and reorder if item exists in local DB
@@ -197,9 +198,9 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				);
 
 				// Clear errors for the name field
-				if (formErrors[index] && formErrors[index].name) {
+				if (formErrors[index] && formErrors[index].transaction_id) {
 					const newErrors = [...formErrors];
-					delete newErrors[index].name;
+					delete newErrors[index].transaction_id;
 					// Also clear category error if we auto-filled it
 					if (categoryValue) {
 						delete newErrors[index].category;
@@ -272,7 +273,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 		const errors = stockForms.map((form) => {
 			const errorObj: FormError = {};
 
-			if (!form.name) errorObj.name = "Item name is required";
+			if (!form.transaction_id) errorObj.transaction_id = "Item name is required";
 			if (form.reorder < 0) errorObj.reorder = "Reorder level must be at least 0";
 			if (form.reorder >= form.quantity) errorObj.reorder = "Reorder level must be lower than total quantity";
 			if (!form.category) errorObj.category = "Item category is required";
@@ -295,7 +296,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			// Check for duplicate items
 			const duplicates = stockForms
 				.filter((_, i) => i !== stockForms.indexOf(form))
-				.filter((otherForm) => otherForm.name === form.name);
+				.filter((otherForm) => otherForm.transaction_id === form.transaction_id);
 
 			if (duplicates.length > 0) {
 				errorObj.duplicate = "This item is already selected in another form";
@@ -393,9 +394,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	};
 
 	// Format item display name by combining item_name and custom_for fields
-	const getItemDisplayName = (item: SupabaseItem) => {
-		return item.custom_for ? `${item.item_name} - ${item.custom_for ?? ""} ${item.item_type ? ` (${item.item_type})` : ""}` : item.item_name;
-	};
+	const getItemDisplayName = (item: ExternalItem) => item.item_name;
 
 	return (
 		<>
@@ -425,20 +424,20 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						<div className="form-group">
 							<label>Item Name</label>
 							<select
-								className={formErrors[index]?.name || formErrors[index]?.duplicate ? "invalid-input" : ""}
-								value={form.name}
+								className={formErrors[index]?.transaction_id || formErrors[index]?.duplicate ? "invalid-input" : ""}
+								value={form.transaction_id}
 								onChange={(e) => handleItemSelection(index, e.target.value)}
 								disabled={isLoading || isSaving}
 							>
 								<option value="" disabled>{isLoading ? "Loading items..." : "Select item name..."}</option>
 								{items.map((item) => (
-									<option key={item.f_item_id} value={item.f_item_id}>
+									<option key={item.transaction_id} value={item.transaction_id}>
 										{getItemDisplayName(item)}
 									</option>
 								))}
 							</select>
 							<p className="add-error-message">
-								{formErrors[index]?.name || formErrors[index]?.duplicate}
+								{formErrors[index]?.transaction_id || formErrors[index]?.duplicate}
 							</p>
 						</div>
 
@@ -540,7 +539,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						</div>
 
 						{/* Inspection Remarks */}
-						<div className="form-group">
+						{/* <div className="form-group">
 							<label>Inspection Remarks</label>
 							<textarea
 								className={formErrors[index]?.remarks ? "invalid-input" : ""}
@@ -550,7 +549,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							>
 							</textarea>
 							<p className="add-error-message">{formErrors[index]?.remarks}</p>
-						</div>
+						</div> */}
 
 						<div className="form-row">
 							{/* Reorder Level */}

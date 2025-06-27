@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     console.log(`🔄 Starting to process ${stockItems.length} items`);
 
     // Process each stock item sequentially with detailed logging
-    const results = [];
+    const results: any[] = [];
     
     for (let i = 0; i < stockItems.length; i++) {
       const item = stockItems[i];
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
               batches: {
                 create: {
                   batch_id,
-                  f_item_id: item.name,
+                  f_item_id: item.transaction_id,
                   usable_quantity: item.usable,
                   defective_quantity: item.defective,
                   missing_quantity: item.missing,
@@ -218,7 +218,6 @@ export async function POST(request: NextRequest) {
           const newItem = await prisma.inventoryItem.create({
             data: {
               item_id,
-              // f_item_id: item.name,
               category_id: category.category_id,
               item_name: item.itemName,
               unit_measure: item.unit,
@@ -229,7 +228,7 @@ export async function POST(request: NextRequest) {
               batches: {
                 create: {
                   batch_id,
-                  f_item_id: item.name,
+                  f_item_id: item.transaction_id,
                   usable_quantity: item.usable,
                   defective_quantity: item.defective,
                   missing_quantity: item.missing,
@@ -260,6 +259,25 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`🏁 Finished processing. Results:`, results.map(r => r.action));
+
+    // After processing all items, mark them as processed in the external system if they have a transaction_id
+    const processedTransactionIds = stockItems
+      .filter((item: any, idx: number) => results[idx]?.success && item.transaction_id)
+      .map((item: any) => item.transaction_id);
+    if (processedTransactionIds.length > 0) {
+      try {
+        await fetch('https://ftms.agilabuscorp.me/api/inventory', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ transaction_ids: processedTransactionIds }),
+        });
+      } catch (patchError) {
+        console.error('Failed to PATCH processed transaction_ids to external system:', patchError);
+      }
+    }
+
     return NextResponse.json({ success: true, results });
     
   } catch (error: any) {

@@ -72,14 +72,14 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
         // Second Hand Details Validation
         if (formData.condition === "SECOND_HAND") {
-            if (!formData.secondHandDetails.previous_owner) errors.previous_owner = "Previous owner is required";
+            if (!formData.secondHandDetails.previous_owner) errors.previous_owner = "Dealer Name is required";
             if (!formData.secondHandDetails.previous_owner_contact) {
-                errors.previous_owner_contact = "Previous owner contact is required";
+                errors.previous_owner_contact = "Dealer contact is required";
             } else if (
                 formData.secondHandDetails.previous_owner_contact &&
                 !/^\d{11}$/.test(formData.secondHandDetails.previous_owner_contact?.toString() || "")
             ) {
-                errors.previous_owner_contact = "Previous owner contact must be exactly 11 digits";
+                errors.previous_owner_contact = "Dealer contact must be exactly 11 digits";
             }
             if (!formData.registration_status) errors.registration_status = "Registration status is required";
             if (!formData.secondHandDetails.last_registration_date) {
@@ -140,8 +140,22 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         }
     };
 
+    // Utility to count total files
+    const getTotalFilesCount = () => {
+        let count = 0;
+        count += formData.busOtherFiles.length;
+        count += newlyUploadedFiles.length;
+        if (pendingCRFile) count++;
+        count += pendingOtherFiles.length;
+        return count;
+    };
+
     // Replace handleFileUpload with handlers that only store files
-    const handleCRFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCRFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (getTotalFilesCount() >= 10) {
+            await showBusSaveError("You can only attach up to 10 files per bus record.");
+            return;
+        }
         const file = e.target.files?.[0];
         if (file) {
             setPendingCRFile(file);
@@ -149,14 +163,22 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
             setPendingCRFile(null);
         }
     };
-    const handleOtherFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOtherFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
+        if (getTotalFilesCount() + files.length > 10) {
+            await showBusSaveError("You can only attach up to 10 files per bus record.");
+            return;
+        }
         setPendingOtherFiles(prev => [...prev, ...files]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (getTotalFilesCount() > 10) {
+            await showBusSaveError("You can only attach up to 10 files per bus record.");
+            return;
+        }
         if (!validateForm()) return;
 
         const result = await showBusUpdateConfirmation(formData.body_number);
@@ -391,7 +413,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                 >
                                     <option value="ACTIVE">Active</option>
                                     <option value="DECOMMISSIONED">Decommissioned</option>
-                                    <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+                                    <option value="UNDER_MAINTENANCE">Under Maintenance(or being process)</option>
                                 </select>
                                 <p className="edit-error-message">{formErrors.status}</p>
                             </div>
@@ -428,7 +450,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                 <div className="form-row">
                                     {/* Previous Owner */}
                                     <div className="form-group">
-                                        <label>Previous Owner</label>
+                                        <label>Dealer Name</label>
                                         <input
                                             className={formErrors?.previous_owner ? "invalid-input" : ""}
                                             type="text"
@@ -441,7 +463,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                                     {/* Previous Owner Contact */}
                                     <div className="form-group">
-                                        <label>Previous Owner Contact</label>
+                                        <label>Dealer Contact</label>
                                         <input
                                             className={formErrors?.previous_owner_contact ? "invalid-input" : ""}
                                             type="text"

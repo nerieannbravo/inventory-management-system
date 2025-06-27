@@ -215,11 +215,11 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 							</div>
 							<div className="form-row">
 								<div className="form-group">
-									<label>Previous Owner</label>
+									<label>Dealer Name</label>
 									<p>{item.secondHandDetails.previous_owner || '-'}</p>
 								</div>
 								<div className="form-group">
-									<label>Previous Owner Contact</label>
+									<label>Dealer Contact</label>
 									<p>{item.secondHandDetails.previous_owner_contact || '-'}</p>
 								</div>
 							</div>

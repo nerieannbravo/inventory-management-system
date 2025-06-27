@@ -209,13 +209,17 @@ export default function RequestManagement() {
         }
 
         // Apply sorting
-        const sortBy = filterValues.sortBy || "empName";
-        const order = filterValues.order || "asc";
+        const sortBy = filterValues.sortBy || "date_created";
+        const order = filterValues.order || "desc";
 
         filtered.sort((a, b) => {
             let aValue, bValue;
 
             switch (sortBy) {
+                case "date_created":
+                    aValue = a.date_created ? new Date(a.date_created).getTime() : 0;
+                    bValue = b.date_created ? new Date(b.date_created).getTime() : 0;
+                    break;
                 case "empName":
                     aValue = a.empName ? a.empName.toLowerCase() : "";
                     bValue = b.empName ? b.empName.toLowerCase() : "";
@@ -224,27 +228,19 @@ export default function RequestManagement() {
                     aValue = a.request_type ? a.request_type.toLowerCase() : "";
                     bValue = b.request_type ? b.request_type.toLowerCase() : "";
                     break;
-                case "date_created":
-                    aValue = a.date_created ? new Date(a.date_created) : new Date(0);
-                    bValue = b.date_created ? new Date(b.date_created) : new Date(0);
-                    break;
                 default:
-                    aValue = a.empName ? a.empName.toLowerCase() : "";
-                    bValue = b.empName ? b.empName.toLowerCase() : "";
+                    aValue = a.date_created ? new Date(a.date_created).getTime() : 0;
+                    bValue = b.date_created ? new Date(b.date_created).getTime() : 0;
             }
 
-            // Use type guards to ensure correct typing
             if (typeof aValue === "string" && typeof bValue === "string") {
                 const comparison = aValue.localeCompare(bValue);
-                return order === "asc" ? comparison : -comparison;
-            } else if (aValue instanceof Date && bValue instanceof Date) {
-                const comparison = aValue.getTime() - bValue.getTime();
                 return order === "asc" ? comparison : -comparison;
             } else if (typeof aValue === "number" && typeof bValue === "number") {
                 const comparison = aValue - bValue;
                 return order === "asc" ? comparison : -comparison;
             } else {
-                return 0; // fallback in case of type mismatch (should not occur)
+                return 0;
             }
         });
         return filtered;

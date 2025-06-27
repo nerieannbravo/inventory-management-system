@@ -211,10 +211,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
         // Second hand details validation
         if (busForm.condition === "second-hand") {
-            if (!busForm.previous_owner) errors.previous_owner = "Previous owner is required";
-            if (!busForm.previous_owner_contact) errors.previous_owner_contact = "Previous owner contact is required";
+            if (!busForm.previous_owner) errors.previous_owner = "Dealer Name is required";
+            if (!busForm.previous_owner_contact) errors.previous_owner_contact = "Dealer contact is required";
             if (busForm.previous_owner_contact && !/^\d{11}$/.test(busForm.previous_owner_contact?.toString() || "")) {
-                errors.previous_owner_contact = "Previous owner contact must be exactly 11 digits";
+                errors.previous_owner_contact = "Dealer contact must be exactly 11 digits";
             }
             if (!busForm.source) errors.source = "Source is required";
             if (busForm.odometer_reading !== undefined && busForm.odometer_reading <= 0) errors.odometer_reading = "Odometer reading must be more than 0";
@@ -277,10 +277,24 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         return Object.keys(errors).length === 0;
     };
 
+    // Utility to count total files
+    const getTotalFilesCount = () => {
+        let count = 0;
+        if (pendingOrFile) count++;
+        if (pendingCrFile) count++;
+        count += pendingOtherFiles.length;
+        return count;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateForm()) return;
+
+        if (getTotalFilesCount() > 10) {
+            await showBusSaveError("You can only attach up to 10 files per bus record.");
+            return;
+        }
 
         const result = await showBusSaveConfirmation();
         if (result.isConfirmed) {
@@ -609,10 +623,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                         {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
-                            <select disabled value={busForm.status}>
+                            <select value={busForm.status}
+                                    onChange={(e) => handleChange("status", e.target.value)}
+                            >
                                 <option value="active">Active</option>
                                 <option value="decommissioned">Decommissioned</option>
-                                <option value="under-maintenance">Under Maintenance</option>
+                                <option value="under-maintenance">Under Maintenance(or being process)</option>
                             </select>
                             <p className="add-error-message">{formErrors?.status}</p>
                         </div>
@@ -664,7 +680,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                             <div className="form-row">
                                 {/* Previous Owner */}
                                 <div className="form-group">
-                                    <label>Previous Owner</label>
+                                    <label>Dealer Name</label>
                                     <input
                                         className={formErrors?.previous_owner ? "invalid-input" : ""}
                                         type="text"
@@ -677,7 +693,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                                 {/* Previous Owner Contact */}
                                 <div className="form-group">
-                                    <label>Previous Owner Contact</label>
+                                    <label>Dealer Contact</label>
                                     <input
                                         className={formErrors?.previous_owner_contact ? "invalid-input" : ""}
                                         type="text"
@@ -949,6 +965,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         type="file"
                                         accept=".pdf,.jpg,.jpeg,.png"
                                         onChange={async (e) => {
+                                            if (getTotalFilesCount() >= 10) {
+                                                await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                                return;
+                                            }
                                             const file = e.target.files?.[0];
                                             if (file) {
                                                 setPendingOrFile(file);
@@ -972,6 +992,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                             type="file"
                                             accept=".pdf,.jpg,.jpeg,.png"
                                             onChange={async (e) => {
+                                                if (getTotalFilesCount() >= 10) {
+                                                    await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                                    return;
+                                                }
                                                 const file = e.target.files?.[0];
                                                 if (file) {
                                                     setPendingCrFile(file);
@@ -1000,6 +1024,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         onChange={async (e) => {
                                             const files = Array.from(e.target.files || []);
                                             if (files.length === 0) return;
+                                            if (getTotalFilesCount() + files.length > 10) {
+                                                await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                                return;
+                                            }
                                             setPendingOtherFiles(prev => [...prev, ...files]);
                                             // For display only
                                             files.forEach(file => {

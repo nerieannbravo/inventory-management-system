@@ -26,7 +26,7 @@
 .chip.maintenance,
 .chip.consumed,
 .chip.completed,
-.chip.under-maintenance {
+.chip.under_maintenance {
     background-color: var(--info-chip-bg-color);
     color: var(--info-chip-text-color);
 }

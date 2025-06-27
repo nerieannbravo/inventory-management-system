@@ -91,15 +91,49 @@ export default function BusManagement() {
       );
     }
 
+    if (filterValues.condition?.length) {
+      filtered = filtered.filter(bus =>
+        filterValues.condition.includes(bus.condition.toLowerCase())
+      );
+    }
+
     // Apply sorting
-    const order = filterValues.order || "asc";
+    const sortBy = filterValues.sortBy || "date_updated";
+    const order = filterValues.order || "desc"; // Default to descending (latest first)
     filtered.sort((a, b) => {
-      // Default sort by body number
-      const aValue = a.body_number?.toLowerCase() || "";
-      const bValue = b.body_number?.toLowerCase() || "";
-      
-      const comparison = aValue.localeCompare(bValue);
-      return order === "asc" ? comparison : -comparison;
+      let aValue, bValue;
+
+      switch (sortBy) {
+          case "date_updated":
+              aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+              bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+              break;
+          case "body_number":
+              aValue = a.body_number.toLowerCase();
+              bValue = b.body_number.toLowerCase();
+              break;
+          case "plate_number":
+              aValue = a.plate_number.toLowerCase();
+              bValue = b.plate_number.toLowerCase();
+              break;
+          case "seat_capacity":
+              aValue = a.seat_capacity;
+              bValue = b.seat_capacity;
+              break;
+          default:
+              aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+              bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+      }
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+          const comparison = aValue.localeCompare(bValue);
+          return order === "asc" ? comparison : -comparison;
+      } else if (typeof aValue === "number" && typeof bValue === "number") {
+          const comparison = aValue - bValue;
+          return order === "asc" ? comparison : -comparison;
+      } else {
+          return 0;
+      }
     });
 
     return filtered;
@@ -140,6 +174,26 @@ export default function BusManagement() {
         { id: "airconditioned", label: "Airconditioned" },
         { id: "ordinary", label: "Ordinary" }
       ]
+    },
+    {
+      id: "condition",
+      title: "Condition",
+      type: "checkbox",
+      options: [
+        { id: "brand_new", label: "Brand New" },
+        { id: "second_hand", label: "Second Hand" }
+      ]
+    },
+    {
+        id: "sortBy",
+        title: "Sort By",
+        type: "radio",
+        options: [
+            { id: "body_number", label: "Body Number" },
+            { id: "plate_number", label: "Plate Number" },
+            { id: "seat_capacity", label: "Seat Capacity" }
+        ],
+        defaultValue: "body_number"
     },
     {
       id: "order",

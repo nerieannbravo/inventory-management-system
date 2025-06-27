@@ -1,103 +1,81 @@
-// Define the item structure based on your Supabase database
+// Define the item structure based on the new external API
 export interface Item {
-  f_item_id: string;
+  transaction_id: string;
+  transaction_date: string;
+  item_id: string;
   item_name: string;
-  custom_for: string;
-  purchased_quantity: number;
-  item_type: string;
-  unit_measure: string;
-  // Add other fields that your items have in Supabase
+  item_unit: string;
+  quantity: number;
 }
 
-// Function to fetch all items from Supabase
+// Fetch all items from the external API (via proxy route)
 export async function fetchItems(): Promise<Item[]> {
   try {
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/items`;
-    
+    const url = `/api/external-inventory`;
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
+        'Content-Type': 'application/json',
       },
     });
-
     if (!res.ok) {
       throw new Error(`Failed to fetch items: ${res.statusText}`);
     }
-
     const data = await res.json();
-    return data;
+    return data.data;
   } catch (error) {
     console.error('Error fetching items:', error);
     throw error;
   }
 }
 
-// Function to fetch a single item by its ID
-export async function fetchItemById(id: string): Promise<Item | null> {
+// Fetch a single item by transaction_id (via proxy route)
+export async function fetchItemById(transaction_id: string): Promise<Item | null> {
   try {
-    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/items?f_item_id=eq.${id}`;
-    
+    const url = `/api/external-inventory`;
     const res = await fetch(url, {
       headers: {
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
+        'Content-Type': 'application/json',
       },
     });
-
     if (!res.ok) {
-      throw new Error(`Failed to fetch item with ID ${id}: ${res.statusText}`);
+      throw new Error(`Failed to fetch items: ${res.statusText}`);
     }
-
     const data = await res.json();
-    return data.length > 0 ? data[0] : null;
+    const found = data.data.find((item: Item) => item.transaction_id === transaction_id);
+    return found || null;
   } catch (error) {
-    console.error(`Error fetching item with ID ${id}:`, error);
+    console.error(`Error fetching item with transaction_id ${transaction_id}:`, error);
     throw error;
   }
 }
 
-
+// Fetch available items (not yet recorded in local DB)
 export async function fetchAvailableItems() {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      throw new Error('Supabase environment variables are not configured');
-    }
-    
-    // Fetch all items from Supabase
+    // Fetch all items from the external API
     const allItems = await fetchItems();
-    
-    // Fetch items already in inventory
+
+    // Fetch items already in inventory (local DB)
     const inventoryResponse = await fetch('/api/item', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
     });
-
-    if (!inventoryResponse.ok)  {
+    if (!inventoryResponse.ok) {
       throw new Error(`Error fetching inventory items: ${inventoryResponse.statusText}`);
-    } 
-    
+    }
     const inventoryData = await inventoryResponse.json();
-    const inventoryItems = inventoryData.batches;
-    
-    // Extract f_item_ids already in inventory
-    const existingItemIds = inventoryItems.map((item: any) => item.f_item_id);
-    
-    // Filter out items already in inventory
-    const availableItems = allItems.filter((batch: Item) => 
-      !existingItemIds.includes(batch.f_item_id)
-    );
-    
+    // We'll assume that each batch in local DB has a f_item_id that matches the external transaction_id
+    // If you store transaction_id somewhere else, adjust this accordingly
+    const inventoryItems = inventoryData.batches || [];
+    const recordedTransactionIds = inventoryItems.map((item: any) => item.f_item_id);
+
+    // Filter out items already in local DB by transaction_id
+    const availableItems = allItems.filter((item: Item) => !recordedTransactionIds.includes(item.transaction_id));
     return availableItems;
   } catch (error) {
     console.error('Error in fetchAvailableItems:', error);
     throw error;
   }
-  
 }

@@ -318,10 +318,12 @@ export const showRequestUpdatedSuccess = () => {
     });
 };
 
-export const showEditError = (status: string) => {
+export const showEditError = (status: string, customMessage?: string) => {
     return Swal.fire({
         title: 'Edit Action Denied',
-        html: `<p>This request cannot be edited because it has already been marked as <strong>${status}</strong>.</p>`,
+        html: customMessage
+            ? `<p>${customMessage}</p>`
+            : `<p>This request cannot be edited because it has already been marked as <strong>${status}</strong>.</p>`,
         icon: 'error',
         confirmButtonText: 'Okay',
         background: 'white',

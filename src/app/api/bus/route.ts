@@ -13,6 +13,14 @@ export async function POST(req: NextRequest) {
       busOtherFiles
     } = data;
 
+    // Enforce 10-file limit
+    if (Array.isArray(busOtherFiles) && busOtherFiles.length > 10) {
+      return NextResponse.json(
+        { success: false, error: "You can only attach up to 10 files per bus record." },
+        { status: 400 }
+      );
+    }
+
     // Generate bus_id
     const bus_id = await generateId('bus', 'BUS');
 
@@ -164,11 +172,14 @@ export async function POST(req: NextRequest) {
             file_type: file.file_type,
             file_url: file.file_url,
             date_uploaded: new Date(),
-            bus_id: createdBus.bus_id, // Link file to the created bus
+            bus_id, // Link file to the created bus
           }
         });
       }
     }
+
+    // ✅ Always return a response after all creation logic
+    return NextResponse.json({ success: true, bus: createdBus }, { status: 201 });
 
   } catch (error) {
     console.error(error);
@@ -199,6 +210,15 @@ export async function PUT(req: NextRequest) {
   try {
     const data = await req.json();
     const { bus_id, newlyUploadedFiles, busOtherFiles, ...busData } = data;
+
+    // Enforce 10-file limit
+    const totalFiles = (Array.isArray(busOtherFiles) ? busOtherFiles.length : 0) + (Array.isArray(newlyUploadedFiles) ? newlyUploadedFiles.length : 0);
+    if (totalFiles > 10) {
+      return NextResponse.json(
+        { success: false, error: "You can only attach up to 10 files per bus record." },
+        { status: 400 }
+      );
+    }
 
     if (!bus_id || bus_id === "undefined") {
       return NextResponse.json({ success: false, error: "Missing or invalid bus_id" }, { status: 400 });

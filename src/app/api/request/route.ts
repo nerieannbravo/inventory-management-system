@@ -44,7 +44,7 @@ export async function GET() {
         ...req,
         firstName: employee?.firstName || '',
         lastName: employee?.lastName || '',
-        empName: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee',
+        empName: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Juan Dela Cruz',
         employee: employee ? {
           employeeNumber: employee.employeeNumber,
           firstName: employee.firstName,

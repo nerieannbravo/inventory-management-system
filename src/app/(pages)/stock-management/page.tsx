@@ -6,6 +6,7 @@ import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 import Loading from "@/components/loading";
+import { showEditError } from "@/utils/sweetAlert";
 
 import AddStockModal from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
@@ -148,7 +149,7 @@ export default function StocksManagement() {
                 { id: "asc", label: "Ascending" },
                 { id: "desc", label: "Descending" }
             ],
-            defaultValue: "desc"
+            defaultValue: "asc"
         }
     ];
 
@@ -204,13 +205,17 @@ export default function StocksManagement() {
         }
 
         // Apply sorting
-        const sortBy = filterValues.sortBy || "item_name";
-        const order = filterValues.order || "asc";
+        const sortBy = filterValues.sortBy || "date_updated";
+        const order = filterValues.order || "desc";
 
         filtered.sort((a, b) => {
             let aValue, bValue;
 
             switch (sortBy) {
+                case "date_updated":
+                    aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+                    bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
+                    break;
                 case "item_name":
                     aValue = a.item_name.toLowerCase();
                     bValue = b.item_name.toLowerCase();
@@ -224,11 +229,10 @@ export default function StocksManagement() {
                     bValue = b.reorder_level;
                     break;
                 default:
-                    aValue = a.item_name.toLowerCase();
-                    bValue = b.item_name.toLowerCase();
+                    aValue = a.date_updated ? new Date(a.date_updated).getTime() : 0;
+                    bValue = b.date_updated ? new Date(b.date_updated).getTime() : 0;
             }
 
-            // Use type guards to ensure correct typing
             if (typeof aValue === "string" && typeof bValue === "string") {
                 const comparison = aValue.localeCompare(bValue);
                 return order === "asc" ? comparison : -comparison;
@@ -236,7 +240,7 @@ export default function StocksManagement() {
                 const comparison = aValue - bValue;
                 return order === "asc" ? comparison : -comparison;
             } else {
-                return 0; // fallback in case of type mismatch (should not occur)
+                return 0;
             }
         });
 
@@ -360,6 +364,11 @@ export default function StocksManagement() {
                 />;
                 break;
             case "edit-stock":
+                if (rowData && (rowData.category.category_name === "Bus")) {
+                    showEditError(rowData.item_name, "Editing stock for Bus items is not allowed.");
+                    
+                    return;
+                }
                 content = <EditStockModal
                     item={rowData}
                     onSave={handleEditStock}
@@ -536,6 +545,7 @@ export default function StocksManagement() {
                                                 <ActionButtons
                                                     onView={() => openModal("view-stock", item)}
                                                     onEdit={() => openModal("edit-stock", item)}
+                                                    disableEdit={item.category.category_name === "Bus"}
                                                 />
                                             </td>
                                         </tr>
