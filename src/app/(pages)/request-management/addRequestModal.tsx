@@ -378,7 +378,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 						</select>
 						<p className="add-error-message">{formErrors[0]?.empName}</p>
 					</div>
-					<div className="form-row">
+					{/* <div className="form-row">
 							<div className="form-group">
 								<label>Department</label>
 								<input
@@ -406,7 +406,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 									placeholder="Contact Number"
 								/>
 							</div>
-						</div>
+						</div> */}
 
 				</form>
 			</div>
