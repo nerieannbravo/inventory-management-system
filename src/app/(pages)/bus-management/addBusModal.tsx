@@ -206,7 +206,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             }
         }
         if (!busForm.acquisition_method) errors.acquisition_method = "Acquisition method is required";
-        if (!busForm.registration_status) errors.registration_status = "Registration status is required";
         
 
         // Second hand details validation
@@ -263,11 +262,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             }
         }
 
-        // Document Attachments validation
-        if (!busForm.or_file) errors.or_file = "Official Receipt is required";
-        if (busForm.registration_status === "registered" && !busForm.cr_file) {
-            if (!busForm.cr_file) errors.cr_file = "Certification of Registration is required";
-        }
+        // Document Attachments validation - check for actual file selections
+        if (!pendingOrFile) errors.or_file = "Official Receipt is required";
+        if (!pendingCrFile) errors.cr_file = "Certification of Registration is required";
+        
         if (pendingOtherFiles.length === 0) {
             errors.otherDocuments = "At least one other document is required";
         }
@@ -289,14 +287,26 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        console.log('Form submission started');
+        console.log('Current form state:', busForm);
+        console.log('Pending files:', { pendingOrFile, pendingCrFile, pendingOtherFiles });
+
+        if (!validateForm()) {
+            console.log('Form validation failed');
+            return;
+        }
+
+        console.log('Form validation passed, checking file count');
 
         if (getTotalFilesCount() > 10) {
             await showBusSaveError("You can only attach up to 10 files per bus record.");
             return;
         }
 
+        console.log('About to show confirmation dialog');
         const result = await showBusSaveConfirmation();
+        console.log('Confirmation result:', result);
+        
         if (result.isConfirmed) {
             setIsSaving(true);
             try {
