@@ -111,7 +111,7 @@ export default function Dashboard() {
 
 
             {/* Charts Section */}
-            <div className="charts-grid">
+            {/* <div className="charts-grid">
                 <div className="chart-box">
                     <h3>Stock Movement Analysis</h3>
                     <div className="placeholder"><StockMovementChart /></div>
@@ -121,7 +121,7 @@ export default function Dashboard() {
                     <h3>Stock Status Distribution</h3>
                     <div className="placeholder"><StockDistributionChart /></div>
                 </div>
-            </div>
+            </div> */}
 
             {/* <div className="charts-grid">
                 <div className="chart-box"> */}
