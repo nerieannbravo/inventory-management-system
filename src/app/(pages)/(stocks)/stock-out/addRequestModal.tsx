@@ -6,7 +6,7 @@ import {
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
-import { fetchEmployees, Employee } from '../../lib/fetchEmployees';
+import { fetchEmployees, Employee } from '../../../lib/fetchEmployees';
 
 // Enums to match your Prisma schema
 enum RequestType {

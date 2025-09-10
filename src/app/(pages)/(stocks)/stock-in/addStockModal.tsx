@@ -5,7 +5,7 @@ import {
 	showStockSaveError, showPartialSuccessWarning
 } from "@/utils/sweetAlert";
 import "@/styles/forms.css";
-import { fetchAvailableItems, Item as ExternalItem } from '../../lib/fetchItems';
+import { fetchAvailableItems, Item as ExternalItem } from '../../../lib/fetchItems';
 
 // Export the interface so it can be imported by other components
 export interface StockForm {
