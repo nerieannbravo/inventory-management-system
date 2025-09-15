@@ -9,46 +9,52 @@ export interface Employee {
   department: string;
 }
 
+// Use env variable
+const HR_EMPLOYEES_URL = process.env.HR_EMPLOYEES_URL!;
+if (!HR_EMPLOYEES_URL) {
+  throw new Error("HR_EMPLOYEES_URL is not defined in .env");
+}
+
 export async function fetchEmployees(): Promise<Employee[]> {
   try {
-    const url = 'https://hr-api.agilabuscorp.me/employees/inv';
-    
-    const res = await fetch(url, {
+    const res = await fetch(HR_EMPLOYEES_URL, {
       headers: {
         "Content-Type": "application/json",
-        "Prefer": "return=representation"
+        "Prefer": "return=representation",
       },
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch employees: ${res.statusText}`);
+      throw new Error(`Failed to fetch employees: ${res.status} ${res.statusText}`);
     }
 
     const data = await res.json();
-    return data;
+    return data as Employee[];
   } catch (error) {
-    console.error('Error fetching employees:', error);
+    console.error("Error fetching employees:", error);
     throw error;
   }
 }
 
 export async function fetchEmployeeById(id: string): Promise<Employee | null> {
   try {
-    const url = `https://hr-api.agilabuscorp.me/employees/inv/${id}`;
-    
+    // Use query param instead of hardcoded different base URL
+    const url = `${HR_EMPLOYEES_URL}?id=${encodeURIComponent(id)}`;
+
     const res = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
-        "Prefer": "return=representation"
+        "Prefer": "return=representation",
       },
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch employee with ID ${id}: ${res.statusText}`);
+      throw new Error(`Failed to fetch employee with ID ${id}: ${res.status} ${res.statusText}`);
     }
 
     const data = await res.json();
     if (!data || data.length === 0) return null;
+
     const emp = data[0];
     return {
       employeeNumber: emp.employeeNumber,

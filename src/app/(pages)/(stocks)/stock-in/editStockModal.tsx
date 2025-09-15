@@ -184,7 +184,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	};
 
 	// Check if status should be disabled based on category
-	const isStatusDisabled = formData.category.toLowerCase() === "consumable";
+	const isStatusDisabled = (formData.category ?? "").toLowerCase() === "consumable";
 
 	return (
 		<>
@@ -209,7 +209,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						<input disabled
 							className={formErrors?.name ? "invalid-input" : ""}
 							type="text"
-							value={formData.name}
+							value={formData.name ?? ""}
 							onChange={(e) => handleChange("name", e.target.value)}
 						/>
 						<p className="edit-error-message"></p>
@@ -222,7 +222,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 							<input disabled
 								type="number"
 								min="0"
-								value={formData.quantity}
+								value={formData.quantity ?? ""}
 								onChange={(e) => handleChange("quantity", Number(e.target.value))}
 							/>
 						</div>
@@ -232,7 +232,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 							<label>Unit Measure</label>
 							<input disabled
 								type="text"
-								value={formData.unit}
+								value={formData.unit ?? ""}
 								onChange={(e) => handleChange("unit", e.target.value)}
 							/>
 						</div>
@@ -246,7 +246,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 								type="number"
 								step="1"
 								min="0"
-								value={formData.reorder || "0"}
+								value={formData.reorder ?? "0"}
 								onChange={(e) => handleChange("reorder", Number(e.target.value))}
 								placeholder="0"
 							/>
@@ -261,7 +261,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 							<select
 								disabled
 								className={formErrors?.category ? "invalid-input" : ""}
-								value={formData.category}
+								value={formData.category ?? ""}
 								onChange={(e) => handleChange("category", e.target.value)}
 							>
 								<option value="" disabled>Select category...</option>
@@ -282,7 +282,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 							<label>Status</label>
 							<select
 								disabled={isStatusDisabled}
-								value={formData.status}
+								value={formData.status ?? ""}
 								onChange={(e) => handleChange("status", e.target.value)}
 							>
 								<option value="available">Available</option>

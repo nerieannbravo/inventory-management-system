@@ -268,7 +268,11 @@ export async function POST(request: NextRequest) {
       .map((item: any) => item.transaction_id);
     if (processedTransactionIds.length > 0) {
       try {
-        await fetch('https://ftms.agilabuscorp.me/api/inventory', {
+        const FTMS_ITEMS_URL = process.env.FTMS_ITEMS_URL;
+        if (!FTMS_ITEMS_URL) {
+          throw new Error('FTMS_ITEMS_URL is not configured in the environment');
+        }
+        await fetch(FTMS_ITEMS_URL, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -341,4 +345,3 @@ export async function PATCH (req: NextRequest) {
       }
   }
 }
-
