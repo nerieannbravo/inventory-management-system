@@ -8,10 +8,10 @@ import "@/styles/chips.css"
 import "@/styles/loading.css"
 
 
-export default function RequestManagement() {
+export default function PurchaseRequest() {
     return (
         <div className="card">
-            <h1 className="title">Request Management</h1>
+            <h1 className="title">Purchase Request</h1>
         </div>
     );
 }

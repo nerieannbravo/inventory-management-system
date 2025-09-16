@@ -25,7 +25,7 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
             </div>
 
             <div className="modal-content view">
-                <div className="view-order-form">
+                <div className="view-form">
                     <div className="form-group">
                         <label>Item Name</label>
                         <p>{item.itemName}</p>
@@ -50,9 +50,8 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
 
                     <div className="form-group">
                         <label>Reason for Order Request</label>
-                        <p className="">Reason...</p>
+                        <p>Reason...</p>
                     </div>
-
                 </div>
             </div>
         </>

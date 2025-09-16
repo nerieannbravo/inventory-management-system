@@ -144,7 +144,7 @@ export default function AddBusDisposalModal({ onSave, onClose }: AddBusDisposalM
             </div>
 
             <div className="modal-content add">
-                <form className="add-bus-disposal-form">
+                <form className="add-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -167,9 +167,9 @@ export default function AddBusDisposalModal({ onSave, onClose }: AddBusDisposalM
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content add">
-                <form className="add-bus-disposal-form">
+                <form className="add-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -299,9 +299,9 @@ export default function AddBusDisposalModal({ onSave, onClose }: AddBusDisposalM
             </div>
 
             {/* For Disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content add">
-                <form className="add-bus-disposal-form">
+                <form className="add-form">
                     {/* Disposal date and method */}
                     <div className="form-row">
                         {/* Disposal Date */}
@@ -412,7 +412,7 @@ export default function AddBusDisposalModal({ onSave, onClose }: AddBusDisposalM
                 </form >
             </div >
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

@@ -40,7 +40,7 @@ export default function ViewRequestModal({ request, formatStatus, formatType, on
 			</div>
 
 			<div className="modal-content view">
-				<div className="view-request-form">
+				<div className="view-form">
 					<div className="form-group">
 						<label>Employee Name</label>
 						<p>{request.empName}</p>

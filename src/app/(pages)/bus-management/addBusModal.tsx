@@ -447,10 +447,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 </button>
             </div>
 
-            <p className="bus-details-title">I. Basic Identification</p>
+            <p className="details-title">I. Basic Identification</p>
             <div className="modal-content add">
                 {/* Basic Identification */}
-                <form className="add-bus-form">
+                <form className="add-form">
                     {/* Form row - plate number and body number */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -616,7 +616,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 type="number"
                                 step="1"
                                 min="0"
-                                value={busForm.seat_capacity}
+                                value={busForm.seat_capacity || ""}
                                 onChange={(e) => {
                                     // Only allow integers, ignore decimals
                                     const value = e.target.value;
@@ -624,6 +624,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         handleChange("seat_capacity", value === "" ? 0 : Number(value));
                                     }
                                 }}
+                                placeholder="0"
                                 inputMode="numeric"
                                 pattern="\d*"
                             />
@@ -651,10 +652,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             {/* Show details based on condition */}
             {busForm.condition === "second-hand" && (
                 <>
-                    <p className="bus-details-title">II. Second Hand Details</p>
+                    <p className="details-title">II. Second Hand Details</p>
                     <div className="modal-content add">
                         {/* Second Hand Details */}
-                        <form className="add-bus-form">
+                        <form className="add-form">
                             {/* Form row - acquisition date and acquisition method */}
                             <div className="form-row">
                                 {/* Acquisition Date */}
@@ -851,10 +852,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
             {busForm.condition === "brand-new" && (
                 <>
-                    <p className="bus-details-title">II. Brand New Details</p>
+                    <p className="details-title">II. Brand New Details</p>
                     <div className="modal-content add">
                         {/* Brand New Details */}
-                        <form className="add-bus-form">
+                        <form className="add-form">
                             {/* Form row - acquisition date and acquisition method */}
                             <div className="form-row">
                                 {/* Acquisition Date */}
@@ -963,10 +964,10 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             {/* Only show Document Attachments if a condition is selected */}
             {(busForm.condition === "brand-new" || busForm.condition === "second-hand") && (
                 <>
-                    <p className="bus-details-title">III. Document Attachments</p>
+                    <p className="details-title">III. Document Attachments</p>
                     <div className="modal-content add">
                         {/* Attached Documents */}
-                        <form className="add-bus-form">
+                        <form className="add-form">
                             {/* Form row - OR/CR */}
                             <div className="form-row">
                                 {/* OR */}
@@ -1078,7 +1079,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 </>
             )}
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> {isSaving ? 'Saving...' : 'Save'}
                 </button>

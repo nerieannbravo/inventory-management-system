@@ -127,7 +127,7 @@ export default function ViewStockModal({ item, formatStatus, onClose, onBatchDel
 			</div>
 
 			<div className="modal-content view">
-				<div className="view-stock-form">
+				<div className="view-form">
 					<div className="form-row">
 						<div className="form-group">
 							<label>Current Stock</label>
@@ -164,7 +164,7 @@ export default function ViewStockModal({ item, formatStatus, onClose, onBatchDel
 			{filteredBatches && filteredBatches.length > 0 ? (
 				filteredBatches.map((batch) => (
 					<div key={batch.batch_id} className={getBatchContainerClass(batch.expiration_date)}>
-						<div className="view-stock-form">
+						<div className="view-form">
 							<div className="form-row">
 								<div className="form-group">
 									<label>Quantity</label>
@@ -206,7 +206,7 @@ export default function ViewStockModal({ item, formatStatus, onClose, onBatchDel
 				))
 			) : (
 				<div className="modal-content view">
-					<div className="view-stock-form">
+					<div className="view-form">
 						<div className="form-row">
 							<div className="form-group" style={{ textAlign: 'center', width: '100%' }}>
 								<p style={{ fontStyle: 'italic', color: '#666' }}>

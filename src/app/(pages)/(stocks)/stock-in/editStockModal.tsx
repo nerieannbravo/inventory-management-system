@@ -202,7 +202,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 
 			{/* Edit Stock Form */}
 			<div className="modal-content edit">
-				<form className="edit-stock-form" id="edit-stock-form" onSubmit={handleSubmit}>
+				<form className="edit-form">
 					{/* Item Name */}
 					<div className="form-group">
 						<label>Item Name</label>
@@ -295,7 +295,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 			</div>
 
 			<div className="modal-actions">
-				<button type="submit" className="submit-btn" form="edit-stock-form">
+				<button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
 					<i className="ri-save-3-line" /> Update
 				</button>
 			</div>

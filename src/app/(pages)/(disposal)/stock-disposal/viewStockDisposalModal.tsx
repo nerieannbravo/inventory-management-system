@@ -24,7 +24,7 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
             </div>
 
             <div className="modal-content view">
-                <form className="view-stock-disposal-form">
+                <form className="view-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
@@ -36,9 +36,9 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Stock Details</p>
+            <p className="details-title">I. Stock Details</p>
             <div className="modal-content view">
-                <form className="view-stock-disposal-form">
+                <form className="view-form">
                     {/* Item name and category*/}
                     <div className="form-row">
                         {/* Item Name */}
@@ -78,9 +78,9 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
             </div>
 
             {/* For disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content view">
-                <form className="view-stock-disposal-form">
+                <form className="view-form">
                     {/* disposal date and type */}
                     <div className="form-row">
                         {/* Disposal Date */}

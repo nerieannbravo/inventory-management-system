@@ -154,7 +154,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
@@ -179,9 +179,9 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Stock Details</p>
+            <p className="details-title">I. Stock Details</p>
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     {/* SKU and category */}
                     <div className="form-row">
                         {/* Item Name */}
@@ -234,7 +234,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                                 type="text"
                                 value={stockDisposalForm.unitMeasure}
                                 onChange={(e) => handleChange("unitMeasure", e.target.value)}
-                                placeholder="Bus type here"
+                                placeholder="Unit measure here"
                                 disabled
                             />
                         </div>
@@ -256,9 +256,9 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             {/* For Disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     {/* Disposal date and method */}
                     <div className="form-row">
                         {/* Disposal Date */}
@@ -404,7 +404,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                 </form >
             </div >
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

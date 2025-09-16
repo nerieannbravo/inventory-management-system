@@ -421,7 +421,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			{/* Add Stock Form - allows adding multiple stocks */}
 			{stockForms.map((form, index) => (
 				<div className="modal-content add" key={index}>
-					<form className="add-stock-form" id={`add-stock-form-${index}`}>
+					<form className="add-form" id={`add-form-${index}`}>
 						{/* Item Name */}
 						<div className="form-group">
 							<label>Item Name</label>
@@ -451,7 +451,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.quantity ?? ""}
+									value={form.quantity || ""}
 									placeholder="0"
 								/>
 							</div>
@@ -497,7 +497,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.usable ?? ""}
+									value={form.usable || ""}
 									onChange={(e) => handleFormChange(index, "usable", Number(e.target.value))}
 									placeholder="0"
 									disabled={isSaving}
@@ -512,7 +512,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.defective ?? ""}
+									value={form.defective || ""}
 									onChange={(e) => handleFormChange(index, "defective", Number(e.target.value))}
 									placeholder="0"
 									disabled={isSaving}
@@ -527,7 +527,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="1"
 									min="0"
-									value={form.missing ?? ""}
+									value={form.missing || ""}
 									onChange={(e) => handleFormChange(index, "missing", Number(e.target.value))}
 									placeholder="0"
 									disabled={isSaving}
@@ -563,7 +563,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 										type="number"
 										step="1"
 										min="0"
-										value={form.reorder ?? ""}
+										value={form.reorder || ""}
 										onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
 										placeholder="0"
 										disabled={isSaving || reorderDisabled[index]}
@@ -615,7 +615,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				</div>
 			))}
 
-			<div className="modal-actions add">
+			<div className="modal-actions">
 				<button type="button" className="add-another-btn" onClick={handleAddAnotherStock}
 					disabled={isSaving}>
 					<i className="ri-add-line" /> Add Another Stock

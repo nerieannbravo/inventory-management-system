@@ -25,7 +25,7 @@ export default function ViewBusMaintenanceModal({ item, formatStatus, onClose }:
             </div>
 
             <div className="modal-content view">
-                <form className="view-bus-maintenance-form">
+                <form className="view-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -37,9 +37,9 @@ export default function ViewBusMaintenanceModal({ item, formatStatus, onClose }:
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content view">
-                <form className="view-bus-maintenance-form">
+                <form className="view-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -107,9 +107,9 @@ export default function ViewBusMaintenanceModal({ item, formatStatus, onClose }:
             </div>
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">II. Maintenance Details</p>
+            <p className="details-title">II. Maintenance Details</p>
             <div className="modal-content view">
-                <form className="view-bus-maintenance-form">
+                <form className="view-form">
                     {/* Maintenance date and type */}
                     <div className="form-row">
                         {/* Maintenance Date */}
@@ -152,9 +152,9 @@ export default function ViewBusMaintenanceModal({ item, formatStatus, onClose }:
             </div >
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">III. Used Items</p>
+            <p className="details-title">III. Used Items</p>
             <div className="modal-content view">
-                <form className="view-bus-maintenance-form">
+                <form className="view-form">
                     {/* Used Stocks */}
 
                     {/* Commented - For loop */}
@@ -187,9 +187,9 @@ export default function ViewBusMaintenanceModal({ item, formatStatus, onClose }:
             </div >
 
             {/* For mechanic detais */}
-            <p className="bus-details-title">IV. Mechanic Details</p>
+            <p className="details-title">IV. Mechanic Details</p>
             <div className="modal-content view">
-                <form className="view-bus-maintenance-form">
+                <form className="view-form">
                     {/* Employee name and department */}
                     <div className="form-row">
                         {/* Employee Department */}

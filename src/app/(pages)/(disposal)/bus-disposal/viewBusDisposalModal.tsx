@@ -24,7 +24,7 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
             </div>
 
             <div className="modal-content view">
-                <form className="view-bus-disposal-form">
+                <form className="view-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -36,9 +36,9 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content view">
-                <form className="view-bus-disposal-form">
+                <form className="view-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -106,9 +106,9 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
             </div>
 
             {/* For disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content view">
-                <form className="view-bus-disposal-form">
+                <form className="view-form">
                     {/* disposal date and type */}
                     <div className="form-row">
                         {/* Disposal Date */}

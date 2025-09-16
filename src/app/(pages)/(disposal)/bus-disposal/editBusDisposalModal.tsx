@@ -125,7 +125,7 @@ export default function EditBusDisposalModal({ item, onSave, onClose }: EditBusD
             </div>
 
             <div className="modal-content add">
-                <form className="add-bus-disposal-form">
+                <form className="edit-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -148,9 +148,9 @@ export default function EditBusDisposalModal({ item, onSave, onClose }: EditBusD
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content add">
-                <form className="add-bus-disposal-form">
+                <form className="edit-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -280,9 +280,9 @@ export default function EditBusDisposalModal({ item, onSave, onClose }: EditBusD
             </div>
 
             {/* For Disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content add">
-                <form className="add-bus-disposal-form">
+                <form className="edit-form">
                     {/* Disposal date and method */}
                     <div className="form-row">
                         {/* Disposal Date */}
@@ -393,7 +393,7 @@ export default function EditBusDisposalModal({ item, onSave, onClose }: EditBusD
                 </form >
             </div >
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

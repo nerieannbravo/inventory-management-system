@@ -175,7 +175,7 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 
 			{/* Edit Request Form */}
 			<div className="modal-content edit">
-				<form className="edit-request-form" id="edit-request-form" onSubmit={handleSubmit}>
+				<form className="edit-form">
 					{/* Employee Name */}
 					<div className="form-group">
 						<label>Employee Name</label>
@@ -276,7 +276,7 @@ export default function EditRequestModal({ request, onSave, onClose }: EditReque
 			</div>
 
 			<div className="modal-actions">
-				<button type="submit" className="submit-btn" form="edit-request-form">
+				<button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
 					<i className="ri-save-3-line" /> Update
 				</button>
 			</div>

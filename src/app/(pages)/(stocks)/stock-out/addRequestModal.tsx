@@ -358,7 +358,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 
 			{/* Employee Name (shared) */}
 			<div className="modal-content add">
-				<form className="add-request-form">
+				<form className="add-form">
 					<div className="form-group">
 						<label>Employee Name</label>
 						<select
@@ -414,7 +414,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 			{/* Add Request Form - allows adding multiple requests */}
 			{requestForms.map((form, index) => (
 				<div className="modal-content add" key={index}>
-					<form className="add-request-form">
+					<form className="add-form">
 						<div className="form-row">
 							{/* Request Type */}
 							<div className="form-group">
@@ -562,7 +562,7 @@ export default function AddRequestModal({ onSave, onClose }: AddRequestModalProp
 				</div>
 			))}
 
-			<div className="modal-actions add">
+			<div className="modal-actions">
 				<button type="button" className="add-another-btn" onClick={handleAddAnotherRequest}>
 					<i className="ri-add-line" /> Add Another Request
 				</button>
