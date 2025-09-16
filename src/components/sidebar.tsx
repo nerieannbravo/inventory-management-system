@@ -22,7 +22,7 @@ const Sidebar: React.FC = () => {
         '/bus-management': 'bus-management',
         '/item-management': 'item-management',
         '/supplier-management': 'supplier-management',
-        '/request-management': 'request-management',
+        '/purchase-request': 'purchase-request',
         '/budget-request': 'budget-request',
         '/order-management': 'order-management',
         '/bus-maintenance': 'bus-maintenance',
@@ -145,12 +145,12 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     <Link
-                        href="/request-management"
-                        className={`nav-item ${activeItem === 'request-management' ? 'active' : ''}`}
-                        onClick={() => setActiveItem('request-management')}
+                        href="/purchase-request"
+                        className={`nav-item ${activeItem === 'purchase-request' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('purchase-request')}
                     >
                         <i className="ri-swap-2-line" />
-                        <span>Request Management</span>
+                        <span>Purchase Request</span>
                     </Link>
 
                     <Link
@@ -172,7 +172,7 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     {/* Sidebar Maintenance Sub-item */}
-                    <div
+                    {/* <div
                         className={`nav-item module ${isMaintenanceItemActive ? 'active' : ''}`}
                         onClick={() => toggleSubMenu('maintenance-submenu')}
                     >
@@ -199,7 +199,7 @@ const Sidebar: React.FC = () => {
                                 Machine & Equipment Maintenance
                             </Link>
                         </div>
-                    )}
+                    )} */}
 
                     {/* Sidebar Disposal Sub-item */}
                     <div
