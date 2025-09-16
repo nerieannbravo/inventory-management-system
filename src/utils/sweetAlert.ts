@@ -7,7 +7,7 @@ import "@/styles/popup.css";
 export const showCloseWithoutSavingConfirmation = () => {
     return Swal.fire({
         title: 'Unsaved Changes',
-        html: '<p>You have unsaved changes. Are you sure you want to close without saving?</p>',
+        html: '<p>You might have unsaved changes. Are you sure you want to close without saving?</p>',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Close Without Saving',
@@ -24,7 +24,7 @@ export const showCloseWithoutSavingConfirmation = () => {
 export const showCloseWithoutUpdatingConfirmation = () => {
     return Swal.fire({
         title: 'Unsaved Changes',
-        html: '<p>You have unsaved changes. Are you sure you want to close without updating?</p>',
+        html: '<p>You might have unsaved changes. Are you sure you want to close without updating?</p>',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Close Without Updating',
@@ -864,3 +864,237 @@ export const showStockDisposalUpdatedSuccess = () => {
     });
 };
 
+//-------------------- ITEM MANAGEMENT SPECIFIC -------------------//
+
+// ----- Add Item Confirmation ----- //
+export const showItemSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this item?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Item Success ----- //
+export const showItemSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Item added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Item Confirmation ----- //
+export const showItemUpdateConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${itemName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Item Success ----- //
+export const showItemUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Item detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Delete Item Confirmation ----- //
+export const showItemDeleteConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Deletion',
+        html: `<p>Are you sure you want to delete the <strong>${itemName}</strong> record? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Delete Item Success ----- //
+export const showItemDeletedSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        text: 'Item for has been deleted.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Supplier Confirmation ----- //
+export const showDeleteLinkedSupplierConfirmation = () => {
+    return Swal.fire({
+        title: 'Remove Linked Supplier',
+        html: `<p>Are you sure you want to delete this linked supplier? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Supplier Success ----- //
+export const showDeleteLinkedSupplierSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        html: `<p>A linked supplier has been deleted.</p>`,
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+//-------------------- SUPPLIER MANAGEMENT SPECIFIC -------------------//
+
+// ----- Add Supplier Confirmation ----- //
+export const showSupplierSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this supplier?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Supplier Success ----- //
+export const showSupplierSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Supplier added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Supplier Confirmation ----- //
+export const showSupplierUpdateConfirmation = (supplierName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${supplierName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Supplier Success ----- //
+export const showSupplierUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Supplier detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Delete Supplier Confirmation ----- //
+export const showSupplierDeleteConfirmation = (supplierName: string) => {
+    return Swal.fire({
+        title: 'Confirm Deletion',
+        html: `<p>Are you sure you want to delete the <strong>${supplierName}</strong> record? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Delete Supplier Success ----- //
+export const showSupplierDeletedSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        text: 'Item for has been deleted.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
