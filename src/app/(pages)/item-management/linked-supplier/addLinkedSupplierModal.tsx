@@ -18,12 +18,12 @@ interface FormError {
     [key: string]: string;
 }
 
-interface AddLikedSupplierModalProps {
+interface AddLinkedSupplierModalProps {
     onClose: () => void;
     onSave: (linkedSupplierForm: LinkedSupplierForm) => void;
 }
 
-export default function AddSupplierModal({ onClose, onSave }: AddLikedSupplierModalProps) {
+export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSupplierModalProps) {
     const [linkedSupplierForm, setLinkedSupplierForm] = useState<LinkedSupplierForm>({
         linkedSupplierName: "",
         unitPrice: 0,

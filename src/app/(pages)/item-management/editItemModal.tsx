@@ -259,7 +259,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         {/* Category */}
                         <div className="form-group">
                             <label>Category</label>
-                            <select
+                            <select disabled
                                 className={formErrors?.itemCategory ? "invalid-input" : ""}
                                 value={formData.itemCategory || ""}
                                 onChange={(e) => handleChange("itemCategory", e.target.value)}
