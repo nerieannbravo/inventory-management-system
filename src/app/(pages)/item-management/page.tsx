@@ -14,7 +14,6 @@ import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/loading.css"
-import { Edit, View } from "lucide-react";
 
 const hardcodedData = [
     {
@@ -245,9 +244,6 @@ export default function ItemManagement() {
                     onClose={closeModal}
                 />;
                 break;
-            // case "delete-order":
-            //     handleDeleteItem(rowData);
-            //     return;
             default:
                 content = null;
         }
