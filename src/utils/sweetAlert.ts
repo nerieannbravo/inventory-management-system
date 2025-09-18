@@ -1098,3 +1098,36 @@ export const showSupplierDeletedSuccess = () => {
         }
     });
 };
+
+// ----- Remove Linked Item Confirmation ----- //
+export const showDeleteLinkedItemConfirmation = () => {
+    return Swal.fire({
+        title: 'Remove Linked Item',
+        html: `<p>Are you sure you want to delete this linked item? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Item Success ----- //
+export const showDeleteLinkedItemSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        html: `<p>A linked item has been deleted.</p>`,
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
