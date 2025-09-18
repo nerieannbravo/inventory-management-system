@@ -6,31 +6,27 @@ import AddLinkedItemModal, { LinkedItemForm } from "./linked-item/addLinkedItemM
 import EditLinkedItemModal from "./linked-item/editLinkedItemModal";
 
 import {
-    showSupplierSaveConfirmation, showSupplierSavedSuccess,
-    showCloseWithoutSavingConfirmation,
+    showSupplierUpdateConfirmation, showSupplierUpdatedSuccess,
+    showCloseWithoutUpdatingConfirmation,
     showDeleteLinkedItemConfirmation, showDeleteLinkedItemSuccess
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
-// Export the interface so it can be imported by other components
-export interface SupplierForm {
-    supplierName: string,
-    supplierStreet: string,
-    supplierBarangay: string,
-    supplierCity: string,
-    supplierProvince: string,
-    supplierContact: string,
-    supplierEmail: string,
-    supplierStatus: string,
-}
-
-interface FormError {
-    [key: string]: string;
-}
-
-interface AddSupplierModalProps {
-    onSave: (supplierForm: SupplierForm) => void;
+interface EditSupplierModalProps {
+    item: {
+        id: number;
+        supplierName: string,
+        supplierStreet: string,
+        supplierBarangay: string,
+        supplierCity: string,
+        supplierProvince: string,
+        supplierContact: string,
+        supplierEmail: string,
+        supplierStatus: string,
+        // Additional fields would be included in a real application
+    };
+    onSave: (updatedItem: any) => void;
     onClose: () => void;
 }
 
@@ -52,7 +48,7 @@ const sampleLinkedItems = [
     }
 ];
 
-export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalProps) {
+export default function EditSupplierModal({ item, onSave, onClose }: EditSupplierModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
@@ -62,56 +58,59 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
     const [linkedItems, setLinkedItems] = useState(sampleLinkedItems);
 
     // Initial supplier form state
-    const [supplierForm, setSupplierForm] = useState<SupplierForm>({
-        supplierName: "",
+    const [formData, setFormData] = useState({
+        id: item.id,
+        supplierName: item.supplierName,
         supplierStreet: "",
         supplierBarangay: "",
         supplierCity: "",
         supplierProvince: "",
-        supplierContact: "",
-        supplierEmail: "",
-        supplierStatus: "",
+        supplierContact: item.supplierContact,
+        supplierEmail: item.supplierEmail,
+        supplierStatus: item.supplierStatus,
     });
 
-    const [formErrors, setFormErrors] = useState<FormError>({});
-    const [isDirty, setIsDirty] = useState(false);
+    // State to track if form is dirty (has changes)
+    const [isFormDirty, setIsFormDirty] = useState(false);
+    const [originalData] = useState({ ...formData });
 
-    // Track if form has been modified
+    // Add formErrors state
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    // Check if form data has changed from original
     useEffect(() => {
-        setIsDirty(true);
-    }, [supplierForm]);
+        const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
+        setIsFormDirty(hasChanges);
+    }, [formData, originalData]);
 
     const handleChange = (field: string, value: any) => {
-        setSupplierForm((prev) => ({ ...prev, [field]: value }));
-
-        // Clear the error for that field
-        if (formErrors[field]) {
-            const newErrors = { ...formErrors };
-            delete newErrors[field];
-            setFormErrors(newErrors);
-        }
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const validateForm = (): boolean => {
-        const errors: FormError = {};
+        const errors: Record<string, string> = {};
 
-        if (!supplierForm.supplierName) errors.supplierName = "Supplier name is required";
-        if (!supplierForm.supplierContact) {
+        // Validate inputs
+        if (!formData.supplierName) errors.supplierName = "Supplier name is required";
+        if (!formData.supplierContact) {
             errors.supplierContact = "Contact number is required";
-        } else if (!/^\d{11}$/.test(supplierForm.supplierContact)) {
+        } else if (!/^\d{11}$/.test(formData.supplierContact)) {
             errors.supplierContact = "Contact number must be exactly 11 digits";
         }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplierForm.supplierEmail)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.supplierEmail)) {
             errors.supplierEmail = "Invalid email format";
         } 
-        // else if (!supplierForm.supplierEmail) {
+        // else if (!formData.supplierEmail) {
         //     errors.supplierEmail = "Email is required";
         // }
-        if (!supplierForm.supplierStatus) errors.supplierStatus = "Status is required";
-        // if (!supplierForm.supplierStreet) errors.supplierStreet = "Street is required";
-        // if (!supplierForm.supplierBarangay) errors.supplierBarangay = "Barangay is required";
-        if (!supplierForm.supplierCity) errors.supplierCity = "City is required";
-        // if (!supplierForm.supplierProvince) errors.supplierProvince = "Province is required";
+        if (!formData.supplierStatus) errors.supplierStatus = "Status is required";
+        // if (!formData.supplierStreet) errors.supplierStreet = "Street is required";
+        // if (!formData.supplierBarangay) errors.supplierBarangay = "Barangay is required";
+        if (!formData.supplierCity) errors.supplierCity = "City is required";
+        // if (!formData.supplierProvince) errors.supplierProvince = "Province is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -122,20 +121,20 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
 
         if (!validateForm()) return;
 
-        const result = await showSupplierSaveConfirmation();
+        const result = await showSupplierUpdateConfirmation(formData.supplierName);
         if (result.isConfirmed) {
-            onSave(supplierForm);
-            await showSupplierSavedSuccess();
+            onSave(formData);
+            await showSupplierUpdatedSuccess();
         }
     };
 
     const handleClose = async () => {
-        if (!isDirty) {
+        if (!isFormDirty) {
             onClose();
             return;
         }
 
-        const result = await showCloseWithoutSavingConfirmation();
+        const result = await showCloseWithoutUpdatingConfirmation();
         if (result.isConfirmed) {
             onClose();
         }
@@ -232,7 +231,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
     return (
         <>
             <div className="modal-heading">
-                <h1 className="modal-title">Add Supplier</h1>
+                <h1 className="modal-title">Edit Supplier</h1>
                 <div className="modal-date-time">
                     <p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
                     <p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
@@ -243,20 +242,20 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                 </button>
             </div>
 
-            {/* For Supplier Details */}
-            <div className="modal-content add">
-                <form className="add-form">
+            {/* Edit Supplier Form */}
+            <div className="modal-content edit">
+                <form className="edit-form">
                     {/* Supplier Name */}
                     <div className="form-group">
                         <label>Supplier Name</label>
                         <input
                             className={formErrors?.supplierName ? "invalid-input" : ""}
                             type="text"
-                            value={supplierForm.supplierName}
+                            value={formData.supplierName}
                             onChange={(e) => handleChange("supplierName", e.target.value)}
                             placeholder="Enter supplier name here..."
                         />
-                        <p className="add-error-message">{formErrors?.supplierName}</p>
+                        <p className="edit-error-message">{formErrors?.supplierName}</p>
                     </div>
 
                     <div className="form-row">
@@ -266,12 +265,12 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <input
                                 className={formErrors?.supplierContact ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierContact}
+                                value={formData.supplierContact}
                                 onChange={(e) => handleChange("supplierContact", e.target.value)}
                                 placeholder="Enter contact number here..."
                                 maxLength={11}
                             />
-                            <p className="add-error-message">{formErrors?.supplierContact}</p>
+                            <p className="edit-error-message">{formErrors?.supplierContact}</p>
                         </div>
 
                         {/* Supplier Email */}
@@ -280,18 +279,18 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <input
                                 className={formErrors?.supplierEmail ? "invalid-input" : ""}
                                 type="email"
-                                value={supplierForm.supplierEmail}
+                                value={formData.supplierEmail}
                                 onChange={(e) => handleChange("supplierEmail", e.target.value)}
                                 placeholder="Enter email here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierEmail}</p>
+                            <p className="edit-error-message">{formErrors?.supplierEmail}</p>
                         </div>
 
                         {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
                             <select
-                                value={supplierForm.supplierStatus}
+                                value={formData.supplierStatus}
                                 onChange={(e) => handleChange("supplierStatus", e.target.value)}
                                 className={formErrors?.supplierStatus ? "invalid-input" : ""}
                             >
@@ -299,7 +298,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                                 <option value="sold">Active</option>
                                 <option value="traded">Inactive</option>
                             </select>
-                            <p className="add-error-message">{formErrors?.supplierStatus}</p>
+                            <p className="edit-error-message">{formErrors?.supplierStatus}</p>
                         </div>
                     </div>
 
@@ -310,11 +309,11 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <input
                                 className={formErrors?.supplierStreet ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierStreet}
+                                value={formData.supplierStreet}
                                 onChange={(e) => handleChange("supplierStreet", e.target.value)}
                                 placeholder="Enter street here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierStreet}</p>
+                            <p className="edit-error-message">{formErrors?.supplierStreet}</p>
                         </div>
 
                         {/* Barangay */}
@@ -323,11 +322,11 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <input
                                 className={formErrors?.supplierBarangay ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierBarangay}
+                                value={formData.supplierBarangay}
                                 onChange={(e) => handleChange("supplierBarangay", e.target.value)}
                                 placeholder="Enter barangay here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierBarangay}</p>
+                            <p className="edit-error-message">{formErrors?.supplierBarangay}</p>
                         </div>
                     </div>
 
@@ -338,11 +337,11 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <input
                                 className={formErrors?.supplierCity ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierCity}
+                                value={formData.supplierCity}
                                 onChange={(e) => handleChange("supplierCity", e.target.value)}
                                 placeholder="Enter city here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierCity}</p>
+                            <p className="edit-error-message">{formErrors?.supplierCity}</p>
                         </div>
 
                         {/* Province */}
@@ -351,15 +350,15 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <input
                                 className={formErrors?.supplierProvince ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierProvince}
+                                value={formData.supplierProvince}
                                 onChange={(e) => handleChange("supplierProvince", e.target.value)}
                                 placeholder="Enter province here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierProvince}</p>
+                            <p className="edit-error-message">{formErrors?.supplierProvince}</p>
                         </div>
                     </div>
-                </form>
-            </div>
+                </form >
+            </div >
 
             {/* Linked Items */}
             <div className="details-header">
@@ -399,8 +398,8 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
             </table>
 
             <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
+                    <i className="ri-save-3-line" /> Update
                 </button>
             </div>
 

@@ -7,8 +7,8 @@ import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
 
 import AddSupplierModal, { SupplierForm } from "./addSupplierModal";
-// import ViewSupplierModal from "./viewSupplierModal";
-// import EditSupplierModal from "./editSupplierModal";
+import ViewSupplierModal from "./viewSupplierModal";
+import EditSupplierModal from "./editSupplierModal";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -195,20 +195,20 @@ export default function SupplierManagement() {
                     onClose={closeModal}
                 />;
                 break;
-            // case "view-supplier":
-            //     content = <ViewSupplierModal
-            //         item={rowData}
-            //         formatStatus={formatStatus}
-            //         onClose={closeModal}
-            //     />;
-            //     break;
-            // case "edit-supplier":
-            //     content = <EditSupplierModal
-            //         item={rowData}
-            //         onSave={handleEditSupplier}
-            //         onClose={closeModal}
-            //     />;
-            //     break;
+            case "view-supplier":
+                content = <ViewSupplierModal
+                    item={rowData}
+                    formatStatus={formatStatus}
+                    onClose={closeModal}
+                />;
+                break;
+            case "edit-supplier":
+                content = <EditSupplierModal
+                    item={rowData}
+                    onSave={handleEditSupplier}
+                    onClose={closeModal}
+                />;
+                break;
             default:
                 content = null;
         }
