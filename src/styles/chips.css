@@ -19,7 +19,8 @@
 .chip.out-of-stock,
 .chip.not-returned,
 .chip.decommissioned,
-.chip.inactive {
+.chip.inactive,
+.chip.rejected {
     background-color: var(--error-chip-bg-color);
     color: var(--error-chip-text-color);
 }
