@@ -1,18 +1,20 @@
 import "@/styles/forms.css";
 
 interface ViewStockDisposalModalProps {
-    item: {
-        id: number,
-        sku: string,
-        category: string,
-        stockDisposalDate: string,
-        // viewitional fields would be included in a real application
-    };
+    item: any;
     // formatStatus: (status: string) => string;
     onClose: () => void;
 }
 
 export default function ViewStockDisposalModal({ item, onClose }: ViewStockDisposalModalProps) {
+    const data = (item && item.raw) ? item.raw : item;
+
+    const sku = item?.sku || data?.item_id || data?.inventoryItem?.item_id || '';
+    const category = item?.category || data?.inventoryItem?.category?.category_name || '';
+    const itemName = data?.inventoryItem?.item_name || item?.itemName || '';
+    const quantity = data?.quantity ?? 0;
+    const disposalDate = data?.disposal_date ? new Date(data.disposal_date).toLocaleDateString() : item?.stockDisposalDate;
+
     return (
         <>
             <button className="close-modal-btn view" onClick={onClose}>
@@ -29,7 +31,7 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                         {/* SKU */}
                         <div className="form-group">
                             <label>SKU</label>
-                            <p>{item.sku}</p>
+                            <p>{sku}</p>
                         </div>
                     </div>
                 </form>
@@ -44,13 +46,13 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                         {/* Item Name */}
                         <div className="form-group">
                             <label>Item Name</label>
-                            <p>Fuel Iveco</p>
+                            <p>{itemName}</p>
                         </div>
 
                         {/* Category */}
                         <div className="form-group">
                             <label>Category</label>
-                            <p>{item.category}</p>
+                            <p>{category}</p>
                         </div>
                     </div>
 
@@ -59,13 +61,13 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                         {/* Quantity */}
                         <div className="form-group">
                             <label>Quantity</label>
-                            <p>10</p>
+                            <p>{quantity}</p>
                         </div>
 
                         {/* Unit Measure */}
                         <div className="form-group">
                             <label>Unit Measure</label>
-                            <p>Gallon</p>
+                            <p>{data?.inventoryItem?.unit_measure || 'pcs'}</p>
                         </div>
 
                         {/* Expiration Date */}
@@ -86,13 +88,13 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                         {/* Disposal Date */}
                         <div className="form-group">
                             <label>Disposal Date</label>
-                            <p>{item.stockDisposalDate}</p>
+                            <p>{disposalDate}</p>
                         </div>
 
                         {/* Disposal Method */}
                         <div className="form-group">
                             <label>Disposal Method</label>
-                            <p>{item.category}</p>
+                            <p>{data?.disposal_method || ''}</p>
                         </div>
                     </div>
 
@@ -101,13 +103,13 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                         {/* Disposal Date */}
                         <div className="form-group">
                             <label>Disposal Quantity</label>
-                            <p>10</p>
+                            <p>{quantity}</p>
                         </div>
 
                         {/* Unit Measure */}
                         <div className="form-group">
                             <label>Unit Measure</label>
-                            <p>Gallon</p>
+                            <p>{data?.inventoryItem?.unit_measure || 'pcs'}</p>
                         </div>
                     </div>
 
@@ -115,23 +117,7 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                     <div className="form-row">
                         <div className="form-group">
                             <label>Reason for Disposal</label>
-                            <p>Not usable because it is expired</p>
-                        </div>
-                    </div>
-
-                    {/* Attachments */}
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Attachments</label>
-                            <div className="uploaded-document-item">
-                                {/* Example: Replace with dynamic document list */}
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Warranty.pdf
-                                </a>
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Insurance.pdf
-                                </a>
-                            </div>
+                            <p>{data?.reason || item?.stockDisposalReason || ''}</p>
                         </div>
                     </div>
 
@@ -139,7 +125,7 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                     <div className="form-row">
                         <div className="form-group">
                             <label>Remarks</label>
-                            <p>None</p>
+                            <p>{data?.remarks || item?.stockDisposalRemarks || 'None'}</p>
                         </div>
                     </div>
 

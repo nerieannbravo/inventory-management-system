@@ -727,6 +727,21 @@ export const showBusDisposalUpdatedSuccess = () => {
     });
 };
 
+// ----- Bus Disposal Save Error ----- //
+export const showBusDisposalSaveError = (errorMessage?: string) => {
+    return Swal.fire({
+        title: 'Error!',
+        text: errorMessage || 'Failed to save bus disposal. Please try again.',
+        icon: 'error',
+        background: 'white',
+        confirmButtonText: 'OK',
+        customClass: {
+            popup: 'swal-custom-popup',
+            confirmButton: 'swal-error-button'
+        }
+    });
+};
+
 
 //-------------------- STOCK MAINTENANCE SPECIFIC -------------------//
 

@@ -1,161 +1,24 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+import Loading from "@/components/loading";
 
 import AddStockDisposalModal, { StockDisposalForm } from "./addStockDisposalModal";
 import ViewStockDisposalModal from "./viewStockDisposalModal";
 // import EditStockDisposalModal from "./editStockDisposalModal";
+import { fetchDisposals, createDisposal, StockDisposal as StockDisposalType } from "@/app/lib/fetchDisposals";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
+import "@/styles/loading.css"
 
-const hardcodedData = [
-    {
-        id: 1,
-        sku: "SKU-0001",
-        itemName: "Brake Disc",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-01",
-    },
-    {
-        id: 2,
-        sku: "SKU-0002",
-        itemName: "Head Lights",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-02",
-    },
-    {
-        id: 3,
-        sku: "SKU-0003",
-        itemName: "Red Paint",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-03",
-    },
-    {
-        id: 4,
-        sku: "SKU-0004",
-        itemName: "Brake Lining",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-04",
-    },
-    {
-        id: 5,
-        sku: "SKU-0005",
-        itemName: "Diesel",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-05",
-    },
-    {
-        id: 6,
-        sku: "SKU-0006",
-        itemName: "Hub Bolt",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-06",
-    },
-    {
-        id: 7,
-        sku: "SKU-0007",
-        itemName: "Red Paint",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-07",
-    },
-    {
-        id: 8,
-        sku: "SKU-0008",
-        itemName: "Oil Filter",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-08",
-    },
-    {
-        id: 9,
-        sku: "SKU-0009",
-        itemName: "Diesel Exhaust Fluid",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-09",
-    },
-    {
-        id: 10,
-        sku: "SKU-0010",
-        itemName: "Diesel",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-10",
-    },
-    {
-        id: 11,
-        sku: "SKU-0011",
-        itemName: "Fuel Filter",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-11",
-    },
-    {
-        id: 12,
-        sku: "SKU-0012",
-        itemName: "Head Lights",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-12",
-    },
-    {
-        id: 13,
-        sku: "SKU-0013",
-        itemName: "Hub Bolt",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-13",
-    },
-    {
-        id: 14,
-        sku: "SKU-0014",
-        itemName: "Brake Lining",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-14",
-    },
-    {
-        id: 15,
-        sku: "SKU-0015",
-        itemName: "Oil Filter",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-15",
-    },
-    {
-        id: 16,
-        sku: "SKU-0016",
-        itemName: "Fuel Filter",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-16",
-    },
-    {
-        id: 17,
-        sku: "SKU-0017",
-        itemName: "Brake Disc",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-17",
-    },
-    {
-        id: 18,
-        sku: "SKU-0018",
-        itemName: "Diesel",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-18",
-    },
-    {
-        id: 19,
-        sku: "SKU-0019",
-        itemName: "Diesel Exhaust Fluid",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-19",
-    },
-    {
-        id: 20,
-        sku: "SKU-0020",
-        itemName: "Head Lights",
-        category: "Consumable",
-        stockDisposalDate: "2025-06-20",
-    },
-];
+// initial empty list - will be populated from API
+const hardcodedData: any[] = [];
 
 
 export default function StockDisposal() {
@@ -166,7 +29,39 @@ export default function StockDisposal() {
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
     // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
+    const [filteredData, setFilteredData] = useState<any[]>(hardcodedData);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load disposals from backend
+    useEffect(() => {
+        const load = async () => {
+            try {
+                setIsLoading(true);
+                const res = await fetchDisposals('stock');
+                if (res && res.success) {
+                    // map stockDisposals to table rows
+                    const mapped = res.data.stockDisposals.map((d: StockDisposalType, idx: number) => ({
+                        id: idx + 1,
+                        disposal_id: d.disposal_id,
+                        sku: d.inventoryItem?.item_id || d.item_id,
+                        itemName: d.inventoryItem?.item_name || '',
+                        category: d.inventoryItem?.category?.category_name || '',
+                        stockDisposalDate: new Date(d.disposal_date).toLocaleDateString(),
+                        raw: d
+                    }));
+
+                    setFilteredData(mapped);
+                }
+            } catch (err) {
+                console.error('Error loading stock disposals', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        load();
+    }, []);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -287,7 +182,6 @@ export default function StockDisposal() {
             case "view-stock-disposal":
                 content = <ViewStockDisposalModal
                     item={rowData}
-                    // formatStatus={formatStatus}
                     onClose={closeModal}
                 />;
                 break;
@@ -317,11 +211,47 @@ export default function StockDisposal() {
     };
 
     // Handle add stock disposal
-    const handleAddStockDisposal = (stockDisposalForm: StockDisposalForm) => {
-        console.log("Saving form:", stockDisposalForm);
-        // Logic to add bus to the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleAddStockDisposal = async (stockDisposalForm: StockDisposalForm) => {
+        try {
+            // Map frontend form to API payload
+            const payload = {
+                type: 'stock',
+                item_id: stockDisposalForm.sku, // assuming SKU maps to item_id
+                batch_id: null,
+                quantity: stockDisposalForm.quantityDisposal,
+                disposal_date: stockDisposalForm.stockDisposalDate,
+                disposal_method: stockDisposalForm.stockDisposalMethod,
+                reason: stockDisposalForm.stockDisposalReason,
+                remarks: stockDisposalForm.stockDisposalRemarks,
+                created_by: 'USR-00001'
+            };
+
+            const result = await createDisposal(payload as any);
+            if (result.success) {
+                // refresh list
+                const res = await fetchDisposals('stock');
+                if (res && res.success) {
+                    const mapped = res.data.stockDisposals.map((d: StockDisposalType, idx: number) => ({
+                        id: idx + 1,
+                        disposal_id: d.disposal_id,
+                        sku: d.inventoryItem?.item_id || d.item_id,
+                        itemName: d.inventoryItem?.item_name || '',
+                        category: d.inventoryItem?.category?.category_name || '',
+                        stockDisposalDate: new Date(d.disposal_date).toLocaleDateString(),
+                        raw: d
+                    }));
+
+                    setFilteredData(mapped);
+                }
+
+                closeModal();
+            } else {
+                // API returned failure — show console for now (modal shows its own alerts)
+                console.error('Failed to create disposal', result.error);
+            }
+        } catch (err) {
+            console.error('Error creating stock disposal', err);
+        }
     };
 
     // Handle edit stock disposal
@@ -336,75 +266,92 @@ export default function StockDisposal() {
         <div className="card">
             <h1 className="title">Stock Disposal</h1>
 
-            {/* Search Engine and Filters */}
-            <div className="elements">
-                <div className="entries">
-                    <div className="search">
-                        <i className="ri-search-line" />
-                        <input type="text" placeholder="Search here..." />
+            {isLoading ? (
+                <Loading />
+            ) : (
+                <div className="elements">
+                    <div className="entries">
+                        <div className="search">
+                            <i className="ri-search-line" />
+                            <input type="text" placeholder="Search here..." />
+                        </div>
+
+                        {/* Filter Button with Dropdown */}
+                        <div className="filter">
+                            <FilterDropdown
+                                sections={filterSections}
+                                onApply={handleApplyFilters}
+                            />
+                        </div>
+
+                        {/* Add Stock Disposal Button */}
+                        <button className="main-btn" onClick={() => openModal("add-stock-disposal")}>
+                            <i className="ri-add-line" /> Add Disposal
+                        </button>
                     </div>
 
-                    {/* Filter Button with Dropdown */}
-                    <div className="filter">
-                        <FilterDropdown
-                            sections={filterSections}
-                            onApply={handleApplyFilters}
-                        />
-                    </div>
-
-                    {/* Add Stock Disposal Button */}
-                    <button className="main-btn" onClick={() => openModal("add-stock-disposal")}>
-                        <i className="ri-add-line" /> Add Disposal
-                    </button>
-                </div>
-
-                {/* Table */}
-                <div className="table-wrapper">
-                    <div className="table-container">
-                        <table className="data-table">
-                            <thead className="table-heading">
-                                <tr>
-                                    <th>SKU</th>
-                                    <th>Item Name</th>
-                                    <th>Category</th>
-                                    <th>Disposal Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.sku}</td>
-                                        <td>{item.itemName}</td>
-                                        <td>{item.category}</td>
-                                        <td>{item.stockDisposalDate}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-stock-disposal", item)}
-                                                // onEdit={() => openModal("edit-stock-disposal", item)}
-                                            // disableEdit={item.busDisposalStatus !== "pending" && item.busDisposalStatus !== "approved"}
-                                            />
-                                        </td>
+                    {/* Table */}
+                    <div className="table-wrapper">
+                        <div className="table-container">
+                            <table className="data-table">
+                                <thead className="table-heading">
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Item Name</th>
+                                        <th>Category</th>
+                                        <th>Disposal Date</th>
+                                        <th>Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="table-body">
+                                    {error ? (
+                                        <tr>
+                                            <td colSpan={5} style={{ textAlign: 'center', color: 'red' }}>
+                                                {error}
+                                            </td>
+                                        </tr>
+                                    ) : paginatedData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} style={{ textAlign: 'center' }}>
+                                                No stock disposals found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paginatedData.map(item => (
+                                            <tr
+                                                key={item.id}
+                                                className={selectedIds.includes(item.id) ? "selected" : ""}
+                                            >
+                                                <td>{item.sku}</td>
+                                                <td>{item.itemName}</td>
+                                                <td>{item.category}</td>
+                                                <td>{item.stockDisposalDate}</td>
+                                                <td>
+                                                    <ActionButtons
+                                                        onView={() => openModal("view-stock-disposal", item)}
+                                                        // onEdit={() => openModal("edit-stock-disposal", item)}
+                                                    // disableEdit={item.busDisposalStatus !== "pending" && item.busDisposalStatus !== "approved"}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                {/* Pagination */}
-                <PaginationComponent
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    pageSize={pageSize}
-                    totalItems={paginatedData.length}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                />
-            </div>
+                    {/* Pagination */}
+                    <PaginationComponent
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        totalItems={paginatedData.length}
+                        onPageChange={handlePageChange}
+                        onPageSizeChange={handlePageSizeChange}
+                    />
+                </div>
+            )}
 
             {/* Dynamic Modal Manager */}
             <ModalManager

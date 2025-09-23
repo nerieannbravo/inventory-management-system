@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { fetchDisposals, createDisposal, type BusDisposal } from "@/app/lib/fetchDisposals";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+import Loading from "@/components/loading";
 
 import AddBusDisposalModal, { BusDisposalForm } from "./addBusDisposalModal";
 import ViewBusDisposalModal from "./viewBusDisposalModal";
@@ -13,184 +15,47 @@ import ViewBusDisposalModal from "./viewBusDisposalModal";
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
-
-const hardcodedData = [
-    {
-        id: 1,
-        bodyNumber: "BUS001",
-        bodyBuilder: "Agila",
-        busType: "Airconditioned",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-01",
-    },
-    {
-        id: 2,
-        bodyNumber: "BUS002",
-        bodyBuilder: "Hilltop",
-        busType: "Ordinary",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-10-05",
-    },
-    {
-        id: 3,
-        bodyNumber: "BUS003",
-        bodyBuilder: "RBM",
-        busType: "Airconditioned",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-08",
-    },
-    {
-        id: 4,
-        bodyNumber: "BUS004",
-        bodyBuilder: "DARJ",
-        busType: "Ordinary",
-        busDisposalMethod: "Donated",
-        busDisposalDate: "2023-10-10",
-    },
-    {
-        id: 5,
-        bodyNumber: "BUS005",
-        bodyBuilder: "Agila",
-        busType: "Airconditioned",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-12",
-    },
-    {
-        id: 6,
-        bodyNumber: "BUS006",
-        bodyBuilder: "Hilltop",
-        busType: "Ordinary",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-10-14",
-    },
-    {
-        id: 7,
-        bodyNumber: "BUS007",
-        bodyBuilder: "RBM",
-        busType: "Airconditioned",
-        busDisposalMethod: "Donated",
-        busDisposalDate: "2023-10-16",
-    },
-    {
-        id: 8,
-        bodyNumber: "BUS008",
-        bodyBuilder: "DARJ",
-        busType: "Ordinary",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-18",
-    },
-    {
-        id: 9,
-        bodyNumber: "BUS009",
-        bodyBuilder: "Agila",
-        busType: "Airconditioned",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-10-20",
-    },
-    {
-        id: 10,
-        bodyNumber: "BUS010",
-        bodyBuilder: "Hilltop",
-        busType: "Ordinary",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-22",
-    },
-    {
-        id: 11,
-        bodyNumber: "BUS011",
-        bodyBuilder: "RBM",
-        busType: "Airconditioned",
-        busDisposalMethod: "Donated",
-        busDisposalDate: "2023-10-24",
-    },
-    {
-        id: 12,
-        bodyNumber: "BUS012",
-        bodyBuilder: "DARJ",
-        busType: "Ordinary",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-10-26",
-    },
-    {
-        id: 13,
-        bodyNumber: "BUS013",
-        bodyBuilder: "Agila",
-        busType: "Airconditioned",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-28",
-    },
-    {
-        id: 14,
-        bodyNumber: "BUS014",
-        bodyBuilder: "Hilltop",
-        busType: "Ordinary",
-        busDisposalMethod: "Donated",
-        busDisposalDate: "2023-10-30",
-    },
-    {
-        id: 15,
-        bodyNumber: "BUS015",
-        bodyBuilder: "RBM",
-        busType: "Airconditioned",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-11-01",
-    },
-    {
-        id: 16,
-        bodyNumber: "BUS016",
-        bodyBuilder: "DARJ",
-        busType: "Ordinary",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-11-03",
-    },
-    {
-        id: 17,
-        bodyNumber: "BUS017",
-        bodyBuilder: "Agila",
-        busType: "Airconditioned",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-11-05",
-    },
-    {
-        id: 18,
-        bodyNumber: "BUS018",
-        bodyBuilder: "Hilltop",
-        busType: "Ordinary",
-        busDisposalMethod: "Donated",
-        busDisposalDate: "2023-11-07",
-    },
-    {
-        id: 19,
-        bodyNumber: "BUS019",
-        bodyBuilder: "RBM",
-        busType: "Airconditioned",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-11-09",
-    },
-    {
-        id: 20,
-        bodyNumber: "BUS020",
-        bodyBuilder: "DARJ",
-        busType: "Ordinary",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-11-11",
-    },
-];
+import "@/styles/loading.css"
 
 
 export default function BusDisposal() {
+    // Data state
+    const [busDisposals, setBusDisposals] = useState<BusDisposal[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     // for modal
-    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
     // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
+    const [filteredData, setFilteredData] = useState<BusDisposal[]>([]);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Load disposal data on component mount
+    useEffect(() => {
+        loadDisposalData();
+    }, []);
+
+    const loadDisposalData = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const response = await fetchDisposals('bus');
+            setBusDisposals(response.data.busDisposals);
+            setFilteredData(response.data.busDisposals);
+        } catch (err) {
+            console.error('Error loading bus disposals:', err);
+            setError('Failed to load bus disposals');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -267,27 +132,28 @@ export default function BusDisposal() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        let newData = [...busDisposals];
 
-        // Example implementation for filtering and sorting:
-        let newData = [...hardcodedData];
+        // Filter by body builder if selected
+        if (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) {
+            newData = newData.filter(item => filterValues.bodyBuilder.includes(item.bus.body_builder.toLowerCase()));
+        }
 
-        // Filter by status if selected
-        // if (filterValues.busMaintenanceStatus && filterValues.busMaintenanceStatus.length > 0) {
-        //     newData = newData.filter(item => filterValues.busMaintenanceStatus.includes(item.busMaintenanceStatus));
-        // }
+        // Filter by bus type if selected
+        if (filterValues.busType && filterValues.busType.length > 0) {
+            newData = newData.filter(item => filterValues.busType.includes(item.bus.bus_type.toLowerCase()));
+        }
 
         // Sort by body number or date
         if (filterValues.sortBy === "bodyNumber") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyNumber.localeCompare(b.bodyNumber) * sortOrder;
+                return a.bus.body_number.localeCompare(b.bus.body_number) * sortOrder;
             });
         } else if (filterValues.sortBy === "busDisposalDate") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.busDisposalDate ?? "").localeCompare(b.busDisposalDate ?? "") * sortOrder;
+                return (a.disposal_date ?? "").localeCompare(b.disposal_date ?? "") * sortOrder;
             });
         }
 
@@ -339,11 +205,15 @@ export default function BusDisposal() {
     };
 
     // Handle add bus disposal
-    const handleAddBusDisposal = (busDisposalForm: BusDisposalForm) => {
-        console.log("Saving form:", busDisposalForm);
-        // Logic to add bus to the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleAddBusDisposal = async (busDisposalForm: BusDisposalForm) => {
+        try {
+            // The modal already calls the API, so we just need to reload the data
+            console.log("Bus disposal saved, reloading data");
+            loadDisposalData();
+            closeModal();
+        } catch (err) {
+            console.error('Error handling bus disposal save:', err);
+        }
     };
 
     // Handle edit bus disposal
@@ -358,77 +228,94 @@ export default function BusDisposal() {
         <div className="card">
             <h1 className="title">Bus Disposal</h1>
 
-            {/* Search Engine and Filters */}
-            <div className="elements">
-                <div className="entries">
-                    <div className="search">
-                        <i className="ri-search-line" />
-                        <input type="text" placeholder="Search here..." />
+            {isLoading ? (
+                <Loading />
+            ) : (
+                <div className="elements">
+                    <div className="entries">
+                        <div className="search">
+                            <i className="ri-search-line" />
+                            <input type="text" placeholder="Search here..." />
+                        </div>
+
+                        {/* Filter Button with Dropdown */}
+                        <div className="filter">
+                            <FilterDropdown
+                                sections={filterSections}
+                                onApply={handleApplyFilters}
+                            />
+                        </div>
+
+                        {/* Add Bus Disposal Button */}
+                        <button className="main-btn" onClick={() => openModal("add-bus-disposal")}>
+                            <i className="ri-add-line" /> Add Disposal
+                        </button>
                     </div>
 
-                    {/* Filter Button with Dropdown */}
-                    <div className="filter">
-                        <FilterDropdown
-                            sections={filterSections}
-                            onApply={handleApplyFilters}
-                        />
-                    </div>
-
-                    {/* Add Bus Disposal Button */}
-                    <button className="main-btn" onClick={() => openModal("add-bus-disposal")}>
-                        <i className="ri-add-line" /> Add Disposal
-                    </button>
-                </div>
-
-                {/* Table */}
-                <div className="table-wrapper">
-                    <div className="table-container">
-                        <table className="data-table">
-                            <thead className="table-heading">
-                                <tr>
-                                    <th>Body Number</th>
-                                    <th>Body Builder</th>
-                                    <th>Bus Type</th>
-                                    <th>Disposal Method</th>
-                                    <th>Disposal Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.bodyNumber}</td>
-                                        <td>{item.bodyBuilder}</td>
-                                        <td>{item.busType}</td>
-                                        <td>{item.busDisposalMethod}</td>
-                                        <td>{item.busDisposalDate}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-bus-disposal", item)}
-                                            // onEdit={() => openModal("edit-bus-disposal", item)}
-                                            // disableEdit={item.busDisposalStatus !== "pending" && item.busDisposalStatus !== "approved"}
-                                            />
-                                        </td>
+                    {/* Table */}
+                    <div className="table-wrapper">
+                        <div className="table-container">
+                            <table className="data-table">
+                                <thead className="table-heading">
+                                    <tr>
+                                        <th>Body Number</th>
+                                        <th>Body Builder</th>
+                                        <th>Bus Type</th>
+                                        <th>Disposal Method</th>
+                                        <th>Disposal Date</th>
+                                        <th>Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="table-body">
+                                    {error ? (
+                                        <tr>
+                                            <td colSpan={6} style={{ textAlign: 'center', color: 'red' }}>
+                                                {error}
+                                            </td>
+                                        </tr>
+                                    ) : paginatedData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} style={{ textAlign: 'center' }}>
+                                                No bus disposals found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paginatedData.map(item => (
+                                            <tr
+                                                key={item.disposal_id}
+                                                className={selectedIds.includes(item.disposal_id) ? "selected" : ""}
+                                            >
+                                                <td>{item.bus.body_number}</td>
+                                                <td style={{textTransform: 'capitalize'}}>{item.bus.body_builder.toLowerCase()}</td>
+                                                <td style={{textTransform: 'capitalize'}}>{item.bus.bus_type.toLowerCase()}</td>
+                                                <td style={{textTransform: 'capitalize'}}>{item.disposal_method.toLowerCase()}</td>
+                                                <td>{new Date(item.disposal_date).toLocaleDateString()}</td>
+                                                <td>
+                                                    <ActionButtons
+                                                        onView={() => openModal("view-bus-disposal", item)}
+                                                    // onEdit={() => openModal("edit-bus-disposal", item)}
+                                                    // disableEdit={item.disposal_status !== "PENDING"}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                {/* Pagination */}
-                <PaginationComponent
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    pageSize={pageSize}
-                    totalItems={paginatedData.length}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                />
-            </div>
+                    {/* Pagination */}
+                    <PaginationComponent
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        pageSize={pageSize}
+                        totalItems={filteredData.length}
+                        onPageChange={handlePageChange}
+                        onPageSizeChange={handlePageSizeChange}
+                    />
+                </div>
+            )}
 
             {/* Dynamic Modal Manager */}
             <ModalManager

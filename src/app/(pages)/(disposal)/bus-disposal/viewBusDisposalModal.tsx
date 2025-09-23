@@ -1,14 +1,8 @@
+import { BusDisposal } from "@/app/lib/fetchDisposals";
 import "@/styles/forms.css";
 
 interface ViewBusDisposalModalProps {
-    item: {
-        id: number,
-        bodyNumber: string,
-        busDisposalMethod: string,
-        busDisposalDate: string,
-        // viewitional fields would be included in a real application
-    };
-    // formatStatus: (status: string) => string;
+    item: BusDisposal;
     onClose: () => void;
 }
 
@@ -29,13 +23,13 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                         {/* Body Number */}
                         <div className="form-group">
                             <label>Body Number</label>
-                            <p>{item.bodyNumber}</p>
+                            <p>{item.bus.body_number}</p>
                         </div>
                     </div>
                 </form>
             </div>
 
-            {/* For view bus detais */}
+            {/* For view bus details */}
             <p className="details-title">I. Bus Details</p>
             <div className="modal-content view">
                 <form className="view-form">
@@ -44,19 +38,19 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                         {/* Plate Number */}
                         <div className="form-group">
                             <label>Plate Number</label>
-                            <p>NGJ 4213</p>
+                            <p>{item.bus.plate_number}</p>
                         </div>
 
                         {/* Body Builder */}
                         <div className="form-group">
                             <label>Body Builder</label>
-                            <p>Agila</p>
+                            <p>{item.bus.body_builder}</p>
                         </div>
 
                         {/* Bus Type */}
                         <div className="form-group">
                             <label>Bus Type</label>
-                            <p>Airconditioned</p>
+                            <p>{item.bus.bus_type}</p>
                         </div>
                     </div>
 
@@ -65,19 +59,19 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                         {/* Manufacturer */}
                         <div className="form-group">
                             <label>Manufacturer</label>
-                            <p>Iveco</p>
+                            <p>{item.bus.manufacturer}</p>
                         </div>
 
                         {/* Model */}
                         <div className="form-group">
                             <label>Model</label>
-                            <p>Raize</p>
+                            <p>{item.bus.model}</p>
                         </div>
 
-                        {/* Year Model */}
+                        {/* Year */}
                         <div className="form-group">
                             <label>Year</label>
-                            <p>2019</p>
+                            <p>{item.bus.year_model}</p>
                         </div>
                     </div>
 
@@ -86,41 +80,41 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                         {/* Seat Capacity */}
                         <div className="form-group">
                             <label>Seat Capacity</label>
-                            <p>NGJ 4213</p>
+                            <p>{item.bus.seat_capacity}</p>
                         </div>
 
                         {/* Chassis Number */}
                         <div className="form-group">
                             <label>Chassis Number</label>
-                            <p>78HKJUAAY81971</p>
+                            <p>{item.bus.chasis_number}</p>
                         </div>
 
                         {/* Engine Number */}
                         <div className="form-group">
                             <label>Engine Number</label>
-                            <p>HAU892DJ292</p>
+                            <p>{item.bus.engine_number}</p>
                         </div>
                     </div>
 
                 </form>
             </div>
 
-            {/* For disposal detais */}
+            {/* For disposal details */}
             <p className="details-title">II. Disposal Details</p>
             <div className="modal-content view">
                 <form className="view-form">
-                    {/* disposal date and type */}
+                    {/* disposal date and method */}
                     <div className="form-row">
                         {/* Disposal Date */}
                         <div className="form-group">
                             <label>Disposal Date</label>
-                            <p>{item.busDisposalDate}</p>
+                            <p>{new Date(item.disposal_date).toLocaleDateString()}</p>
                         </div>
 
                         {/* Disposal Method */}
                         <div className="form-group">
                             <label>Disposal Method</label>
-                            <p>{item.busDisposalMethod}</p>
+                            <p style={{textTransform: 'capitalize'}}>{item.disposal_method.toLowerCase()}</p>
                         </div>
                     </div>
 
@@ -128,23 +122,7 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                     <div className="form-row">
                         <div className="form-group">
                             <label>Reason for Disposal</label>
-                            <p>Not usable</p>
-                        </div>
-                    </div>
-
-                    {/* Attachments */}
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Attachments</label>
-                            <div className="uploaded-document-item">
-                                {/* Example: Replace with dynamic document list */}
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Warranty.pdf
-                                </a>
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Insurance.pdf
-                                </a>
-                            </div>
+                            <p>{item.reason}</p>
                         </div>
                     </div>
 
@@ -152,7 +130,7 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                     <div className="form-row">
                         <div className="form-group">
                             <label>Remarks</label>
-                            <p>None</p>
+                            <p>{item.remarks || "None"}</p>
                         </div>
                     </div>
 
