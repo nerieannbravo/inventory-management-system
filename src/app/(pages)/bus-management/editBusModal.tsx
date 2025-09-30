@@ -274,9 +274,9 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         <>
             <div className="modal-heading"><h1 className="modal-title">Edit Bus</h1><button className="close-modal-btn" onClick={handleClose}><i className="ri-close-line"></i></button></div>
             <form id="edit-bus-form" onSubmit={handleSubmit}>
-                <p className="bus-details-title">I. Basic Identification</p>
+                <p className="details-title">I. Basic Identification</p>
                 <div className="modal-content edit">
-                    <div className="edit-bus-form">
+                    <div className="edit-form">
                         <div className="form-row">
                             {/* Plate Number */}
                             <div className="form-group">
@@ -424,9 +424,9 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                 {formData.condition === "SECOND_HAND" && (
                     <>
-                        <p className="bus-details-title">II. Second Hand Details</p>
+                        <p className="details-title">II. Second Hand Details</p>
                         <div className="modal-content edit">
-                            <div className="edit-bus-form">
+                            <div className="edit-form">
                                 <div className="form-row">
                                     {/* Acquisition Date */}
                                     <div className="form-group">
@@ -575,9 +575,9 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                 {formData.condition === "BRAND_NEW" && (
                     <>
-                        <p className="bus-details-title">II. Brand New Details</p>
+                        <p className="details-title">II. Brand New Details</p>
                         <div className="modal-content edit">
-                            <div className="edit-bus-form">
+                            <div className="edit-form">
                                 <div className="form-row">
                                     {/* Acquisition Date */}
                                     <div className="form-group">
@@ -662,9 +662,9 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                     </>
                 )}
 
-                <p className="bus-details-title">III. Document Attachments</p>
+                <p className="details-title">III. Document Attachments</p>
                 <div className="modal-content edit">
-                    <div className="edit-bus-form">
+                    <div className="edit-form">
                         {/* Existing Attachments */}
                         <div className="form-group">
                             <label>Existing Attachments</label>

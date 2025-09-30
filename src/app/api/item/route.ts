@@ -3,6 +3,64 @@ import { prisma } from '../../lib/prisma';
 import { generateId } from '../../lib/idGenerator';
 import { calculateAndUpdateStatus } from "../../lib/itemStatus";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+// FTMS item-level PATCH function
+async function patchFtmsProcessedItems(stockItems: any[], results: Array<{ success: boolean }>) {
+  const FTMS_ITEMS_URL = process.env.FTMS_ITEMS_URL;
+  if (!FTMS_ITEMS_URL) {
+    console.warn('FTMS_ITEMS_URL is not configured; skipping FTMS PATCH');
+    return;
+  }
+
+  const hasPairs = (it: any) => typeof it?.receipt_id === 'string' && typeof it?.item_id === 'string';
+  const hasTxnPair = (it: any) => typeof it?.transaction_id === 'string' && typeof it?.item_id === 'string';
+
+  // Primary approach: use receipt_id + item_id pairs
+  const processedItems = stockItems.flatMap((item, idx) =>
+    results[idx]?.success && hasPairs(item) ? [{ receipt_id: item.receipt_id, item_id: item.item_id }] : [],
+  );
+
+  if (processedItems.length > 0) {
+    try {
+      await fetch(FTMS_ITEMS_URL, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: processedItems }),
+      });
+      console.log(`✅ Successfully PATCH ${processedItems.length} item-level pairs to FTMS`);
+      return;
+    } catch (error) {
+      console.error('Failed to PATCH item-level pairs to FTMS:', error);
+      throw error;
+    }
+  }
+
+  // Fallback when receipt_id is not available externally
+  const processedTxnPairs = stockItems.flatMap((item, idx) =>
+    results[idx]?.success && hasTxnPair(item)
+      ? [{ transaction_id: item.transaction_id as string, item_id: item.item_id as string }]
+      : [],
+  );
+
+  if (processedTxnPairs.length > 0) {
+    try {
+      await fetch(FTMS_ITEMS_URL, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaction_items: processedTxnPairs }),
+      });
+      console.log(`✅ Successfully PATCH ${processedTxnPairs.length} transaction item pairs to FTMS (fallback)`);
+      return;
+    } catch (error) {
+      console.error('Failed to PATCH transaction item pairs to FTMS:', error);
+      throw error;
+    }
+  }
+
+  console.info('No eligible FTMS items to PATCH');
+}
+
 export async function GET() {
   try {
     // Get current date at midnight for expiration check
@@ -49,40 +107,40 @@ export async function GET() {
 
     // Process each item to calculate current_stock and status
     const processedItems = await Promise.all(items.map(async (item) => {
-    const { batches, ...itemData } = item;
+      const { batches, ...itemData } = item;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+      // Calculate current stock: use DB value for ITEM-00001, else sum usable quantities
+      let current_stock: number;
+      if (item.category_id === 'CAT-00002') {
+        current_stock = item.current_stock;
+      } else {
+        current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
+      }
 
-    // Calculate current stock: use DB value for ITEM-00001, else sum usable quantities
-    let current_stock: number;
-    if (item.category_id === 'CAT-00002') {
-      current_stock = item.current_stock;
-    } else {
-      current_stock = batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
-    }
+      const hasExpiredBatch = batches.some(batch => {
+        if (!batch.expiration_date) return false;
+        const expirationDate = new Date(batch.expiration_date);
+        expirationDate.setHours(0, 0, 0, 0);
+        return expirationDate <= today;
+      });
 
-    const hasExpiredBatch = batches.some(batch => {
-      if (!batch.expiration_date) return false;
-      const expirationDate = new Date(batch.expiration_date);
-      expirationDate.setHours(0, 0, 0, 0);
-      return expirationDate <= today;
-    });
+      let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE'| 'IN_USED';
+      if (hasExpiredBatch) {
+        status = 'EXPIRED';
+      } else if (item.category.category_name === "Consumable" && current_stock === 0) {
+        status = 'OUT_OF_STOCK';
+      } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
+        status = 'LOW_STOCK';
+      } else if (["Machine", "Tool", "Equipment"].includes(item.category.category_name) && current_stock === 0) {
+        status = 'IN_USED';
+      } else {
+        status = item.status as typeof status;
+      }
 
-    let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE'| 'IN_USED';
-    if (hasExpiredBatch) {
-      status = 'EXPIRED';
-    } else if (item.category.category_name === "Consumable" && current_stock === 0) {
-      status = 'OUT_OF_STOCK';
-    } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
-      status = 'LOW_STOCK';
-    } else if (["Machine", "Tool", "Equipment"].includes(item.category.category_name) && current_stock === 0) {
-      status = 'IN_USED';
-    } else {
-      status = item.status as typeof status;
-    }
       await prisma.inventoryItem.update({
-        where: { item_id:item.item_id },
+        where: { item_id: item.item_id },
         data: { status }
       });
 
@@ -95,14 +153,15 @@ export async function GET() {
     }));
 
     // Count all buses using item_id 'ITEM-00001'
-          const busCount = await prisma.bus.count({
-            where: { item_id: 'ITEM-00001' }
-          });
-          // Update current_stock in inventoryItem
-          await prisma.inventoryItem.update({
-            where: { item_id: 'ITEM-00001' },
-            data: { current_stock: busCount }
-          });
+    const busCount = await prisma.bus.count({
+      where: { item_id: 'ITEM-00001' }
+    });
+
+    // Update current_stock in inventoryItem
+    await prisma.inventoryItem.update({
+      where: { item_id: 'ITEM-00001' },
+      data: { current_stock: busCount }
+    });
 
     // Also return all batches separately if needed
     const batches = await prisma.batch.findMany({
@@ -134,8 +193,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    
-
     const { stockItems } = await request.json();
     console.log(`🔄 Starting to process ${stockItems.length} items`);
 
@@ -170,7 +227,6 @@ export async function POST(request: NextRequest) {
         if (existingItem) {
           console.log(`🔄 Updating existing item: ${existingItem.item_id}`);
           // Update existing inventory item
-
           const updatedItem = await prisma.inventoryItem.update({
             where: { item_id: existingItem.item_id, isdeleted: false },
             data: {
@@ -209,7 +265,6 @@ export async function POST(request: NextRequest) {
                 : item.category
             }
           });
-
           if (!category) {
             throw new Error(`Category not found for ${item.category}`);
           }
@@ -262,22 +317,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`🏁 Finished processing. Results:`, results.map(r => r.action));
 
-    // After processing all items, mark them as processed in the external system if they have a transaction_id
-    const processedTransactionIds = stockItems
-      .filter((item: any, idx: number) => results[idx]?.success && item.transaction_id)
-      .map((item: any) => item.transaction_id);
-    if (processedTransactionIds.length > 0) {
-      try {
-        await fetch('https://ftms.agilabuscorp.me/api/inventory', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ transaction_ids: processedTransactionIds }),
-        });
-      } catch (patchError) {
-        console.error('Failed to PATCH processed transaction_ids to external system:', patchError);
-      }
+    // Use the new FTMS item-level PATCH approach
+    try {
+      await patchFtmsProcessedItems(stockItems, results);
+    } catch (patchError) {
+      console.error('FTMS PATCH operation failed:', patchError);
+      // Don't fail the entire operation if FTMS PATCH fails
     }
 
     return NextResponse.json({ success: true, results });
@@ -296,49 +341,52 @@ export async function PUT(request: NextRequest) {
     const { item_id, reorder_level, status, category_id } = await request.json();
 
     if (!item_id || item_id === "undefined") {
-            return NextResponse.json({ success: false, error: "Missing or invalid item_id" }, { status: 400 });
-        }
+      return NextResponse.json({ success: false, error: "Missing or invalid item_id" }, { status: 400 });
+    }
 
     const updated = await prisma.inventoryItem.update({
-            where: { item_id: String(item_id) },
-            data: {
-                reorder_level: reorder_level,
-                status: status,
-                category_id: category_id,
-                date_updated: new Date(),
-            },
-        });
-        await calculateAndUpdateStatus(item_id);
-        return NextResponse.json({ 
+      where: { item_id: String(item_id) },
+      data: {
+        reorder_level: reorder_level,
+        status: status,
+        category_id: category_id,
+        date_updated: new Date(),
+      },
+    });
+
+    await calculateAndUpdateStatus(item_id);
+
+    return NextResponse.json({ 
       success: true, 
       item: updated,
       message: 'Item updated successfully'
     });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
-    }
-}
-
-export async function PATCH (req: NextRequest) {
-
-    if (req.method === 'PATCH') {
-        try {
-            const { item_id } = await req.json();
-          // Soft-delete the inventory item
-          await prisma.inventoryItem.update({
-              where: { item_id: String(item_id) },
-              data: { isdeleted: true },
-          });
-          // Soft-delete all batches for this item
-          await prisma.batch.updateMany({
-              where: { item_id: String(item_id) },
-              data: { isdeleted: true },
-          });
-          return NextResponse.json({ success: true });
-      } catch (error) {
-          console.error("Delete error:", error);
-          return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
-      }
+  } catch (error) {
+    return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
   }
 }
 
+export async function PATCH(req: NextRequest) {
+  if (req.method === 'PATCH') {
+    try {
+      const { item_id } = await req.json();
+
+      // Soft-delete the inventory item
+      await prisma.inventoryItem.update({
+        where: { item_id: String(item_id) },
+        data: { isdeleted: true },
+      });
+
+      // Soft-delete all batches for this item
+      await prisma.batch.updateMany({
+        where: { item_id: String(item_id) },
+        data: { isdeleted: true },
+      });
+
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      console.error("Delete error:", error);
+      return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
+    }
+  }
+}

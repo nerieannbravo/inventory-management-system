@@ -27,7 +27,6 @@ export interface StockDisposalForm {
     quantityDisposal: number,
     unitMeasureDisposal: string,
     stockDisposalReason: string;
-    stockDisposalAttachment: string[];
     stockDisposalRemarks: string;
 }
 
@@ -59,16 +58,41 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
         quantityDisposal: 0,
         unitMeasureDisposal: "",
         stockDisposalReason: "",
-        stockDisposalAttachment: [],
         stockDisposalRemarks: "",
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+    const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+    const [loadingItems, setLoadingItems] = useState(false);
 
     useEffect(() => {
         setIsDirty(true);
     }, [stockDisposalForm]);
+
+    // Load inventory items for the SKU selector
+    useEffect(() => {
+        const loadItems = async () => {
+            try {
+                setLoadingItems(true);
+                const res = await fetch('/api/item');
+                if (!res.ok) throw new Error('Failed to load items');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.items)) {
+                    setInventoryItems(data.items);
+                } else {
+                    setInventoryItems([]);
+                }
+            } catch (err) {
+                console.error('Error loading inventory items for SKU selector', err);
+                setInventoryItems([]);
+            } finally {
+                setLoadingItems(false);
+            }
+        };
+
+        loadItems();
+    }, []);
 
     // Function to handle changes in the form fields
     const handleChange = (field: string, value: any) => {
@@ -98,6 +122,10 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
         if (!stockDisposalForm.quantityDisposal || stockDisposalForm.quantityDisposal === 0) {
             errors.quantityDisposal = "Disposal quantity is required and cannot be 0";
         } 
+        // Ensure disposal quantity does not exceed available stock
+        else if (stockDisposalForm.quantityDisposal > (stockDisposalForm.quantity || 0)) {
+            errors.quantityDisposal = `Disposal quantity cannot be greater than available stock (${stockDisposalForm.quantity || 0})`;
+        }
         // IF DISPOSAL QUANTITY CANNOT BE GREATER THAN THE STOCK QUANTITY
         // else if (stockDisposalForm.quantityDisposal >= stockDisposalForm.quantity) {
         //     errors.quantityDisposal = "Disposal quantity cannot be greater than available quantity";
@@ -154,7 +182,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
@@ -162,15 +190,39 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                             <select
                                 className={formErrors?.sku ? "invalid-input" : ""}
                                 value={stockDisposalForm.sku}
-                                onChange={(e) => handleChange("sku", e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    handleChange("sku", val);
+
+                                    // Populate stock detail fields when an SKU is selected
+                                    const selected = inventoryItems.find(it => it.item_id === val || it.item_id === String(val));
+                                    if (selected) {
+                                        handleChange('itemName', selected.item_name || '');
+                                        handleChange('category', selected.category?.category_name || '');
+                                        handleChange('quantity', selected.current_stock ?? 0);
+                                        handleChange('unitMeasure', selected.unit_measure || '');
+                                        // manufacturer may not be present; leave empty if not available
+                                        handleChange('manufacturer', selected.manufacturer || '');
+                                    } else {
+                                        // Clear details if selection is empty or not found
+                                        handleChange('itemName', '');
+                                        handleChange('category', '');
+                                        handleChange('quantity', 0);
+                                        handleChange('unitMeasure', '');
+                                        handleChange('manufacturer', '');
+                                    }
+                                }}
                             >
                                 <option value="" disabled>--Select SKU Here--</option>
-                                <option value="Tire001">Tire001 - Michelin X Coach</option>
-                                <option value="Oil002">Oil002 - Shell Rimula R4</option>
-                                <option value="Battery003">Battery003 - Motolite Gold</option>
-                                <option value="Filter004">Filter004 - Fleetguard Air Filter</option>
-                                <option value="Brake005">Brake005 - Bendix Brake Pad</option>
-                                {/* Add more SKUs as needed */}
+                                {loadingItems ? (
+                                    <option value="">Loading items...</option>
+                                ) : inventoryItems.length === 0 ? (
+                                    <option value="">No items available</option>
+                                ) : (
+                                    inventoryItems.map((it) => (
+                                        <option key={it.item_id} value={it.item_id}>{`${it.item_id} - ${it.item_name}`}</option>
+                                    ))
+                                )}
                             </select>
                             <p className="add-error-message">{formErrors?.sku}</p>
                         </div>
@@ -179,9 +231,9 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Stock Details</p>
+            <p className="details-title">I. Stock Details</p>
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     {/* SKU and category */}
                     <div className="form-row">
                         {/* Item Name */}
@@ -234,7 +286,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                                 type="text"
                                 value={stockDisposalForm.unitMeasure}
                                 onChange={(e) => handleChange("unitMeasure", e.target.value)}
-                                placeholder="Bus type here"
+                                placeholder="Unit measure here"
                                 disabled
                             />
                         </div>
@@ -256,9 +308,9 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             {/* For Disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     {/* Disposal date and method */}
                     <div className="form-row">
                         {/* Disposal Date */}
@@ -343,49 +395,6 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                         </div>
                     </div>
 
-                    {/* Form row - Disposal Documents */}
-                    <div className="form-row">
-                        {/* Disposal Documents */}
-                        <div className="form-group">
-                            <label>Disposal Attachments</label>
-                            <input
-                                className={formErrors?.stockDisposalAttachment ? "invalid-input" : ""}
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                multiple
-                                onChange={(e) => {
-                                    const files = Array.from(e.target.files || []);
-                                    const newFileNames = files.map(f => f.name);
-                                    const allFiles = Array.from(new Set([...stockDisposalForm.stockDisposalAttachment, ...newFileNames]));
-                                    handleChange("stockDisposalAttachment", allFiles);
-                                }}
-                            />
-                            {/* Show all uploaded document names and remove buttons */}
-                            {stockDisposalForm.stockDisposalAttachment.length > 0 && (
-                                <ul className="uploaded-documents-list">
-                                    {stockDisposalForm.stockDisposalAttachment.map((doc, idx) => (
-                                        <li key={idx} className="uploaded-document-item">
-                                            <span>{doc}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = stockDisposalForm.stockDisposalAttachment.filter((_, i) => i !== idx);
-                                                    handleChange("stockDisposalAttachment", updated);
-                                                }}
-                                                className="remove-document-button"
-                                                aria-label={`Remove document ${doc}`}
-                                            >
-                                                <i className="ri-close-line"></i>
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-
-                            <p className="add-error-message">{formErrors?.stockDisposalAttachment}</p>
-                        </div>
-                    </div>
-
                     {/* Remarks */}
                     <div className="form-row">
                         <div className="form-group">
@@ -404,7 +413,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                 </form >
             </div >
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

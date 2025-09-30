@@ -99,7 +99,7 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
 
             {/* Edit Order Form */}
             <div className="modal-content edit">
-                <form className="edit-order-form" id="edit-order-form" onSubmit={handleSubmit}>
+                <form className="edit-form">
                     <div className="form-row">
                         <div className="form-column">
                             {/* Item Name */}
@@ -123,7 +123,7 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
                                     value={formData.ordQuantity}
                                     onChange={(e) => handleChange("ordQuantity", Number(e.target.value))}
                                 />
-                                <p className="add-error-message"></p>
+                                <p className="edit-error-message"></p>
                             </div>
 
                             {/* Status */}
@@ -139,7 +139,7 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
                                     <option value="approved">Approved</option>
                                     <option value="pending">Pending</option>
                                 </select>
-                                <p className="add-error-message">{formErrors?.ordStatus}</p>
+                                <p className="edit-error-message">{formErrors?.ordStatus}</p>
                             </div>
                         </div>
 
@@ -152,14 +152,14 @@ export default function EditOrderModal({ item, onSave, onClose }: EditOrderModal
                                 onChange={(e) => handleChange("ordReason", e.target.value)}
                             >
                             </textarea>
-                            <p className="add-error-message">{formErrors?.ordReason}</p>
+                            <p className="edit-error-message">{formErrors?.ordReason}</p>
                         </div>
                     </div>
                 </form>
             </div>
 
             <div className="modal-actions">
-                <button type="submit" className="submit-btn" form="edit-order-form">
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
                     <i className="ri-save-3-line" /> Update
                 </button>
             </div>

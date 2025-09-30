@@ -6,8 +6,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url      = env("DATABASE_URL")
-  url      = "postgresql://postgres:QZfSMQJLSQKywVPRsAcyjLqzKoTvIIuT@interchange.proxy.rlwy.net:34432/railway"
+  url      = env("DATABASE_URL")
 }
 
 model InventoryItem {
@@ -25,6 +24,7 @@ model InventoryItem {
   batches       Batch[]
   employeeRequests EmployeeRequest[]
   bus           Bus[]
+  stockDisposals StockDisposal[]
   category      Category        @relation(fields: [category_id], references: [category_id])
  
   @@map("inventory_items")
@@ -103,7 +103,8 @@ model Bus {
 
   secondHandDetails     SecondHandDetails?
   brandNewDetails       BrandNewDetails?
-  busOtherFiles            BusOtherFiles[]
+  busOtherFiles         BusOtherFiles[]
+  busDisposals          BusDisposal[]
 
   @@map("bus")
 }
@@ -141,6 +142,53 @@ model BusOtherFiles {
 
 @@map("bus_other_files")
 }
+
+model BusDisposal {
+  disposal_id       String           @id @db.VarChar(20)
+  bus_id            String
+  disposal_date     DateTime
+  disposal_method   DisposalMethod
+  reason            String           @db.Text
+  estimated_value   Float?
+  actual_value      Float?
+  disposal_status   DisposalStatus   @default(PENDING)
+  approved_by       String?          @db.VarChar(20)
+  approved_date     DateTime?
+  remarks           String?          @db.Text
+  date_created      DateTime         @default(now())
+  date_updated      DateTime         @updatedAt
+  created_by        String           @db.VarChar(20)
+  isdeleted         Boolean          @default(false)
+  
+  bus               Bus              @relation(fields: [bus_id], references: [bus_id], onDelete: Cascade)
+
+  @@map("bus_disposals")
+}
+
+model StockDisposal {
+  disposal_id       String           @id @db.VarChar(20)
+  item_id           String
+  batch_id          String?          @db.VarChar(20)
+  quantity          Int
+  disposal_date     DateTime
+  disposal_method   DisposalMethod
+  reason            String           @db.Text
+  estimated_value   Float?
+  actual_value      Float?
+  disposal_status   DisposalStatus   @default(PENDING)
+  approved_by       String?          @db.VarChar(20)
+  approved_date     DateTime?
+  remarks           String?          @db.Text
+  date_created      DateTime         @default(now())
+  date_updated      DateTime         @updatedAt
+  created_by        String           @db.VarChar(20)
+  isdeleted         Boolean          @default(false)
+  
+  inventoryItem     InventoryItem    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+
+  @@map("stock_disposals")
+}
+
 
 enum InventoryStatus {
   LOW_STOCK
@@ -206,4 +254,18 @@ enum BusSource {
   DEALERSHIP
   AUCTION
   PRIVATE_INDIVIDUAL
+}
+
+enum DisposalMethod {
+  SOLD
+  SCRAPPED
+  DONATED
+  TRANSFERRED
+}
+
+enum DisposalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
 }

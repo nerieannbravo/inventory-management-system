@@ -28,6 +28,25 @@
     padding: 8px;
 }
 
+/* ----- GENERATE REPORT BUTTON STYLING ----- */
+.default-btn {
+    width: 160px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    background-color: var(--table-header-color);
+    color: var(--secondary-text-color);
+    font-size: 14px;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.default-btn:hover {
+    background-color: var(--border-color);
+}
 
 /* ----- GENERATE REPORT BUTTON STYLING ----- */
 .generate-btn {

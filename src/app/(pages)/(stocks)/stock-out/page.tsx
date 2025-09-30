@@ -46,7 +46,7 @@ interface ApiResponse {
     error?: string;
 }
 
-export default function RequestManagement() {
+export default function StockOut() {
     // Data state
     const [requestList, setRequestList] = useState<EmployeeRequest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -68,7 +68,7 @@ export default function RequestManagement() {
 
     // PDF Report state
     const [showReportPreview, setShowReportPreview] = useState(false);
-    const [reportTitle, setReportTitle] = useState("Request Management Report");
+    const [reportTitle, setReportTitle] = useState("Stock Out Report");
 
     // Fetch data from API
     useEffect(() => {
@@ -407,7 +407,7 @@ export default function RequestManagement() {
             (filterValues.request_type && filterValues.request_type.length > 0) ||
             (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to));
 
-        const title = hasFilters ? "Request Management Report - Filtered" : "Request Management Report";
+        const title = hasFilters ? "Stock Out Report - Filtered" : "Stock Out Report";
 
         setReportTitle(title);
         setShowReportPreview(true);
@@ -421,7 +421,7 @@ export default function RequestManagement() {
     if (loading) {
         return (
             <div className="card">
-                <h1 className="title">Request Management</h1>
+                <h1 className="title">Stock Out</h1>
                 <Loading />
             </div>
         );
@@ -430,7 +430,7 @@ export default function RequestManagement() {
     if (error && requestList.length === 0) {
         return (
             <div className="card">
-                <h1 className="title">Request Management</h1>
+                <h1 className="title">Stock Out</h1>
                 <div className="fetch-container">
                     <div className="fetch-error">
                         <i className="ri-error-warning-line" />
@@ -446,7 +446,7 @@ export default function RequestManagement() {
 
     return (
         <div className="card">
-            <h1 className="title">Request Management</h1>
+            <h1 className="title">Stock Out</h1>
 
             {/* Search Engine and Filters */}
             <div className="elements">

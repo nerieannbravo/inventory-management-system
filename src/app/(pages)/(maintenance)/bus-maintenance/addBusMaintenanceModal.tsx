@@ -232,7 +232,7 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
             </div>
 
             <div className="modal-content add">
-                <form className="add-bus-maintenance-form">
+                <form className="add-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -255,9 +255,9 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content add">
-                <form className="add-bus-maintenance-form">
+                <form className="add-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -388,9 +388,9 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
             </div>
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">II. Maintenance Details</p>
+            <p className="details-title">II. Maintenance Details</p>
             <div className="modal-content add">
-                <form className="add-bus-maintenance-form">
+                <form className="add-form">
                     {/* Maintenance date and type */}
                     <div className="form-row">
                         {/* Maintenance Date */}
@@ -468,9 +468,9 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
             </div >
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">III. Used Items</p>
+            <p className="details-title">III. Used Items</p>
             <div className="modal-content add">
-                <form className="add-bus-maintenance-form">
+                <form className="add-form">
                     {/* Used Stocks */}
                     {busMaintenanceForm.items?.map((item, idx) => (
                         <div className="form-row" key={idx}>
@@ -523,7 +523,7 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
                             </div>
 
                             {/* Button: Add (last row only) / Remove (others) */}
-                            <div className="modal-actions add">
+                            <div className="modal-actions">
                                 {idx === busMaintenanceForm.items.length - 1 ? (
                                     <div className="add-maintenance-btn-wrapper">
                                         <button
@@ -554,9 +554,9 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
             </div >
 
             {/* For mechanic detais */}
-            <p className="bus-details-title">IV. Mechanic Details</p>
+            <p className="details-title">IV. Mechanic Details</p>
             <div className="modal-content add">
-                <form className="add-bus-maintenance-form">
+                <form className="add-form">
                     {/* Employee name and department */}
                     <div className="form-row">
                         {/* Employee Department */}
@@ -613,7 +613,7 @@ export default function AddBusMaintenanceModal({ onSave, onClose }: AddBusMainte
                 </form >
             </div >
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

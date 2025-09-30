@@ -7,7 +7,6 @@ import {
 
 import "@/styles/forms.css";
 
-// Export the interface so it can be imported by other components
 export interface OrderForm {
     itemName: string,
     ordQuantity: number,
@@ -103,7 +102,7 @@ export default function AddOrderModal({ onSave, onClose }: AddOrderModalProps) {
             </div>
 
             <div className="modal-content add">
-                <form className="add-order-form">
+                <form className="add-form">
                     <div className="form-row">
                         <div className="form-column">
                             {/* Item Name */}
@@ -161,7 +160,7 @@ export default function AddOrderModal({ onSave, onClose }: AddOrderModalProps) {
                 </form>
             </div>
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

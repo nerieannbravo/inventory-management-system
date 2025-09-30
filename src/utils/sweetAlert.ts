@@ -7,7 +7,7 @@ import "@/styles/popup.css";
 export const showCloseWithoutSavingConfirmation = () => {
     return Swal.fire({
         title: 'Unsaved Changes',
-        html: '<p>You have unsaved changes. Are you sure you want to close without saving?</p>',
+        html: '<p>You might have unsaved changes. Are you sure you want to close without saving?</p>',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Close Without Saving',
@@ -24,7 +24,7 @@ export const showCloseWithoutSavingConfirmation = () => {
 export const showCloseWithoutUpdatingConfirmation = () => {
     return Swal.fire({
         title: 'Unsaved Changes',
-        html: '<p>You have unsaved changes. Are you sure you want to close without updating?</p>',
+        html: '<p>You might have unsaved changes. Are you sure you want to close without updating?</p>',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Close Without Updating',
@@ -146,54 +146,6 @@ export const showStockUpdatedSuccess = () => {
     return Swal.fire({
         title: 'Updated!',
         text: 'Stock details has been updated.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Stock Confirmation ----- //
-export const showStockDeleteConfirmation = (item_name: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete <strong>${item_name}</strong>? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Stock Save Error ----- //
-export const showDeleteError = (item_name: string, current_stock: number) => {
-    return Swal.fire({
-        title: 'Delete Action Denied',
-        html: `<p>Cannot delete <strong>${item_name}</strong>, it still has ${current_stock} items. 
-        Please reduce the stock to 0 before deleting this item.</p>`,
-        icon: 'error',
-        confirmButtonText: 'Okay',
-        background: 'white',
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Stock Success ----- //
-export const showStockDeletedSuccess = (item_name: string) => {
-    return Swal.fire({
-        title: 'Deleted!',
-        html: `<p><strong>${item_name}</strong> has been deleted.</p>`,
         icon: 'success',
         background: 'white',
         timer: 2000,
@@ -333,53 +285,6 @@ export const showEditError = (status: string, customMessage?: string) => {
     });
 };
 
-// ----- Delete Request Confirmation ----- //
-export const showRequestDeleteConfirmation = (itemName: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the request for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Request Success ----- //
-export const showRequestDeletedSuccess = () => {
-    return Swal.fire({
-        title: 'Deleted!',
-        text: 'Item request has been deleted.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-
-export const showDeleteRequestError = (status: string) => {
-    return Swal.fire({
-        title: 'Delete Action Denied',
-        html: `<p>This request cannot be deleted because it's still marked as <strong>${status}</strong>.</p>`,
-        icon: 'error',
-        confirmButtonText: 'Okay',
-        background: 'white',
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 // ----- Request Save Error ----- //
 export const showRequestSaveError = (errorMessage?: string) => {
     return Swal.fire({
@@ -462,40 +367,6 @@ export const showOrderUpdatedSuccess = () => {
         }
     });
 };
-
-// ----- Delete Order Confirmation ----- //
-export const showOrderDeleteConfirmation = (itemName: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the order for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Order Success ----- //
-export const showOrderDeletedSuccess = () => {
-    return Swal.fire({
-        title: 'Deleted!',
-        text: 'Order for has been deleted.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 
 //-------------------- BUS MANAGEMENT SPECIFIC -------------------//
 
@@ -727,6 +598,21 @@ export const showBusDisposalUpdatedSuccess = () => {
     });
 };
 
+// ----- Bus Disposal Save Error ----- //
+export const showBusDisposalSaveError = (errorMessage?: string) => {
+    return Swal.fire({
+        title: 'Error!',
+        text: errorMessage || 'Failed to save bus disposal. Please try again.',
+        icon: 'error',
+        background: 'white',
+        confirmButtonText: 'OK',
+        customClass: {
+            popup: 'swal-custom-popup',
+            confirmButton: 'swal-error-button'
+        }
+    });
+};
+
 
 //-------------------- STOCK MAINTENANCE SPECIFIC -------------------//
 
@@ -864,3 +750,272 @@ export const showStockDisposalUpdatedSuccess = () => {
     });
 };
 
+//-------------------- ITEM MANAGEMENT SPECIFIC -------------------//
+
+// ----- Add Item Confirmation ----- //
+export const showItemSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this item?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Item Success ----- //
+export const showItemSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Item added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Item Confirmation ----- //
+export const showItemUpdateConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${itemName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Item Success ----- //
+export const showItemUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Item detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Supplier Confirmation ----- //
+export const showDeleteLinkedSupplierConfirmation = () => {
+    return Swal.fire({
+        title: 'Remove Linked Supplier',
+        html: `<p>Are you sure you want to delete this linked supplier? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Supplier Success ----- //
+export const showDeleteLinkedSupplierSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        html: `<p>A linked supplier has been deleted.</p>`,
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+//-------------------- SUPPLIER MANAGEMENT SPECIFIC -------------------//
+
+// ----- Add Supplier Confirmation ----- //
+export const showSupplierSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this supplier?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Supplier Success ----- //
+export const showSupplierSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Supplier added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Supplier Confirmation ----- //
+export const showSupplierUpdateConfirmation = (supplierName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${supplierName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Supplier Success ----- //
+export const showSupplierUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Supplier detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Item Confirmation ----- //
+export const showDeleteLinkedItemConfirmation = () => {
+    return Swal.fire({
+        title: 'Remove Linked Item',
+        html: `<p>Are you sure you want to delete this linked item? You will not be able to undo this.</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Remove Linked Item Success ----- //
+export const showDeleteLinkedItemSuccess = () => {
+    return Swal.fire({
+        title: 'Deleted!',
+        html: `<p>A linked item has been deleted.</p>`,
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+//-------------------- ITEM CATEGORY SPECIFIC -------------------//
+
+// ----- Add Category Confirmation ----- //
+export const showCategorySaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this item category?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Category Success ----- //
+export const showCategorySavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Item category added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Category Confirmation ----- //
+export const showCategoryUpdateConfirmation = (categoryName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${categoryName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Category Success ----- //
+export const showCategoryUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Category detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};

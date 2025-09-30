@@ -129,9 +129,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 				<h1 className="modal-title">View Bus</h1>
 			</div>
 
-			<p className="bus-details-title">I. Basic Identification</p>
+			<p className="details-title">I. Basic Identification</p>
 			<div className="modal-content view">
-				<div className="view-order-form">
+				<div className="view-form">
 					{/* Plate number and Body number */}
 					<div className="form-row">
 						<div className="form-group">
@@ -200,9 +200,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
 			{item.condition?.toLowerCase().includes("second") && item.secondHandDetails && (
 				<>
-					<p className="bus-details-title">II. Second Hand Details</p>
+					<p className="details-title">II. Second Hand Details</p>
 					<div className="modal-content view">
-						<div className="view-order-form">
+						<div className="view-form">
 							<div className="form-row">
 								<div className="form-group">
 									<label>Acquisition Date</label>
@@ -266,9 +266,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
 			{item.condition?.toLowerCase().includes("brand") && item.brandNewDetails && (
 				<>
-					<p className="bus-details-title">II. Brand New Details</p>
+					<p className="details-title">II. Brand New Details</p>
 					<div className="modal-content view">
-						<div className="view-order-form">
+						<div className="view-form">
 							<div className="form-row">
 								<div className="form-group">
 									<label>Acquisition Date</label>
@@ -304,9 +304,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 				</>
 			)}
 
-			<p className="bus-details-title">III. Document Attachments</p>
+			<p className="details-title">III. Document Attachments</p>
 			<div className="modal-content view">
-				<div className="view-order-form">
+				<div className="view-form">
 					<div className="form-row">
 						<div className="form-group">
 							<label>Attachments</label>

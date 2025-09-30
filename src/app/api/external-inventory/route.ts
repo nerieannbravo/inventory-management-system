@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   try {
-    const response = await fetch('https://ftms.agilabuscorp.me/api/inventory', {
+    const FTMS_ITEMS_URL = process.env.FTMS_ITEMS_URL;
+    if (!FTMS_ITEMS_URL) {
+      throw new Error('FTMS_ITEMS_URL is not configured in the environment');
+    }
+    const response = await fetch(FTMS_ITEMS_URL, {
       headers: {
         'Content-Type': 'application/json',
       },

@@ -5,7 +5,7 @@ import {
 	showStockSaveError, showPartialSuccessWarning
 } from "@/utils/sweetAlert";
 import "@/styles/forms.css";
-import { fetchAvailableItems, Item as ExternalItem } from '../../lib/fetchItems';
+import { fetchAvailableItems, Item as ExternalItem } from '../../../lib/fetchItems';
 
 // Export the interface so it can be imported by other components
 export interface StockForm {
@@ -122,15 +122,17 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 	}, [stockForms]);
 
 	// Handle item selection - populate unit and category from the selected item
-	const handleItemSelection = async (index: number, transactionId: string) => {
+	const handleItemSelection = async (index: number, compositeId: string) => {
 		try {
-			// Find the selected item in our already fetched items array
-			const selectedItem = items.find(item => item.transaction_id === transactionId);
+			// Parse composite value: "<transaction_id>::<item_id>"
+			const [transactionId, itemId] = (compositeId || '').split('::');
+			// Find the selected item in our already fetched items array using both ids
+			const selectedItem = items.find(item => item.transaction_id === transactionId && item.item_id === itemId);
 
 			if (selectedItem) {
 				// Check if this item is already selected in another form
 				const isDuplicate = stockForms.some((form, i) =>
-					i !== index && form.transaction_id === transactionId
+					i !== index && form.transaction_id === transactionId && form.item_id === itemId
 				);
 
 				if (isDuplicate) {
@@ -176,8 +178,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						i === index
 							? {
 								...form,
-								transaction_id: selectedItem.transaction_id,
-								item_id: selectedItem.item_id,
+									transaction_id: selectedItem.transaction_id,
+									item_id: selectedItem.item_id,
 								itemName: selectedItem.item_name,
 								unit: selectedItem.item_unit,
 								quantity: selectedItem.quantity,
@@ -419,19 +421,19 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			{/* Add Stock Form - allows adding multiple stocks */}
 			{stockForms.map((form, index) => (
 				<div className="modal-content add" key={index}>
-					<form className="add-stock-form" id={`add-stock-form-${index}`}>
+					<form className="add-form" id={`add-form-${index}`}>
 						{/* Item Name */}
 						<div className="form-group">
 							<label>Item Name</label>
 							<select
 								className={formErrors[index]?.transaction_id || formErrors[index]?.duplicate ? "invalid-input" : ""}
-								value={form.transaction_id}
+								value={form.transaction_id && form.item_id ? `${form.transaction_id}::${form.item_id}` : ""}
 								onChange={(e) => handleItemSelection(index, e.target.value)}
 								disabled={isLoading || isSaving}
 							>
 								<option value="" disabled>{isLoading ? "Loading items..." : "Select item name..."}</option>
 								{items.map((item) => (
-									<option key={item.transaction_id} value={item.transaction_id}>
+									<option key={`${item.transaction_id}::${item.item_id}`} value={`${item.transaction_id}::${item.item_id}`}>
 										{getItemDisplayName(item)}
 									</option>
 								))}
@@ -458,7 +460,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							<div className="form-group">
 								<label>Unit Measure</label>
 								<input disabled
-									value={form.unit}
+									value={form.unit ?? ""}
 									placeholder="unit"
 								/>
 							</div>
@@ -468,7 +470,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								<label>Category</label>
 								<select
 									className={formErrors[index]?.category ? "invalid-input" : ""}
-									value={form.category}
+									value={form.category ?? ""}
 									onChange={(e) => handleFormChange(index, "category", e.target.value)}
 									disabled={isSaving || preFilledCategories[index]}
 								>
@@ -553,7 +555,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 						<div className="form-row">
 							{/* Reorder Level */}
-							{form.category.toLowerCase() === "consumable" && (
+							{(form.category ?? "").toLowerCase() === "consumable" && (
 								<div className="form-group">
 									<label>Reorder Level</label>
 									<input
@@ -574,19 +576,19 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 							<div className="form-group">
 								<label>Status</label>
 								<input
-									disabled value={form.status}
+									disabled value={form.status ?? ""}
 								/>
 							</div>
 						</div>
 
 						{/* Expiration Date */}
-						{form.category.toLowerCase() === "consumable" && (
+						{(form.category ?? "").toLowerCase() === "consumable" && (
 							<div className="form-group">
 								<label>Expiration Date</label>
 								<input
 									className={formErrors[index]?.expiration ? "invalid-input" : ""}
 									type="date"
-									value={form.expiration}
+									value={form.expiration ?? ""}
 									onChange={(e) => handleFormChange(index, "expiration", e.target.value)}
 									disabled={isSaving}
 									min={new Date().toISOString().split("T")[0]}
@@ -613,7 +615,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				</div>
 			))}
 
-			<div className="modal-actions add">
+			<div className="modal-actions">
 				<button type="button" className="add-another-btn" onClick={handleAddAnotherStock}
 					disabled={isSaving}>
 					<i className="ri-add-line" /> Add Another Stock

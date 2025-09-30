@@ -49,7 +49,7 @@ interface ApiResponse {
     error?: string;
 }
 
-export default function StocksManagement() {
+export default function StockIn() {
     // Data state
     const [stockItems, setStockItems] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export default function StocksManagement() {
 
     // PDF Report state
     const [showReportPreview, setShowReportPreview] = useState(false);
-    const [reportTitle, setReportTitle] = useState("Stock Management Report");
+    const [reportTitle, setReportTitle] = useState("Stock In Report");
 
     // Fetch data from API
     useEffect(() => {
@@ -307,7 +307,7 @@ export default function StocksManagement() {
             // Set time to 00:00:00 for both dates to compare only the date part
             now.setHours(0, 0, 0, 0);
             const expiredCount = item.batches.filter(
-                batch => batch.expiration_date && 
+                batch => batch.expiration_date &&
                     new Date(batch.expiration_date).setHours(0, 0, 0, 0) <= now.getTime()
             ).length;
             return `${expiredCount} Expired`;
@@ -371,7 +371,7 @@ export default function StocksManagement() {
             case "edit-stock":
                 if (rowData && (rowData.category.category_name === "Bus")) {
                     showEditError(rowData.item_name, "Editing stock for Bus items is not allowed.");
-                    
+
                     return;
                 }
                 content = <EditStockModal
@@ -419,7 +419,7 @@ export default function StocksManagement() {
             (filterValues.category && filterValues.category.length > 0) ||
             (filterValues.dateRange && (filterValues.dateRange.from || filterValues.dateRange.to));
 
-        const title = hasFilters ? "Stock Management Report - Filtered" : "Stock Management Report";
+        const title = hasFilters ? "Stock In Report - Filtered" : "Stock In Report";
 
         setReportTitle(title);
         setShowReportPreview(true);
@@ -433,7 +433,7 @@ export default function StocksManagement() {
     if (loading) {
         return (
             <div className="card">
-                <h1 className="title">Stock Management</h1>
+                <h1 className="title">Stock In</h1>
                 <Loading />
             </div>
         );
@@ -442,7 +442,7 @@ export default function StocksManagement() {
     if (error && stockItems.length === 0) {
         return (
             <div className="card">
-                <h1 className="title">Stock Management</h1>
+                <h1 className="title">Stock In</h1>
                 <div className="fetch-container">
                     <div className="fetch-error">
                         <i className="ri-error-warning-line" />
@@ -458,7 +458,7 @@ export default function StocksManagement() {
 
     return (
         <div className="card">
-            <h1 className="title">Stock Management</h1>
+            <h1 className="title">Stock In</h1>
 
             {/* Search Engine and Status Filters */}
             <div className="elements">
