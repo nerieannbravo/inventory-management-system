@@ -28,6 +28,12 @@ CREATE TYPE "RegistrationStatus" AS ENUM ('REGISTERED', 'NOT_REGISTERED', 'NEEDS
 -- CreateEnum
 CREATE TYPE "BusSource" AS ENUM ('DEALERSHIP', 'AUCTION', 'PRIVATE_INDIVIDUAL');
 
+-- CreateEnum
+CREATE TYPE "DisposalMethod" AS ENUM ('SOLD', 'SCRAPPED', 'DONATED', 'TRANSFERRED');
+
+-- CreateEnum
+CREATE TYPE "DisposalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED');
+
 -- CreateTable
 CREATE TABLE "inventory_items" (
     "item_id" VARCHAR(20) NOT NULL,
@@ -154,6 +160,50 @@ CREATE TABLE "bus_other_files" (
     CONSTRAINT "bus_other_files_pkey" PRIMARY KEY ("bus_files_id")
 );
 
+-- CreateTable
+CREATE TABLE "bus_disposals" (
+    "disposal_id" VARCHAR(20) NOT NULL,
+    "bus_id" TEXT NOT NULL,
+    "disposal_date" TIMESTAMP(3) NOT NULL,
+    "disposal_method" "DisposalMethod" NOT NULL,
+    "reason" TEXT NOT NULL,
+    "estimated_value" DOUBLE PRECISION,
+    "actual_value" DOUBLE PRECISION,
+    "disposal_status" "DisposalStatus" NOT NULL DEFAULT 'PENDING',
+    "approved_by" VARCHAR(20),
+    "approved_date" TIMESTAMP(3),
+    "remarks" TEXT,
+    "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
+    "created_by" VARCHAR(20) NOT NULL,
+    "isdeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "bus_disposals_pkey" PRIMARY KEY ("disposal_id")
+);
+
+-- CreateTable
+CREATE TABLE "stock_disposals" (
+    "disposal_id" VARCHAR(20) NOT NULL,
+    "item_id" TEXT NOT NULL,
+    "batch_id" VARCHAR(20),
+    "quantity" INTEGER NOT NULL,
+    "disposal_date" TIMESTAMP(3) NOT NULL,
+    "disposal_method" "DisposalMethod" NOT NULL,
+    "reason" TEXT NOT NULL,
+    "estimated_value" DOUBLE PRECISION,
+    "actual_value" DOUBLE PRECISION,
+    "disposal_status" "DisposalStatus" NOT NULL DEFAULT 'PENDING',
+    "approved_by" VARCHAR(20),
+    "approved_date" TIMESTAMP(3),
+    "remarks" TEXT,
+    "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
+    "created_by" VARCHAR(20) NOT NULL,
+    "isdeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "stock_disposals_pkey" PRIMARY KEY ("disposal_id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "categories_category_name_key" ON "categories"("category_name");
 
@@ -189,3 +239,9 @@ ALTER TABLE "BrandNewDetails" ADD CONSTRAINT "BrandNewDetails_b_bus_id_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "bus_other_files" ADD CONSTRAINT "bus_other_files_bus_id_fkey" FOREIGN KEY ("bus_id") REFERENCES "bus"("bus_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "bus_disposals" ADD CONSTRAINT "bus_disposals_bus_id_fkey" FOREIGN KEY ("bus_id") REFERENCES "bus"("bus_id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "stock_disposals" ADD CONSTRAINT "stock_disposals_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "inventory_items"("item_id") ON DELETE CASCADE ON UPDATE CASCADE;
