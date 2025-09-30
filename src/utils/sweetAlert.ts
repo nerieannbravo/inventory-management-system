@@ -157,54 +157,6 @@ export const showStockUpdatedSuccess = () => {
     });
 };
 
-// ----- Delete Stock Confirmation ----- //
-export const showStockDeleteConfirmation = (item_name: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete <strong>${item_name}</strong>? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Stock Save Error ----- //
-export const showDeleteError = (item_name: string, current_stock: number) => {
-    return Swal.fire({
-        title: 'Delete Action Denied',
-        html: `<p>Cannot delete <strong>${item_name}</strong>, it still has ${current_stock} items. 
-        Please reduce the stock to 0 before deleting this item.</p>`,
-        icon: 'error',
-        confirmButtonText: 'Okay',
-        background: 'white',
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Stock Success ----- //
-export const showStockDeletedSuccess = (item_name: string) => {
-    return Swal.fire({
-        title: 'Deleted!',
-        html: `<p><strong>${item_name}</strong> has been deleted.</p>`,
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 // ----- Remove Expired Confirmation ----- //
 export const showDeleteExpiredConfirmation = () => {
     return Swal.fire({
@@ -333,53 +285,6 @@ export const showEditError = (status: string, customMessage?: string) => {
     });
 };
 
-// ----- Delete Request Confirmation ----- //
-export const showRequestDeleteConfirmation = (itemName: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the request for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Request Success ----- //
-export const showRequestDeletedSuccess = () => {
-    return Swal.fire({
-        title: 'Deleted!',
-        text: 'Item request has been deleted.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-
-export const showDeleteRequestError = (status: string) => {
-    return Swal.fire({
-        title: 'Delete Action Denied',
-        html: `<p>This request cannot be deleted because it's still marked as <strong>${status}</strong>.</p>`,
-        icon: 'error',
-        confirmButtonText: 'Okay',
-        background: 'white',
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 // ----- Request Save Error ----- //
 export const showRequestSaveError = (errorMessage?: string) => {
     return Swal.fire({
@@ -462,40 +367,6 @@ export const showOrderUpdatedSuccess = () => {
         }
     });
 };
-
-// ----- Delete Order Confirmation ----- //
-export const showOrderDeleteConfirmation = (itemName: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the order for <strong>${itemName}</strong>? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Order Success ----- //
-export const showOrderDeletedSuccess = () => {
-    return Swal.fire({
-        title: 'Deleted!',
-        text: 'Order for has been deleted.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 
 //-------------------- BUS MANAGEMENT SPECIFIC -------------------//
 
@@ -947,39 +818,6 @@ export const showItemUpdatedSuccess = () => {
     });
 };
 
-// ----- Delete Item Confirmation ----- //
-export const showItemDeleteConfirmation = (itemName: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the <strong>${itemName}</strong> record? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Item Success ----- //
-export const showItemDeletedSuccess = () => {
-    return Swal.fire({
-        title: 'Deleted!',
-        text: 'Item for has been deleted.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 // ----- Remove Linked Supplier Confirmation ----- //
 export const showDeleteLinkedSupplierConfirmation = () => {
     return Swal.fire({
@@ -1070,39 +908,6 @@ export const showSupplierUpdatedSuccess = () => {
     return Swal.fire({
         title: 'Updated!',
         text: 'Supplier detail has been updated.',
-        icon: 'success',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Supplier Confirmation ----- //
-export const showSupplierDeleteConfirmation = (supplierName: string) => {
-    return Swal.fire({
-        title: 'Confirm Deletion',
-        html: `<p>Are you sure you want to delete the <strong>${supplierName}</strong> record? You will not be able to undo this.</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Delete Supplier Success ----- //
-export const showSupplierDeletedSuccess = () => {
-    return Swal.fire({
-        title: 'Deleted!',
-        text: 'Item for has been deleted.',
         icon: 'success',
         background: 'white',
         timer: 2000,
