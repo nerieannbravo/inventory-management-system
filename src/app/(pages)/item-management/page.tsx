@@ -9,6 +9,7 @@ import PaginationComponent from "@/components/pagination";
 import AddItemModal, { ItemForm } from "./addItemModal";
 import ViewItemModal from "./viewItemModal";
 import EditItemModal from "./editItemModal";
+import AddCategoryModal, { CategoryForm } from "./category/addCategoryModal";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -220,7 +221,7 @@ export default function ItemManagement() {
     }
 
     // for the modals of add, view, and edit
-    const openModal = (mode: "add-item" | "view-item" | "edit-item", rowData?: any) => {
+    const openModal = (mode: "add-item" | "view-item" | "edit-item" | "add-category", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -241,6 +242,12 @@ export default function ItemManagement() {
                 content = <EditItemModal
                     item={rowData}
                     onSave={handleEditItem}
+                    onClose={closeModal}
+                />;
+                break;
+            case "add-category":
+                content = <AddCategoryModal
+                    onSave={handleAddCategory}
                     onClose={closeModal}
                 />;
                 break;
@@ -275,6 +282,14 @@ export default function ItemManagement() {
         closeModal();
     };
 
+    // Handle add category
+    const handleAddCategory = (categoryForm: CategoryForm) => {
+        console.log("Saving form:", categoryForm);
+        // Logic to add category to the data
+        // In a real app, this would likely be an API call
+        closeModal();
+    };
+
     return (
         <div className="card">
             <h1 className="title">Item Management</h1>
@@ -299,6 +314,7 @@ export default function ItemManagement() {
                     <button
                         type="button"
                         className="default-btn"
+                        onClick={() => openModal("add-category")}
                     >
                         <i className="ri-apps-2-add-line" /> Add Category
                     </button>

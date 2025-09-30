@@ -1146,3 +1146,71 @@ export const showDeleteLinkedItemSuccess = () => {
         }
     });
 };
+
+//-------------------- ITEM CATEGORY SPECIFIC -------------------//
+
+// ----- Add Category Confirmation ----- //
+export const showCategorySaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this item category?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Category Success ----- //
+export const showCategorySavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Item category added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Category Confirmation ----- //
+export const showCategoryUpdateConfirmation = (categoryName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${categoryName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Category Success ----- //
+export const showCategoryUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Category detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
