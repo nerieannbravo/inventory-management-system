@@ -1,11 +1,11 @@
 import { prisma } from '@/app/lib/prisma';
 
-export async function calculateAndUpdateStatus(item_id: string) {
+export async function calculateAndUpdateStatus(itemId: string) {
   const item = await prisma.inventoryItem.findUnique({
-    where: { item_id },
+    where: { itemId },
     include: {
       category: true,
-      batches: { where: { isdeleted: false } }
+      batches: { where: { isDeleted: false } }
     }
   });
   if (!item) return;
@@ -13,29 +13,29 @@ export async function calculateAndUpdateStatus(item_id: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const current_stock = item.batches.reduce((sum, batch) => sum + batch.usable_quantity, 0);
+  const current_stock = item.batches.reduce((sum, batch) => sum + batch.usableQuantity, 0);
   const hasExpiredBatch = item.batches.some(batch => {
-    if (!batch.expiration_date) return false;
-    const expirationDate = new Date(batch.expiration_date);
+    if (!batch.expirationDate) return false;
+    const expirationDate = new Date(batch.expirationDate as Date);
     expirationDate.setHours(0, 0, 0, 0);
     return expirationDate <= today;
   });
 
-  let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE'| 'IN_USED';
+  let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE' | 'IN_USE' | string;
   if (hasExpiredBatch) {
     status = 'EXPIRED';
-  } else if (item.category.category_name === "Consumable" && current_stock === 0) {
+  } else if (item.category.categoryName === "Consumable" && current_stock === 0) {
     status = 'OUT_OF_STOCK';
-  } else if (item.category.category_name === "Consumable" && current_stock <= item.reorder_level) {
+  } else if (item.category.categoryName === "Consumable" && current_stock <= item.reorderLevel) {
     status = 'LOW_STOCK';
-  } else if (["Machine", "Tool", "Equipment"].includes(item.category.category_name) && current_stock === 0) {
-    status = 'IN_USED';
+  } else if (["Machine", "Tool", "Equipment"].includes(item.category.categoryName) && current_stock === 0) {
+    status = 'IN_USE';
   } else {
-    status = "AVAILABLE";
+    status = "AVAILABLE" as typeof status;
   }
 
   await prisma.inventoryItem.update({
-    where: { item_id },
-    data: { status }
+    where: { itemId },
+    data: { status: status as any }
   });
 }

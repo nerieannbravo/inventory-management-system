@@ -1,0 +1,1 @@
+npm install; npx prisma migrate dev --name initial_commit; npx prisma db seed

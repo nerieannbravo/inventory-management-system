@@ -4,12 +4,14 @@ import {
     showItemUpdateConfirmation, showItemUpdatedSuccess,
     showCloseWithoutUpdatingConfirmation
 } from "@/utils/sweetAlert";
+import { getItems } from "@/app/lib/api";
 
 import "@/styles/forms.css";
 
 interface EditLinkedItemModalProps {
     item: {
         id: number;
+        itemId?: string;
         linkedItemName: string;
         itemCategory: string;
         itemUnit: string;
@@ -22,6 +24,7 @@ interface EditLinkedItemModalProps {
 export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinkedItemModalProps) {
     const [formData, setFormData] = useState({
         id: item.id,
+        itemId: item.itemId || "",
         linkedItemName: item.linkedItemName,
         itemCategory: item.itemCategory,
         itemUnit: item.itemUnit,
@@ -35,6 +38,27 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+    // Fetch items
+    const [items, setItems] = useState<any[]>([]);
+    const [loadingItems, setLoadingItems] = useState(true);
+
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                setLoadingItems(true);
+                const data = await getItems();
+                if (data.success) {
+                    setItems(data.items || []);
+                }
+            } catch (err) {
+                console.error('Error fetching items:', err);
+            } finally {
+                setLoadingItems(false);
+            }
+        };
+        fetchItems();
+    }, []);
+
     // Check if form data has changed from original
     useEffect(() => {
         const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
@@ -46,6 +70,19 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
             ...prev,
             [field]: value
         }));
+
+        // When item is selected, populate related fields from API data
+        if (field === "linkedItemName") {
+            const selected = items.find(i => i.itemName === value);
+            if (selected) {
+                setFormData(prev => ({
+                    ...prev,
+                    itemId: selected.itemId,
+                    itemCategory: selected.category?.categoryName || "",
+                    itemUnit: selected.unitMeasure || ""
+                }));
+            }
+        }
     };
 
     const validateForm = (): boolean => {
@@ -105,13 +142,21 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
                     {/* Linked Item Name */}
                     <div className="form-group">
                         <label>Item Name</label>
-                        <input disabled
+                        <select
                             className={formErrors?.linkedItemName ? "invalid-input" : ""}
-                            type="text"
                             value={formData.linkedItemName}
                             onChange={(e) => handleChange("linkedItemName", e.target.value)}
-                            placeholder="Enter item name here..."
-                        />
+                            disabled={loadingItems}
+                        >
+                            <option value="" disabled>
+                                {loadingItems ? "Loading items..." : "Select item name..."}
+                            </option>
+                            {items.map((item) => (
+                                <option key={item.id} value={item.itemName}>
+                                    {item.itemName}
+                                </option>
+                            ))}
+                        </select>
                         <p className="edit-error-message">{formErrors?.linkedItemName}</p>
                     </div>
 
@@ -125,6 +170,7 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
                                 value={formData.itemUnit}
                                 onChange={(e) => handleChange("itemUnit", e.target.value)}
                                 placeholder="Enter unit measure here..."
+                                disabled
                             />
                             <p className="edit-error-message"></p>
                         </div>
@@ -145,17 +191,14 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
                         {/* Category */}
                         <div className="form-group">
                             <label>Category</label>
-                            <select disabled
+                            <input
                                 className={formErrors?.itemCategory ? "invalid-input" : ""}
+                                type="text"
                                 value={formData.itemCategory || ""}
                                 onChange={(e) => handleChange("itemCategory", e.target.value)}
-                            >
-                                <option value="" disabled>Select category...</option>
-                                <option value="Consumable">Consumable</option>
-                                <option value="Tool">Tool</option>
-                                <option value="Equipment">Equipment</option>
-                                <option value="Machine">Machine</option>
-                            </select>
+                                placeholder="Category"
+                                disabled
+                            />
                             <p className="edit-error-message">{formErrors?.itemCategory}</p>
                         </div>
                     </div>

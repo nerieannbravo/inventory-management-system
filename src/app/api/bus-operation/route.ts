@@ -5,13 +5,13 @@ export async function GET() {
   try {
     const buses = await prisma.bus.findMany({
       select: {
-        bus_id: true,
-        plate_number: true,
-        body_number: true,
+        busId: true,
+        plateNumber: true,
+        bodyNumber: true,
         status: true,
-        bus_type: true,
-        body_builder: true,
-        seat_capacity: true,
+        busType: true,
+        bodyBuilder: true,
+        seatCapacity: true,
       },
     });
     return NextResponse.json({ success: true, buses });

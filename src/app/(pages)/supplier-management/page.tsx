@@ -9,61 +9,12 @@ import PaginationComponent from "@/components/pagination";
 import AddSupplierModal, { SupplierForm } from "./addSupplierModal";
 import ViewSupplierModal from "./viewSupplierModal";
 import EditSupplierModal from "./editSupplierModal";
+import { getSuppliers, createSupplier, updateSupplier } from '@/app/lib/api';
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/loading.css"
-
-const hardcodedData = [
-    {
-        id: 1,
-        supplierName: "Kang Seulgi",
-        supplierAdress: "Choji-dong, South Korea",
-        supplierContact: "09123456789",
-        supplierEmail: "seulgi@redvelvet.com",
-        supplierStatus: "active",
-        linkedItem: 2,
-    },
-    {
-        id: 2,
-        supplierName: "Bae Joohyun",
-        supplierAdress: "Daegu, South Korea",
-        supplierContact: "09375839774",
-        supplierEmail: "irene@redvelvet.com",
-        supplierStatus: "active",
-        linkedItem: 1,
-    },
-    {
-        id: 3,
-        supplierName: "Son Seungwan",
-        supplierAdress: "Seoul, South Korea",
-        supplierContact: "09288466274",
-        supplierEmail: "wendy@redvelvet.com",
-        supplierStatus: "inactive",
-        linkedItem: 3,
-    },
-    {
-        id: 4,
-        supplierName: "Park Sooyoung",
-        supplierAdress: "Jeju-do, South Korea",
-        supplierContact: "09747281193",
-        supplierEmail: "joy@redvelvet.com",
-        supplierStatus: "active",
-        linkedItem: 4,
-    },
-    {
-        id: 5,
-        supplierName: "Kim Yerim",
-        supplierAdress: "Seoul, South Korea",
-        supplierContact: "09338592064",
-        supplierEmail: "yeri@redvelvet.com",
-        supplierStatus: "inactive",
-        linkedItem: 2,
-    },
-];
-
-
 
 export default function SupplierManagement() {
     // for modal
@@ -72,8 +23,11 @@ export default function SupplierManagement() {
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
+    // For filtering and data
+    const [allSuppliers, setAllSuppliers] = useState<any[]>([]);
+    const [filteredData, setFilteredData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -143,15 +97,15 @@ export default function SupplierManagement() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
-
-        // Example implementation for filtering and sorting:
-        let newData = [...hardcodedData];
+        // Start with all suppliers from API
+        let newData = [...allSuppliers];
 
         // Filter by status if selected
         if (filterValues.supplierStatus && filterValues.supplierStatus.length > 0) {
-            newData = newData.filter(supplier => filterValues.supplierStatus.includes(supplier.supplierStatus));
+            newData = newData.filter(supplier => {
+                const status = (supplier.status || '').toLowerCase();
+                return filterValues.supplierStatus.some((s: string) => status.includes(s.toLowerCase()));
+            });
         }
 
         // Sort by supplierName or linkedItem
@@ -163,7 +117,9 @@ export default function SupplierManagement() {
         } else if (filterValues.sortBy === "linkedItem") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.linkedItem ?? 0) - (b.linkedItem ?? 0) * sortOrder;
+                const aCount = a.linkedItems?.length || 0;
+                const bCount = b.linkedItems?.length || 0;
+                return (aCount - bCount) * sortOrder;
             });
         }
 
@@ -225,20 +181,102 @@ export default function SupplierManagement() {
     };
 
     // Handle add supplier
-    const handleAddSupplier = (supplierForm: SupplierForm) => {
-        console.log("Saving form:", supplierForm);
-        // Logic to add supplier to the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleAddSupplier = async (supplierForm: SupplierForm & { linkedItems?: any[] }) => {
+        try {
+            setLoading(true);
+            // call create API
+            // Normalize linked items coming from the UI into the API's expected shape
+            const linkedItemsPayload = (supplierForm.linkedItems || []).map((li: any) => ({
+                // the API expects `item_id` (external item identifier string); accept multiple possible UI shapes
+                item_id: li.itemId ?? li.item_id ?? li.id ?? li.linkedItemId ?? null,
+                unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
+                averageDeliveryTime: li.averageDeliveryTime ?? li.average_delivery_time ?? null,
+                notes: li.notes ?? li.note ?? null,
+            })).filter((li: any) => li.item_id != null); // drop entries without an item identifier
+
+            const payload = {
+                supplierName: supplierForm.supplierName,
+                contactPerson: supplierForm.contactPerson,
+                phone: supplierForm.phone,
+                email: supplierForm.email,
+                street: supplierForm.street,
+                barangay: supplierForm.barangay,
+                city: supplierForm.city,
+                province: supplierForm.province,
+                status: supplierForm.status,
+                remarks: supplierForm.remarks,
+                linkedItems: linkedItemsPayload,
+            };
+            await createSupplier(payload);
+            // refetch list
+            const data = await getSuppliers();
+            setAllSuppliers(data.suppliers || []);
+            setFilteredData(data.suppliers || []);
+        } catch (err) {
+            console.error('Error creating supplier', err);
+        } finally {
+            setLoading(false);
+            closeModal();
+        }
     };
 
     // Handle edit supplier
-    const handleEditSupplier = (updatedSupplier: any) => {
-        console.log("Updating supplier:", updatedSupplier);
-        // Logic to update the supplier in the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleEditSupplier = async (updatedSupplier: any & { linkedItems?: any[] }) => {
+        try {
+            setLoading(true);
+            const linkedItemsPayload = (updatedSupplier.linkedItems || []).map((li: any) => ({
+                item_id: li.itemId ?? li.item_id ?? li.id ?? li.linkedItemId ?? null,
+                unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
+                averageDeliveryTime: li.averageDeliveryTime ?? li.average_delivery_time ?? null,
+                notes: li.notes ?? li.note ?? null,
+            })).filter((li: any) => li.item_id != null);
+
+            const payload = {
+                id: updatedSupplier.id,
+                supplierName: updatedSupplier.supplierName,
+                contactPerson: updatedSupplier.contactPerson,
+                phone: updatedSupplier.phone,
+                email: updatedSupplier.email,
+                street: updatedSupplier.street,
+                barangay: updatedSupplier.barangay,
+                city: updatedSupplier.city,
+                province: updatedSupplier.province,
+                status: updatedSupplier.status,
+                remarks: updatedSupplier.remarks,
+                linkedItems: linkedItemsPayload,
+            };
+            await updateSupplier(payload);
+            const data = await getSuppliers();
+            setAllSuppliers(data.suppliers || []);
+            setFilteredData(data.suppliers || []);
+        } catch (err) {
+            console.error('Error updating supplier', err);
+        } finally {
+            setLoading(false);
+            closeModal();
+        }
     };
+
+    // initial load of suppliers
+    React.useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                setLoading(true);
+                const data = await getSuppliers();
+                if (mounted) {
+                    setAllSuppliers(data.suppliers || []);
+                    setFilteredData(data.suppliers || []);
+                }
+            } catch (err) {
+                console.error('Failed to load suppliers', err);
+                if (mounted) setError('Failed to load suppliers');
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false };
+    }, []);
 
     return (
         <div className="card">
@@ -291,21 +329,22 @@ export default function SupplierManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(supplier => (
-                                    <tr
-                                        key={supplier.id}
-                                        className={selectedIds.includes(supplier.id) ? "selected" : ""}
-                                    >
+                                {paginatedData.map((supplier: any) => (
+                                    <tr key={supplier.id} className={selectedIds.includes(supplier.id) ? "selected" : ""}>
                                         <td>{supplier.supplierName}</td>
-                                        <td>{supplier.supplierAdress}</td>
-                                        <td>{supplier.supplierContact}</td>
-                                        <td>{supplier.supplierEmail}</td>
+                                        <td>
+                                            {[supplier.street, supplier.barangay, supplier.city, supplier.province]
+                                                .filter(Boolean)
+                                                .join(', ') || 'N/A'}
+                                        </td>
+                                        <td>{supplier.phone}</td>
+                                        <td>{supplier.email}</td>
                                         <td className="table-status">
-                                            <span className={`chip ${supplier.supplierStatus}`}>
-                                                {formatStatus(supplier.supplierStatus)}
+                                            <span className={`chip ${(supplier.status || '').toLowerCase()}`}>
+                                                {formatStatus(supplier.status)}
                                             </span>
                                         </td>
-                                        <td>{supplier.linkedItem}</td>
+                                        <td>{supplier.linkedItems?.length || 0}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-supplier", supplier)}

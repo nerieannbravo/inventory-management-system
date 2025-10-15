@@ -13,48 +13,45 @@ export async function GET() {
     }
 
     // Fetch all categories except 'Bus'
-    const request = await prisma.employeeRequest.findMany({
-      where: {
-        isdeleted: false
-      },
+    const requests = await prisma.employeeRequest.findMany({
+      where: { isDeleted: false },
       select: {
-        request_id: true,
-        item_id: true,
-        inventoryItem: {
-          select: { item_id: true, item_name: true }
-        },
-        emp_id: true,
-        request_type: true,
+        requestId: true,
+        itemId: true,
+        item: { select: { itemId: true, itemName: true } },
+        empNumber: true,
+        requestType: true,
         quantity: true,
-        req_purpose: true,
+        purpose: true,
         status: true,
-        expected_return_date: true,
-        actual_return_date: true,
-        date_created: true,
-        date_updated: true,
-        isdeleted: true,
-        created_by: true,
-      }
+        expectedReturnDate: true,
+        actualReturnDate: true,
+        createdAt: true,
+        updatedAt: true,
+        isDeleted: true,
+      },
     });
 
     // Attach employee data from new employee structure
-    const requestWithEmployee = request.map((req: any) => {
-      const employee = employees.find((emp: any) => emp.employeeNumber === req.emp_id);
+    const requestWithEmployee = requests.map((req: any) => {
+      const employee = employees.find((emp: any) => emp.employeeNumber === req.empNumber);
       return {
         ...req,
         firstName: employee?.firstName || '',
         lastName: employee?.lastName || '',
         empName: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Juan Dela Cruz',
-        employee: employee ? {
-          employeeNumber: employee.employeeNumber,
-          firstName: employee.firstName,
-          middleName: employee.middleName,
-          lastName: employee.lastName,
-          phone: employee.phone,
-          position: employee.position,
-          departmentId: employee.departmentId,
-          department: employee.department
-        } : null
+        employee: employee
+          ? {
+              employeeNumber: employee.employeeNumber,
+              firstName: employee.firstName,
+              middleName: employee.middleName,
+              lastName: employee.lastName,
+              phone: employee.phone,
+              position: employee.position,
+              departmentId: employee.departmentId,
+              department: employee.department,
+            }
+          : null,
       };
     });
 
@@ -70,7 +67,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { requests } = await req.json();
+  const { requests } = await req.json();
     const results = [];
 
     for (let i = 0; i < requests.length; i++){
@@ -78,42 +75,49 @@ export async function POST(req: NextRequest) {
             if (i > 0) {
             await new Promise(resolve => setTimeout(resolve, 10)); // 10ms delay
         }
-        const request_id = await generateId('employeeRequest', 'REQ');
+        const requestId = await generateId('employeeRequest', 'REQ');
+
+        // Resolve inventory item numeric id from provided external id or name
+        let inventoryItem = null;
+        if (request.itemId) {
+          inventoryItem = await prisma.inventoryItem.findFirst({ where: { itemId: request.itemId } });
+        }
+        if (!inventoryItem && request.itemName) {
+          inventoryItem = await prisma.inventoryItem.findFirst({ where: { itemName: request.itemName } });
+        }
+        if (!inventoryItem) {
+          results.push({ success: false, action: 'item_not_found', request: request });
+          continue;
+        }
+
         const newRequest = await prisma.employeeRequest.create({
-        data: {
-          request_id,
-          item_id: request.itemName,
-          emp_id: request.empName,
-          request_type: request.type,
-          quantity: request.reqQuantity,
-          req_purpose: request.purpose,
-          status: request.reqStatus,
-          expected_return_date: request.expectedDate ? new Date(request.expectedDate) : null,
-          isdeleted: false,
-          created_by: 1, // set as needed
-        },
-      });
+          data: {
+            requestId,
+            itemId: inventoryItem.id,
+            empNumber: request.empNumber || request.empName,
+            requestType: request.type as any,
+            quantity: Number(request.reqQuantity),
+            purpose: request.purpose,
+            status: request.reqStatus as any,
+            expectedReturnDate: request.expectedDate ? new Date(request.expectedDate) : null,
+            isDeleted: false,
+          },
+        });
 
       // FIFO batch deduction logic
         let remainingQty = request.reqQuantity;
         const batches = await prisma.batch.findMany({
-        where: {
-            item_id: request.itemName,
-            isdeleted: false,
-            usable_quantity: { gt: 0 },
-        },
-        orderBy: { expiration_date: 'asc' },
+          where: { itemId: inventoryItem.id, isDeleted: false, usableQuantity: { gt: 0 } },
+          orderBy: { expirationDate: 'asc' },
         });
 
         for (const batch of batches) {
-        if (remainingQty <= 0) break;
-        const deductQty = Math.min(batch.usable_quantity, remainingQty);
-        await prisma.batch.update({
-            where: { batch_id: batch.batch_id },
-            data: { usable_quantity: batch.usable_quantity - deductQty },
-        });
-        await calculateAndUpdateStatus(batch.item_id);
-        remainingQty -= deductQty;
+          if (remainingQty <= 0) break;
+          const deductQty = Math.min(batch.usableQuantity, remainingQty);
+          await prisma.batch.update({ where: { batchId: batch.batchId }, data: { usableQuantity: batch.usableQuantity - deductQty } });
+          // call status calc with external itemId
+          await calculateAndUpdateStatus(inventoryItem.itemId);
+          remainingQty -= deductQty;
         }
 
         if (remainingQty > 0) {
@@ -132,25 +136,22 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { request_id, status, actual_return_date } = await request.json();
+    const { requestId, status, actualReturnDate } = await request.json();
 
-    if (!request_id || request_id === "undefined") {
-      return NextResponse.json({ success: false, error: "Missing or invalid request_id" }, { status: 400 });
+    if (!requestId || requestId === 'undefined') {
+      return NextResponse.json({ success: false, error: 'Missing or invalid requestId' }, { status: 400 });
     }
 
-    // Fetch the original request to get previous status, item_id, and quantity
-    const originalRequest = await prisma.employeeRequest.findUnique({
-      where: { request_id: String(request_id) },
-      select: { status: true, item_id: true, quantity: true }
-    });
+    // Fetch the original request to get previous status, itemId, and quantity
+    const originalRequest = await prisma.employeeRequest.findUnique({ where: { requestId: String(requestId) }, select: { status: true, itemId: true, quantity: true } });
 
     if (!originalRequest) {
       return NextResponse.json({ success: false, error: "Request not found" }, { status: 404 });
     }
 
-    // If status is 'RETURNED' and actual_return_date is not provided, set it to now
-    let updatedActualReturnDate = actual_return_date;
-    if (status === "RETURNED") {
+  // If status is 'RETURNED' and actualReturnDate is not provided, set it to now
+  let updatedActualReturnDate = actualReturnDate;
+    if (status === 'RETURNED') {
       updatedActualReturnDate = new Date();
     }
 
@@ -158,34 +159,19 @@ export async function PUT(request: NextRequest) {
     if (status === "RETURNED" && originalRequest.status !== "RETURNED") {
       let remainingQty = originalRequest.quantity;
       // Find all batches for the item (LIFO: latest expiration first)
-      const batches = await prisma.batch.findMany({
-        where: {
-          item_id: originalRequest.item_id,
-          isdeleted: false,
-        },
-        orderBy: { expiration_date: "desc" },
-      });
+      const batches = await prisma.batch.findMany({ where: { itemId: originalRequest.itemId, isDeleted: false }, orderBy: { expirationDate: 'desc' } });
       for (const batch of batches) {
         if (remainingQty <= 0) break;
-        // Add as much as possible to each batch (could be split across batches)
-        await prisma.batch.update({
-          where: { batch_id: batch.batch_id },
-          data: { usable_quantity: batch.usable_quantity + remainingQty },
-        });
-        await calculateAndUpdateStatus(batch.item_id);
+        await prisma.batch.update({ where: { batchId: batch.batchId }, data: { usableQuantity: batch.usableQuantity + remainingQty } });
+        // Recalculate using external itemId string
+        const inv = await prisma.inventoryItem.findUnique({ where: { id: originalRequest.itemId } });
+        if (inv) await calculateAndUpdateStatus(inv.itemId);
         // All returned to the first batch (LIFO), so break after one update
         break;
       }
     }
 
-    const updated = await prisma.employeeRequest.update({
-      where: { request_id: String(request_id) },
-      data: {
-        status: status,
-        actual_return_date: updatedActualReturnDate ? new Date(updatedActualReturnDate) : null,
-        date_updated: new Date(),
-      },
-    });
+    const updated = await prisma.employeeRequest.update({ where: { requestId: String(requestId) }, data: { status: status as any, actualReturnDate: updatedActualReturnDate ? new Date(updatedActualReturnDate) : null } });
     return NextResponse.json({ 
       success: true, 
       request: updated,
@@ -200,12 +186,9 @@ export async function PATCH (req: NextRequest) {
 
     if (req.method === 'PATCH') {
         try {
-            const { request_id } = await req.json();
+            const { requestId } = await req.json();
           // Soft-delete 
-          await prisma.employeeRequest.update({
-              where: { request_id: String(request_id) },
-              data: { isdeleted: true },
-          });
+          await prisma.employeeRequest.update({ where: { requestId: String(requestId) }, data: { isDeleted: true } });
           return NextResponse.json({ success: true });
       } catch (error) {
           console.error("Delete error:", error);

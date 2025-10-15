@@ -3,15 +3,26 @@ import "@/styles/forms.css";
 interface ViewSupplierModalProps {
     item: {
         id: number;
-        supplierName: string,
-        supplierStreet: string,
-        supplierBarangay: string,
-        supplierCity: string,
-        supplierProvince: string,
-        supplierContact: string,
-        supplierEmail: string,
-        supplierStatus: string,
-        // Additional fields would be included in a real application
+        supplierId?: string;
+        supplierName: string;
+        contactPerson?: string;
+        phone?: string;
+        email?: string;
+        street?: string;
+        barangay?: string;
+        city?: string;
+        province?: string;
+        status: string;
+        remarks?: string;
+        linkedItems?: Array<{
+            id: number;
+            itemId?: string;
+            itemName?: string;
+            unitMeasure?: string;
+            unitPrice: number;
+            averageDeliveryTime?: string;
+            notes?: string;
+        }>;
     };
     formatStatus: (status: string) => string;
     onClose: () => void;
@@ -31,72 +42,99 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
             <div className="modal-content view">
                 <div className="view-form">
                     <div className="form-group">
+                        <label>Supplier ID</label>
+                        <p>{item.supplierId || 'N/A'}</p>
+                    </div>
+
+                    <div className="form-group">
                         <label>Supplier Name</label>
                         <p>{item.supplierName}</p>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
+                            <label>Contact Person</label>
+                            <p>{item.contactPerson || 'N/A'}</p>
+                        </div>
+
+                        <div className="form-group">
                             <label>Contact Number</label>
-                            <p>{item.supplierContact}</p>
+                            <p>{item.phone || 'N/A'}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Email</label>
-                            <p>{item.supplierEmail}</p>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Status</label>
-                            <p>{formatStatus(item.supplierStatus)}</p>
+                            <p>{item.email || 'N/A'}</p>
                         </div>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
                             <label>Street</label>
-                            <p>178 Don Fabian Extension</p>
+                            <p>{item.street || 'N/A'}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Barangay</label>
-                            <p>Commonwealth</p>
+                            <p>{item.barangay || 'N/A'}</p>
                         </div>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
                             <label>City</label>
-                            <p>Quezon City</p>
+                            <p>{item.city || 'N/A'}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Province</label>
-                            <p>Metro Manila</p>
+                            <p>{item.province || 'N/A'}</p>
                         </div>
                     </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Status</label>
+                            <p>{formatStatus(item.status)}</p>
+                        </div>
+                    </div>
+
+                    {item.remarks && (
+                        <div className="form-group">
+                            <label>Remarks</label>
+                            <p>{item.remarks}</p>
+                        </div>
+                    )}
                 </div>
             </div >
 
-            <p className="details-title">Linked Item/s</p>
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Unit Measure</th>
-                        <th>Unit Price</th>
-                        <th>Category</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    <tr>
-                        <td>Item 1</td>
-                        <td>pcs</td>
-                        <td>250</td>
-                        <td>Consumable</td>
-                    </tr>
-                </tbody>
-            </table>
+            <p className="details-title">Linked Item/s ({item.linkedItems?.length || 0})</p>
+            {item.linkedItems && item.linkedItems.length > 0 ? (
+                <table className="modal-table">
+                    <thead className="modal-table-heading">
+                        <tr>
+                            <th>Item ID</th>
+                            <th>Item Name</th>
+                            <th>Unit Measure</th>
+                            <th>Unit Price</th>
+                            <th>Delivery Time</th>
+                        </tr>
+                    </thead>
+                    <tbody className="modal-table-body">
+                        {item.linkedItems.map((linkedItem, index) => (
+                            <tr key={linkedItem.id || index}>
+                                <td>{linkedItem.itemId || 'N/A'}</td>
+                                <td>{linkedItem.itemName || 'N/A'}</td>
+                                <td>{linkedItem.unitMeasure || 'N/A'}</td>
+                                <td>₱{linkedItem.unitPrice?.toFixed(2) || '0.00'}</td>
+                                <td>{linkedItem.averageDeliveryTime || 'N/A'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            ) : (
+                <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>No linked items found</p>
+            )}
 
         </>
     );

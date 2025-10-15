@@ -1,4 +1,15 @@
-// Crush ako ni Nerie Ann.
+// ============================================================================
+// INVENTORY MANAGEMENT SYSTEM - PRISMA SCHEMA
+// Integrated Bus Transportation Management Platform
+// ============================================================================
+// This schema supports:
+// - Inventory & Stock Management
+// - Bus Fleet Management
+// - Purchase Request & Order Processing
+// - Budget Integration (Finance API)
+// - Employee References (HR API)
+// - Disposal Management
+// ============================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -9,186 +20,544 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model InventoryItem {
-  item_id       String          @id @db.VarChar(20)
-  category_id   String
-  item_name     String          @db.VarChar(100)
-  unit_measure  String          @db.VarChar(20)
-  current_stock Int             @default(0)
-  reorder_level Int             @default(0)
-  status        InventoryStatus
-  date_created  DateTime        @default(now())
-  date_updated  DateTime        @updatedAt
-  isdeleted     Boolean         @default(false)
-  created_by    String
-  batches       Batch[]
-  employeeRequests EmployeeRequest[]
-  bus           Bus[]
-  stockDisposals StockDisposal[]
-  category      Category        @relation(fields: [category_id], references: [category_id])
- 
-  @@map("inventory_items")
+// ============================================================================
+// HR INTEGRATION - Employee Reference Model
+// ============================================================================
+// Lightweight reference to HR system employees via API
+// Maps to HR endpoint payload: employeeNumber, firstName, lastName, etc.
+
+model EmployeeReference {
+  id                Int      @id @default(autoincrement())
+  employeeNumber    String   @unique @db.VarChar(20) // Maps to HR: EMP-0001
+  firstName         String   @db.VarChar(100)
+  middleName        String?  @db.VarChar(100)
+  lastName          String   @db.VarChar(100)
+  phone             String?  @db.VarChar(20)
+  position          String?  @db.VarChar(100)
+  departmentId      Int?
+  departmentName    String?  @db.VarChar(100)
+  isActive          Boolean  @default(true)
+  lastSynced        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations - tracks employee actions across inventory
+  createdPurchaseRequests  PurchaseRequest[]    @relation("PRCreator")
+  createdBudgetRequests    BudgetRequest[]      @relation("BRCreator")
+  stockTransactions        StockTransaction[]   @relation("StockHandler")
+  deliveryReceipts         DeliveryReceipt[]    @relation("DeliveryReceiver")
+  approvals                Approval[]           @relation("Approver")
+  createdOrders            PurchaseOrder[]      @relation("OrderCreator")
+  createdDisposals         DisposalRecord[]     @relation("DisposalCreator")
+
+  @@map("employee_references")
 }
 
-model Batch {
-  batch_id           String        @id @db.VarChar(20)
-  item_id            String
-  f_item_id          String        @db.VarChar(20)
-  usable_quantity    Int           @default(0)
-  defective_quantity Int           @default(0)
-  missing_quantity   Int           @default(0)
-  remarks            String?       @db.VarChar(255)
-  expiration_date    DateTime?
-  date_created       DateTime      @default(now())
-  created_by         String
-  isdeleted          Boolean       @default(false)
-  inventoryItem      InventoryItem @relation(fields: [item_id], references: [item_id])
-
-  @@map("batches")
-}
+// ============================================================================
+// ITEM & CATEGORY MANAGEMENT
+// ============================================================================
 
 model Category {
-  category_id    String          @id @db.VarChar(20)
-  category_name  String          @unique @db.VarChar(100)
-  date_created   DateTime        @default(now())
-  isdeleted      Boolean         @default(false)
-  inventoryItems InventoryItem[]
+  id            Int              @id @default(autoincrement())
+  categoryId    String           @unique @db.VarChar(20) // e.g., CAT-001
+  categoryName  String           @unique @db.VarChar(100)
+  description   String?          @db.Text
+  isDeleted     Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  items         InventoryItem[]
+  purchaseRequests PurchaseRequest[]
 
   @@map("categories")
 }
 
+model UnitMeasure {
+  id            Int              @id @default(autoincrement())
+  unitId        String           @unique @db.VarChar(20) // e.g., UNIT-001
+  unitName      String           @unique @db.VarChar(50) // pcs, liters, kg, etc.
+  abbreviation  String           @unique @db.VarChar(10) // pcs, L, kg, etc.
+  description   String?          @db.Text
+  isDeleted     Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  items         InventoryItem[]
+
+  @@map("unit_measures")
+}
+
+model InventoryItem {
+  id              Int                @id @default(autoincrement())
+  itemId          String             @unique @db.VarChar(20) // e.g., ITM-001
+  categoryId      Int
+  itemName        String             @db.VarChar(150)
+  description     String?            @db.Text
+  unitMeasureId   Int                // Foreign key to UnitMeasure
+  currentStock    Int                @default(0)
+  reorderLevel    Int                @default(0)
+  status          InventoryStatus    @default(AVAILABLE)
+  isDeleted       Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  // Relations
+  category           Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  unitMeasure        UnitMeasure           @relation(fields: [unitMeasureId], references: [id], onDelete: Restrict)
+  batches            Batch[]
+  stockTransactions  StockTransaction[]
+  employeeRequests   EmployeeRequest[]
+  buses              Bus[]
+  stockDisposals     DisposalRecord[]      @relation("DisposedItem")
+  purchaseItems      PurchaseItem[]
+  supplierItems      SupplierItem[]
+
+  @@map("inventory_items")
+}
+
+// ============================================================================
+// BATCH & STOCK MANAGEMENT
+// ============================================================================
+
+model Batch {
+  id                 Int              @id @default(autoincrement())
+  batchId            String           @unique @db.VarChar(20) // e.g., BAT-001
+  itemId             Int
+  usableQuantity     Int              @default(0)
+  defectiveQuantity  Int              @default(0)
+  missingQuantity    Int              @default(0)
+  remarks            String?          @db.VarChar(255)
+  expirationDate     DateTime?
+  isDeleted          Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  // Relations
+  item               InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  stockTransactions  StockTransaction[]
+
+  @@map("batches")
+}
+
+model StockTransaction {
+  id                 Int                    @id @default(autoincrement())
+  transactionId      String                 @unique @db.VarChar(20) // e.g., STK-001
+  itemId             Int
+  batchId            Int?
+  transactionType    StockTransactionType   // STOCK_IN, STOCK_OUT, ADJUSTMENT
+  quantity           Int
+  referenceType      String?                @db.VarChar(50) // PurchaseOrder, EmployeeRequest, Disposal
+  referenceId        String?                @db.VarChar(20)
+  remarks            String?                @db.Text
+  handledByEmpNumber String                 @db.VarChar(20)
+  transactionDate    DateTime               @default(now())
+  isDeleted          Boolean                @default(false)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+
+  // Relations
+  item               InventoryItem          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  batch              Batch?                 @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  handledBy          EmployeeReference      @relation("StockHandler", fields: [handledByEmpNumber], references: [employeeNumber], onDelete: Restrict)
+
+  @@map("stock_transactions")
+}
+
+// ============================================================================
+// EMPLOYEE REQUEST MANAGEMENT (Borrow/Consume)
+// ============================================================================
+
 model EmployeeRequest {
-  request_id    String          @id @db.VarChar(20)
-  item_id       String            
-  emp_id        String          @db.VarChar(20)
-  request_type  RequestType     
-  quantity      Int
-  req_purpose   String          @db.VarChar(255)
-  status        RequestStatus   
-  expected_return_date DateTime?
-  actual_return_date DateTime?
-  date_created  DateTime        @default(now())
-  date_updated  DateTime        @updatedAt
-  isdeleted     Boolean         @default(false)
-  created_by    Int
-  inventoryItem InventoryItem   @relation(fields: [item_id], references: [item_id])
+  id                   Int              @id @default(autoincrement())
+  requestId            String           @unique @db.VarChar(20) // e.g., REQ-001
+  itemId               Int
+  empNumber            String           @db.VarChar(20) // References HR employee
+  requestType          RequestType      // BORROW, CONSUME
+  quantity             Int
+  purpose              String           @db.VarChar(255)
+  status               RequestStatus    @default(PENDING)
+  expectedReturnDate   DateTime?
+  actualReturnDate     DateTime?
+  isDeleted            Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  // Relations
+  item                 InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Restrict)
 
   @@map("employee_requests")
 }
 
+// ============================================================================
+// SUPPLIER MANAGEMENT
+// ============================================================================
+
+model Supplier {
+  id                Int              @id @default(autoincrement())
+  supplierId        String           @unique @db.VarChar(20) // e.g., SUP-001
+  supplierName      String           @db.VarChar(150)
+  contactPerson     String?          @db.VarChar(100)
+  phone             String?          @db.VarChar(20)
+  email             String?          @db.VarChar(100)
+  street            String?          @db.VarChar(255)
+  barangay          String?          @db.VarChar(100)
+  city              String?          @db.VarChar(100)
+  province          String?          @db.VarChar(100)
+  status            SupplierStatus   @default(ACTIVE) // ACTIVE, FLAGGED, BLOCKED, INACTIVE
+  remarks           String?          @db.Text
+  isDeleted         Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  supplierItems     SupplierItem[]
+  purchaseOrders    PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model SupplierItem {
+  id                   Int              @id @default(autoincrement())
+  supplierId           Int
+  itemId               Int
+  unitPrice            Float            @default(0)
+  averageDeliveryTime  String?          @db.VarChar(50) // e.g., "1 week", "3-5 days"
+  notes                String?          @db.Text // Supplier-specific notes for this item
+  lastPurchaseDate     DateTime?
+  isPreferred          Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  // Relations
+  supplier             Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  item                 InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([supplierId, itemId])
+  @@map("supplier_items")
+}
+
+// ============================================================================
+// PURCHASE REQUEST & BUDGET REQUEST (Finance Integration)
+// ============================================================================
+// Aligned with Purchase Process Flow (ST2, ST3)
+
+model PurchaseRequest {
+  id                   Int                     @id @default(autoincrement())
+  prId                 String                  @unique @db.VarChar(20) // e.g., PR-001
+  categoryId           Int                     // For Finance Dashboard grouping
+  estimatedAmount      Float
+  priority             PriorityLevel           @default(NORMAL)
+  justification        String?                 @db.Text
+  status               PurchaseRequestStatus   @default(DRAFT)
+  validationStatus     String?                 @db.VarChar(50) // Passed, Blocked
+  validationRemarks    String?                 @db.Text
+  autoTrigger          Boolean                 @default(false) // Auto-created from reorder
+  reorderOfPrId        String?                 @db.VarChar(20) // Links to original PR if reorder
+  creatorEmpNumber     String                  @db.VarChar(20)
+  isDeleted            Boolean                 @default(false)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  // Relations
+  category             Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdBy            EmployeeReference       @relation("PRCreator", fields: [creatorEmpNumber], references: [employeeNumber], onDelete: Restrict)
+  items                PurchaseItem[]
+  budgetRequest        BudgetRequest?
+  order                PurchaseOrder?
+  approvals            Approval[]              @relation("PRApprovals")
+
+  @@map("purchase_requests")
+}
+
+model PurchaseItem {
+  id                Int              @id @default(autoincrement())
+  prId              Int
+  itemId            Int
+  quantity          Int
+  estimatedUnitPrice Float           @default(0)
+  totalEstimated    Float            @default(0)
+  remarks           String?          @db.Text
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  purchaseRequest   PurchaseRequest  @relation(fields: [prId], references: [id], onDelete: Cascade)
+  item              InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@map("purchase_items")
+}
+
+model BudgetRequest {
+  id                   Int                    @id @default(autoincrement())
+  brId                 String                 @unique @db.VarChar(20) // e.g., BR-001
+  prId                 Int                    @unique // One-to-one with PR
+  requestedAmount      Float
+  approvedAmount       Float?
+  status               BudgetRequestStatus    @default(PENDING)
+  remarks              String?                @db.Text
+  approverEmpNumber    String?                @db.VarChar(20)
+  approvedDate         DateTime?
+  creatorEmpNumber     String                 @db.VarChar(20)
+  isDeleted            Boolean                @default(false)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  // Relations
+  purchaseRequest      PurchaseRequest        @relation(fields: [prId], references: [id], onDelete: Cascade)
+  createdBy            EmployeeReference      @relation("BRCreator", fields: [creatorEmpNumber], references: [employeeNumber], onDelete: Restrict)
+  approvals            Approval[]             @relation("BRApprovals")
+
+  @@map("budget_requests")
+}
+
+// ============================================================================
+// PURCHASE ORDER & DELIVERY MANAGEMENT
+// ============================================================================
+// Aligned with Purchase Process Flow (ST4, ST5)
+
+model PurchaseOrder {
+  id                   Int                  @id @default(autoincrement())
+  poId                 String               @unique @db.VarChar(20) // e.g., PO-001
+  prId                 Int                  @unique // One-to-one with PR
+  supplierId           Int
+  totalAmount          Float
+  actualAmount         Float?
+  status               PurchaseOrderStatus  @default(PENDING)
+  priceMismatchFlag    Boolean              @default(false)
+  orderDate            DateTime             @default(now())
+  expectedDeliveryDate DateTime?
+  actualDeliveryDate   DateTime?
+  remarks              String?              @db.Text
+  creatorEmpNumber     String               @db.VarChar(20)
+  isDeleted            Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  // Relations
+  purchaseRequest      PurchaseRequest      @relation(fields: [prId], references: [id], onDelete: Restrict)
+  supplier             Supplier             @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdBy            EmployeeReference    @relation("OrderCreator", fields: [creatorEmpNumber], references: [employeeNumber], onDelete: Restrict)
+  deliveryReceipts     DeliveryReceipt[]
+  refundRequests       RefundRequest[]
+
+  @@map("purchase_orders")
+}
+
+model DeliveryReceipt {
+  id                   Int                     @id @default(autoincrement())
+  drId                 String                  @unique @db.VarChar(20) // e.g., DR-001
+  poId                 Int
+  receivedQuantity     Int
+  defectiveQuantity    Int                     @default(0)
+  missingQuantity      Int                     @default(0)
+  deliveryDate         DateTime                @default(now())
+  inspectionStatus     InspectionStatus        @default(PENDING)
+  inspectionFindings   String?                 @db.Text
+  invoiceNumber        String?                 @db.VarChar(50)
+  invoiceAmount        Float?
+  invoiceAttachment    String?                 @db.Text // URL or file path
+  receiverEmpNumber    String                  @db.VarChar(20)
+  isDeleted            Boolean                 @default(false)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  // Relations
+  purchaseOrder        PurchaseOrder           @relation(fields: [poId], references: [id], onDelete: Cascade)
+  receivedBy           EmployeeReference       @relation("DeliveryReceiver", fields: [receiverEmpNumber], references: [employeeNumber], onDelete: Restrict)
+
+  @@map("delivery_receipts")
+}
+
+// ============================================================================
+// REFUND & REPLACEMENT MANAGEMENT (Finance Integration)
+// ============================================================================
+// Aligned with Purchase Process Flow (ST6C)
+
+model RefundRequest {
+  id                   Int                     @id @default(autoincrement())
+  refundId             String                  @unique @db.VarChar(20) // e.g., RFD-001
+  poId                 Int
+  requestType          RefundRequestType       // REFUND, REPLACEMENT
+  reason               String                  @db.Text
+  quantity             Int
+  affectedAmount       Float?
+  status               RefundRequestStatus     @default(PENDING)
+  failedAttempts       Int                     @default(0) // Track failed replacements
+  processingRemarks    String?                 @db.Text
+  resolutionDate       DateTime?
+  isDeleted            Boolean                 @default(false)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  // Relations
+  purchaseOrder        PurchaseOrder           @relation(fields: [poId], references: [id], onDelete: Cascade)
+  approvals            Approval[]              @relation("RefundApprovals")
+
+  @@map("refund_requests")
+}
+
+// ============================================================================
+// BUS FLEET MANAGEMENT
+// ============================================================================
+
 model Bus {
-  bus_id          String          @id @db.VarChar(20)
-  item_id         String
-  plate_number    String          @unique
-  body_number     String          @unique @db.VarChar(20)
-  body_builder    BodyBuilder
-  bus_type        BusType
-  manufacturer    String
-  status          BusStatus
-  chasis_number   String          @unique @db.VarChar(50)
-  engine_number   String          @unique @db.VarChar(50)
-  seat_capacity   Int
-  model           String          @db.VarChar(50)
-  year_model      Int
-  route           String?          @db.VarChar(10)
-  condition       BusCondition
-  acquisition_date DateTime
-  acquisition_method AcquisitionMethod
-  warranty_expiration_date DateTime?
-  registration_status  RegistrationStatus
-  date_created    DateTime        @default(now())
-  date_updated    DateTime        @updatedAt
-  created_by      Int
-  inventoryItem   InventoryItem   @relation(fields: [item_id], references: [item_id])
+  id                       Int                    @id @default(autoincrement())
+  busId                    String                 @unique @db.VarChar(20) // e.g., BUS-001
+  itemId                   Int                    // Links to InventoryItem
+  plateNumber              String                 @unique @db.VarChar(20)
+  bodyNumber               String                 @unique @db.VarChar(20)
+  bodyBuilder              BodyBuilder
+  busType                  BusType
+  manufacturer             String                 @db.VarChar(100)
+  status                   BusStatus              @default(ACTIVE)
+  chasisNumber             String                 @unique @db.VarChar(50)
+  engineNumber             String                 @unique @db.VarChar(50)
+  seatCapacity             Int
+  model                    String                 @db.VarChar(50)
+  yearModel                Int
+  route                    String?                @db.VarChar(10)
+  condition                BusCondition
+  acquisitionDate          DateTime
+  acquisitionMethod        AcquisitionMethod
+  warrantyExpirationDate   DateTime?
+  registrationStatus       RegistrationStatus
+  isDeleted                Boolean                @default(false)
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
 
-  secondHandDetails     SecondHandDetails?
-  brandNewDetails       BrandNewDetails?
-  busOtherFiles         BusOtherFiles[]
-  busDisposals          BusDisposal[]
+  // Relations
+  item                     InventoryItem          @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  secondHandDetails        SecondHandDetails?
+  brandNewDetails          BrandNewDetails?
+  busFiles                 BusFile[]
+  disposal                 DisposalRecord?        @relation("DisposedBus")
 
-  @@map("bus")
+  @@map("buses")
 }
 
 model SecondHandDetails {
-  s_bus_id               String    @id
-  previous_owner         String
-  previous_owner_contact String
+  id                     Int        @id @default(autoincrement())
+  busId                  Int        @unique
+  previousOwner          String     @db.VarChar(150)
+  previousOwnerContact   String?    @db.VarChar(50)
   source                 BusSource
-  odometer_reading       Int
-  last_registration_date DateTime
-  last_maintenance_date  DateTime
-  bus_condition_notes    String?
+  odometerReading        Int?
+  lastRegistrationDate   DateTime?
+  lastMaintenanceDate    DateTime?
+  conditionNotes         String?    @db.Text
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
-  bus                    Bus    @relation(fields: [s_bus_id], references: [bus_id], onDelete: Cascade)
+  // Relations
+  bus                    Bus        @relation(fields: [busId], references: [id], onDelete: Cascade)
+
+  @@map("second_hand_details")
 }
 
 model BrandNewDetails {
-  b_bus_id        String    @id
-  dealer_name     String
-  dealer_contact  String
+  id                Int        @id @default(autoincrement())
+  busId             Int        @unique
+  dealerName        String     @db.VarChar(150)
+  dealerContact     String?    @db.VarChar(50)
+  warrantyDetails   String?    @db.Text
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  bus             Bus    @relation(fields: [b_bus_id], references: [bus_id], onDelete: Cascade)
+  // Relations
+  bus               Bus        @relation(fields: [busId], references: [id], onDelete: Cascade)
+
+  @@map("brand_new_details")
 }
 
-model BusOtherFiles {
-  bus_files_id    String    @id @db.VarChar(20)
-  file_name       String
-  file_type       String
-  file_url       String
-  date_uploaded   DateTime @default(now())
+model BusFile {
+  id              Int        @id @default(autoincrement())
+  fileId          String     @unique @db.VarChar(20) // e.g., BFL-001
+  busId           Int
+  fileName        String     @db.VarChar(255)
+  fileType        String     @db.VarChar(50)
+  fileUrl         String     @db.Text
+  description     String?    @db.Text
+  uploadedAt      DateTime   @default(now())
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
-  bus_id          String
-  bus             Bus    @relation(fields: [bus_id], references: [bus_id], onDelete: Cascade)
+  // Relations
+  bus             Bus        @relation(fields: [busId], references: [id], onDelete: Cascade)
 
-@@map("bus_other_files")
+  @@map("bus_files")
 }
 
-model BusDisposal {
-  disposal_id       String           @id @db.VarChar(20)
-  bus_id            String
-  disposal_date     DateTime
-  disposal_method   DisposalMethod
-  reason            String           @db.Text
-  estimated_value   Float?
-  actual_value      Float?
-  disposal_status   DisposalStatus   @default(PENDING)
-  approved_by       String?          @db.VarChar(20)
-  approved_date     DateTime?
-  remarks           String?          @db.Text
-  date_created      DateTime         @default(now())
-  date_updated      DateTime         @updatedAt
-  created_by        String           @db.VarChar(20)
-  isdeleted         Boolean          @default(false)
-  
-  bus               Bus              @relation(fields: [bus_id], references: [bus_id], onDelete: Cascade)
+// ============================================================================
+// DISPOSAL MANAGEMENT (Bus & Stock)
+// ============================================================================
 
-  @@map("bus_disposals")
+model DisposalRecord {
+  id                   Int                  @id @default(autoincrement())
+  disposalId           String               @unique @db.VarChar(20) // e.g., DSP-001
+  disposalType         DisposalType         // BUS, STOCK
+  busId                Int?                 @unique // For bus disposal
+  itemId               Int?                 // For stock disposal
+  batchId              String?              @db.VarChar(20)
+  quantity             Int?                 // For stock disposal
+  disposalDate         DateTime
+  disposalMethod       DisposalMethod
+  reason               String               @db.Text
+  estimatedValue       Float?
+  actualValue          Float?
+  status               DisposalStatus       @default(PENDING)
+  approverEmpNumber    String?              @db.VarChar(20)
+  approvedDate         DateTime?
+  remarks              String?              @db.Text
+  creatorEmpNumber     String               @db.VarChar(20)
+  isDeleted            Boolean              @default(false)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  // Relations
+  bus                  Bus?                 @relation("DisposedBus", fields: [busId], references: [id], onDelete: Cascade)
+  item                 InventoryItem?       @relation("DisposedItem", fields: [itemId], references: [id], onDelete: Cascade)
+  createdBy            EmployeeReference    @relation("DisposalCreator", fields: [creatorEmpNumber], references: [employeeNumber], onDelete: Restrict)
+  approvals            Approval[]           @relation("DisposalApprovals")
+
+  @@map("disposal_records")
 }
 
-model StockDisposal {
-  disposal_id       String           @id @db.VarChar(20)
-  item_id           String
-  batch_id          String?          @db.VarChar(20)
-  quantity          Int
-  disposal_date     DateTime
-  disposal_method   DisposalMethod
-  reason            String           @db.Text
-  estimated_value   Float?
-  actual_value      Float?
-  disposal_status   DisposalStatus   @default(PENDING)
-  approved_by       String?          @db.VarChar(20)
-  approved_date     DateTime?
-  remarks           String?          @db.Text
-  date_created      DateTime         @default(now())
-  date_updated      DateTime         @updatedAt
-  created_by        String           @db.VarChar(20)
-  isdeleted         Boolean          @default(false)
-  
-  inventoryItem     InventoryItem    @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+// ============================================================================
+// APPROVAL MANAGEMENT (Universal)
+// ============================================================================
+// Handles approvals for PR, BR, Refunds, Disposals
 
-  @@map("stock_disposals")
+model Approval {
+  id                   Int              @id @default(autoincrement())
+  approvalId           String           @unique @db.VarChar(20) // e.g., APV-001
+  entityType           ApprovalEntity   // PURCHASE_REQUEST, BUDGET_REQUEST, REFUND_REQUEST, DISPOSAL
+  entityId             Int              // FK to related entity
+  prId                 Int?
+  brId                 Int?
+  refundId             Int?
+  disposalId           Int?
+  approverEmpNumber    String           @db.VarChar(20)
+  action               ApprovalAction   // APPROVED, REJECTED, PENDING
+  remarks              String?          @db.Text
+  actionDate           DateTime         @default(now())
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  // Relations
+  approver             EmployeeReference @relation("Approver", fields: [approverEmpNumber], references: [employeeNumber], onDelete: Restrict)
+  purchaseRequest      PurchaseRequest?  @relation("PRApprovals", fields: [prId], references: [id], onDelete: Cascade)
+  budgetRequest        BudgetRequest?    @relation("BRApprovals", fields: [brId], references: [id], onDelete: Cascade)
+  refundRequest        RefundRequest?    @relation("RefundApprovals", fields: [refundId], references: [id], onDelete: Cascade)
+  disposal             DisposalRecord?   @relation("DisposalApprovals", fields: [disposalId], references: [id], onDelete: Cascade)
+
+  @@map("approvals")
 }
 
+// ============================================================================
+// ENUMS
+// ============================================================================
 
 enum InventoryStatus {
   LOW_STOCK
@@ -197,8 +566,16 @@ enum InventoryStatus {
   OUT_OF_STOCK
   UNDER_MAINTENANCE
   EXPIRED
-  IN_USED
+  IN_USE
   DISPOSED
+}
+
+enum StockTransactionType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
+  RETURN
+  TRANSFER
 }
 
 enum RequestType {
@@ -207,6 +584,9 @@ enum RequestType {
 }
 
 enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
   RETURNED
   NOT_RETURNED
   CONSUMED
@@ -214,11 +594,73 @@ enum RequestStatus {
   CANCELLED
 }
 
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+  FLAGGED
+  BLOCKED
+}
+
+enum PriorityLevel {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum PurchaseRequestStatus {
+  DRAFT
+  POSTED
+  APPROVED
+  REJECTED
+  REJECTED_INSUFFICIENT_BUDGET
+  CLOSED
+}
+
+enum BudgetRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  PARTIALLY_COMPLETED_PRICE_MISMATCH
+  CANCELLED
+}
+
+enum InspectionStatus {
+  PENDING
+  PASSED
+  FAILED
+  PARTIAL
+}
+
+enum RefundRequestType {
+  REFUND
+  REPLACEMENT
+}
+
+enum RefundRequestStatus {
+  PENDING
+  PROCESSING
+  TO_BE_REFUNDED
+  REFUNDED
+  TO_BE_REPLACED
+  REPLACED
+  REJECTED
+  FAILED
+  CLOSED
+}
+
 enum BodyBuilder {
   AGILA
   HILLTOP
   RBM
   DARJ
+  OTHER
 }
 
 enum BusType {
@@ -230,6 +672,7 @@ enum BusStatus {
   ACTIVE
   DECOMMISSIONED
   UNDER_MAINTENANCE
+  DISPOSED
 }
 
 enum BusCondition {
@@ -254,6 +697,12 @@ enum BusSource {
   DEALERSHIP
   AUCTION
   PRIVATE_INDIVIDUAL
+  OTHER
+}
+
+enum DisposalType {
+  BUS
+  STOCK
 }
 
 enum DisposalMethod {
@@ -268,4 +717,19 @@ enum DisposalStatus {
   APPROVED
   REJECTED
   COMPLETED
+  CANCELLED
+}
+
+enum ApprovalEntity {
+  PURCHASE_REQUEST
+  BUDGET_REQUEST
+  REFUND_REQUEST
+  DISPOSAL
+}
+
+enum ApprovalAction {
+  PENDING
+  APPROVED
+  REJECTED
+  REVERTED
 }

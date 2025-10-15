@@ -13,44 +13,31 @@ export async function GET(request: Request) {
         // Get all fuel items
         const fuelItems = await prisma.inventoryItem.findMany({
             where: {
-                item_name: {
-                    contains: 'fuel',
-                    mode: 'insensitive'
-                },
-                isdeleted: false
+                itemName: { contains: 'fuel', mode: 'insensitive' },
+                isDeleted: false
             },
-            select: {
-                item_id: true
-            }
+            select: { id: true, itemId: true }
         });
 
         if (fuelItems.length === 0) {
             return NextResponse.json({ error: 'No fuel items found' }, { status: 400 });
         }
 
-        const fuelItemIds = fuelItems.map(item => item.item_id);
+    const fuelItemIds = fuelItems.map(item => item.id);
 
         // Get historical consumption data for all fuel items
         const consumptionData = await prisma.employeeRequest.findMany({
             where: {
-                item_id: {
-                    in: fuelItemIds
-                },
-                request_type: RequestType.CONSUME,
-                isdeleted: false
+                itemId: { in: fuelItemIds },
+                requestType: RequestType.CONSUME,
+                isDeleted: false,
             },
-            orderBy: {
-                date_created: 'asc'
-            },
+            orderBy: { createdAt: 'asc' },
             select: {
                 quantity: true,
-                date_created: true,
-                item_id: true,
-                inventoryItem: {
-                    select: {
-                        item_name: true
-                    }
-                }
+                createdAt: true,
+                itemId: true,
+                item: { select: { itemName: true } }
             }
         });
 
@@ -63,7 +50,7 @@ export async function GET(request: Request) {
 
         // Process historical data by month
         const monthlyData = consumptionData.reduce((acc: any, curr) => {
-            const date = new Date(curr.date_created);
+            const date = new Date(curr.createdAt);
             const monthKey = date.toLocaleString('default', { month: 'short', year: 'numeric' });
             
             if (!acc[monthKey]) {
@@ -155,27 +142,8 @@ export async function POST(request: Request) {
 
         // Verify if item exists and is a fuel item
         const item = await prisma.inventoryItem.findFirst({
-            where: {
-                item_id,
-                isdeleted: false,
-                item_name: {
-                    contains: 'fuel',
-                    mode: 'insensitive'
-                }
-            },
-            include: {
-                batches: {
-                    where: {
-                        isdeleted: false,
-                        usable_quantity: {
-                            gt: 0
-                        }
-                    },
-                    orderBy: {
-                        expiration_date: 'asc'
-                    }
-                }
-            }
+            where: { itemId: item_id, isDeleted: false, itemName: { contains: 'fuel', mode: 'insensitive' } },
+            include: { batches: { where: { isDeleted: false, usableQuantity: { gt: 0 } }, orderBy: { expirationDate: 'asc' } } }
         });
 
         if (!item) {
@@ -183,7 +151,7 @@ export async function POST(request: Request) {
         }
 
         // Check if there's enough quantity available
-        const totalAvailableQuantity = item.batches.reduce((sum: number, batch) => sum + batch.usable_quantity, 0);
+    const totalAvailableQuantity = item.batches.reduce((sum: number, batch) => sum + batch.usableQuantity, 0);
         if (totalAvailableQuantity < quantity) {
             return NextResponse.json({ 
                 error: 'Insufficient fuel quantity available',
@@ -194,15 +162,14 @@ export async function POST(request: Request) {
         // Create employee request
         const employeeRequest = await prisma.employeeRequest.create({
             data: {
-                request_id: `REQ${Date.now()}`, // Generate a unique request ID
-                item_id,
-                emp_id: created_by,
+                requestId: `REQ${Date.now()}`,
+                itemId: item_id,
+                empNumber: created_by,
                 quantity: parseInt(quantity.toString()),
-                request_type: RequestType.CONSUME,
-                req_purpose: 'Fuel consumption request',
+                requestType: RequestType.CONSUME,
+                purpose: 'Fuel consumption request',
                 status: RequestStatus.CONSUMED,
-                created_by: parseInt(created_by),
-                isdeleted: false
+                isDeleted: false
             }
         });
 
@@ -211,13 +178,8 @@ export async function POST(request: Request) {
         for (const batch of item.batches) {
             if (remainingQuantity <= 0) break;
 
-            const quantityToDeduct = Math.min(batch.usable_quantity, remainingQuantity);
-            await prisma.batch.update({
-                where: { batch_id: batch.batch_id },
-                data: {
-                    usable_quantity: batch.usable_quantity - quantityToDeduct
-                }
-            });
+            const quantityToDeduct = Math.min(batch.usableQuantity, remainingQuantity);
+            await prisma.batch.update({ where: { batchId: batch.batchId }, data: { usableQuantity: batch.usableQuantity - quantityToDeduct } });
             remainingQuantity -= quantityToDeduct;
         }
 

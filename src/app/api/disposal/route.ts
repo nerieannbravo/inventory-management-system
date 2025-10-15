@@ -14,38 +14,18 @@ export async function GET(req: NextRequest) {
     let stockDisposals: any[] = [];
 
     if (!type || type === 'bus') {
-      busDisposals = await prisma.busDisposal.findMany({
-        where: {
-          isdeleted: false
-        },
-        include: {
-          bus: {
-            include: {
-              inventoryItem: true
-            }
-          }
-        },
-        orderBy: {
-          date_created: 'desc'
-        }
+      busDisposals = await prisma.disposalRecord.findMany({
+        where: { disposalType: 'BUS', isDeleted: false },
+        include: { bus: { include: { item: true } } },
+        orderBy: { createdAt: 'desc' },
       });
     }
 
     if (!type || type === 'stock') {
-      stockDisposals = await prisma.stockDisposal.findMany({
-        where: {
-          isdeleted: false
-        },
-        include: {
-          inventoryItem: {
-            include: {
-              category: true
-            }
-          }
-        },
-        orderBy: {
-          date_created: 'desc'
-        }
+      stockDisposals = await prisma.disposalRecord.findMany({
+        where: { disposalType: 'STOCK', isDeleted: false },
+        include: { item: { include: { category: true } } },
+        orderBy: { createdAt: 'desc' },
       });
     }
 
@@ -115,11 +95,9 @@ export async function POST(req: NextRequest) {
       return 'PENDING'; // fallback
     }
 
-    if (type === 'bus') {
+      if (type === 'bus') {
       // Validate bus exists and is not already disposed
-      const bus = await prisma.bus.findUnique({
-        where: { bus_id: disposalData.bus_id }
-      });
+      const bus = await prisma.bus.findUnique({ where: { busId: disposalData.busId } });
 
       if (!bus) {
         return NextResponse.json(
@@ -136,12 +114,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Check for existing disposal record for this bus
-      const existingDisposal = await prisma.busDisposal.findFirst({
-        where: {
-          bus_id: disposalData.bus_id,
-          isdeleted: false
-        }
-      });
+      const existingDisposal = await prisma.disposalRecord.findFirst({ where: { busId: disposalData.busId, isDeleted: false } });
 
       if (existingDisposal) {
         return NextResponse.json(
@@ -150,63 +123,47 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const disposal_id = await generateId('busDisposal', 'DISP');
+  const disposalId = await generateId('busDisposal', 'DISP');
 
       // Use transaction to create disposal and update bus status atomically
       const result = await prisma.$transaction(async (tx) => {
         // Create the disposal record
-        const busDisposal = await tx.busDisposal.create({
+        const busDisposal = await tx.disposalRecord.create({
           data: {
-            disposal_id,
-            bus_id: disposalData.bus_id,
-            disposal_date: new Date(disposalData.disposal_date),
-            disposal_method: mapDisposalMethod(disposalData.disposal_method),
+            disposalId,
+            disposalType: 'BUS',
+            busId: disposalData.busId,
+            disposalDate: new Date(disposalData.disposalDate),
+            disposalMethod: mapDisposalMethod(disposalData.disposalMethod),
             reason: disposalData.reason,
-            estimated_value: disposalData.estimated_value ? parseFloat(disposalData.estimated_value) : null,
-            actual_value: disposalData.actual_value ? parseFloat(disposalData.actual_value) : null,
-            disposal_status: mapDisposalStatus(disposalData.disposal_status || 'PENDING'),
-            approved_by: disposalData.approved_by || null,
-            approved_date: disposalData.approved_date ? new Date(disposalData.approved_date) : null,
+            estimatedValue: disposalData.estimatedValue ? parseFloat(disposalData.estimatedValue) : null,
+            actualValue: disposalData.actualValue ? parseFloat(disposalData.actualValue) : null,
+            status: mapDisposalStatus(disposalData.disposalStatus || 'PENDING'),
+            approverEmpNumber: disposalData.approvedBy || null,
+            approvedDate: disposalData.approvedDate ? new Date(disposalData.approvedDate) : null,
             remarks: disposalData.remarks || null,
-            created_by: disposalData.created_by || 'USR-00001'
+            creatorEmpNumber: disposalData.createdBy || 'USR-00001',
           },
-          include: {
-            bus: true
-          }
+          include: { bus: true },
         });
 
         // Update the bus status to DECOMMISSIONED
-        await tx.bus.update({
-          where: { bus_id: disposalData.bus_id },
-          data: { status: 'DECOMMISSIONED' }
-        });
+        await tx.bus.update({ where: { busId: disposalData.busId }, data: { status: 'DECOMMISSIONED' } });
 
         return busDisposal;
       });
 
       return NextResponse.json({ success: true, data: result }, { status: 201 });
 
-    } else if (type === 'stock') {
+  } else if (type === 'stock') {
       // Validate inventory item exists. First try exact match by item_id,
       // then fall back to a more forgiving search (partial match on item_id or item_name)
       let item = null;
-      if (disposalData.item_id) {
-        item = await prisma.inventoryItem.findUnique({
-          where: { item_id: disposalData.item_id }
-        });
+      if (disposalData.itemId) {
+        item = await prisma.inventoryItem.findUnique({ where: { itemId: disposalData.itemId } });
       }
-
-      if (!item && disposalData.item_id) {
-        // Fallback: try partial, case-insensitive matches against item_id or item_name
-        item = await prisma.inventoryItem.findFirst({
-          where: {
-            isdeleted: false,
-            OR: [
-              { item_id: { contains: String(disposalData.item_id), mode: 'insensitive' } },
-              { item_name: { contains: String(disposalData.item_id), mode: 'insensitive' } }
-            ]
-          }
-        });
+      if (!item && disposalData.itemId) {
+        item = await prisma.inventoryItem.findFirst({ where: { isDeleted: false, OR: [{ itemId: { contains: String(disposalData.itemId), mode: 'insensitive' } }, { itemName: { contains: String(disposalData.itemId), mode: 'insensitive' } }] } });
       }
 
       if (!item) {
@@ -217,35 +174,32 @@ export async function POST(req: NextRequest) {
       }
 
       // Check if there's enough stock
-      if (disposalData.quantity > item.current_stock) {
+      if (disposalData.quantity > item.currentStock) {
         return NextResponse.json(
           { success: false, error: 'Insufficient stock for disposal' },
           { status: 400 }
         );
       }
-
-      const disposal_id = await generateId('stockDisposal', 'DISP');
-
-      const stockDisposal = await prisma.stockDisposal.create({
+      const disposalId = await generateId('stockDisposal', 'DISP');
+      const stockDisposal = await prisma.disposalRecord.create({
         data: {
-          disposal_id,
-          item_id: disposalData.item_id,
-          batch_id: disposalData.batch_id || null,
-          quantity: parseInt(disposalData.quantity),
-          disposal_date: new Date(disposalData.disposal_date),
-          disposal_method: mapDisposalMethod(disposalData.disposal_method),
+          disposalId,
+          disposalType: 'STOCK',
+          itemId: item.id,
+          batchId: disposalData.batchId || null,
+          quantity: Number(disposalData.quantity),
+          disposalDate: new Date(disposalData.disposalDate),
+          disposalMethod: mapDisposalMethod(disposalData.disposalMethod),
           reason: disposalData.reason,
-          estimated_value: disposalData.estimated_value ? parseFloat(disposalData.estimated_value) : null,
-          actual_value: disposalData.actual_value ? parseFloat(disposalData.actual_value) : null,
-          disposal_status: mapDisposalStatus(disposalData.disposal_status || 'PENDING'),
-          approved_by: disposalData.approved_by || null,
-          approved_date: disposalData.approved_date ? new Date(disposalData.approved_date) : null,
+          estimatedValue: disposalData.estimatedValue ? parseFloat(disposalData.estimatedValue) : null,
+          actualValue: disposalData.actualValue ? parseFloat(disposalData.actualValue) : null,
+          status: mapDisposalStatus(disposalData.disposalStatus || 'PENDING'),
+          approverEmpNumber: disposalData.approvedBy || null,
+          approvedDate: disposalData.approvedDate ? new Date(disposalData.approvedDate) : null,
           remarks: disposalData.remarks || null,
-          created_by: disposalData.created_by || 'USR-00001'
+          creatorEmpNumber: disposalData.createdBy || 'USR-00001',
         },
-        include: {
-          inventoryItem: true
-        }
+        include: { item: true },
       });
 
       return NextResponse.json({ success: true, data: stockDisposal }, { status: 201 });
@@ -279,9 +233,9 @@ export async function PUT(req: NextRequest) {
     }
 
     if (type === 'bus') {
-      // Check if disposal exists
-      const existingDisposal = await prisma.busDisposal.findUnique({
-        where: { disposal_id },
+      // Check if disposal exists (bus-type)
+      const existingDisposal = await prisma.disposalRecord.findUnique({
+        where: { disposalId: disposal_id },
         include: { bus: true }
       });
 
@@ -293,25 +247,23 @@ export async function PUT(req: NextRequest) {
       }
 
       // Simple update for bus disposal
-      await prisma.busDisposal.update({
-        where: { disposal_id },
+      await prisma.disposalRecord.update({
+        where: { disposalId: disposal_id },
         data: updateData
       });
 
-      const updatedDisposal = await prisma.busDisposal.findUnique({
-        where: { disposal_id },
-        include: {
-          bus: true
-        }
+      const updatedDisposal = await prisma.disposalRecord.findUnique({
+        where: { disposalId: disposal_id },
+        include: { bus: true }
       });
 
       return NextResponse.json({ success: true, data: updatedDisposal });
 
     } else if (type === 'stock') {
-      // Check if disposal exists
-      const existingDisposal = await prisma.stockDisposal.findUnique({
-        where: { disposal_id },
-        include: { inventoryItem: true }
+      // Check if disposal exists (stock-type)
+      const existingDisposal = await prisma.disposalRecord.findUnique({
+        where: { disposalId: disposal_id },
+        include: { item: true }
       });
 
       if (!existingDisposal) {
@@ -322,16 +274,14 @@ export async function PUT(req: NextRequest) {
       }
 
       // Simple update for stock disposal
-      await prisma.stockDisposal.update({
-        where: { disposal_id },
+      await prisma.disposalRecord.update({
+        where: { disposalId: disposal_id },
         data: updateData
       });
 
-      const updatedDisposal = await prisma.stockDisposal.findUnique({
-        where: { disposal_id },
-        include: {
-          inventoryItem: true
-        }
+      const updatedDisposal = await prisma.disposalRecord.findUnique({
+        where: { disposalId: disposal_id },
+        include: { item: true }
       });
 
       return NextResponse.json({ success: true, data: updatedDisposal });
@@ -365,38 +315,22 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    if (type === 'bus') {
-      const disposal = await prisma.busDisposal.findUnique({
-        where: { disposal_id }
+    if (type === 'bus' || type === 'stock') {
+      // Use unified DisposalRecord model for soft-delete
+      const disposal = await prisma.disposalRecord.findUnique({
+        where: { disposalId: disposal_id }
       });
 
       if (!disposal) {
         return NextResponse.json(
-          { success: false, error: 'Bus disposal not found' },
+          { success: false, error: 'Disposal not found' },
           { status: 404 }
         );
       }
 
-      await prisma.busDisposal.update({
-        where: { disposal_id },
-        data: { isdeleted: true }
-      });
-
-    } else if (type === 'stock') {
-      const disposal = await prisma.stockDisposal.findUnique({
-        where: { disposal_id }
-      });
-
-      if (!disposal) {
-        return NextResponse.json(
-          { success: false, error: 'Stock disposal not found' },
-          { status: 404 }
-        );
-      }
-
-      await prisma.stockDisposal.update({
-        where: { disposal_id },
-        data: { isdeleted: true }
+      await prisma.disposalRecord.update({
+        where: { disposalId: disposal_id },
+        data: { isDeleted: true }
       });
     }
 

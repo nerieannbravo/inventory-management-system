@@ -10,96 +10,12 @@ import AddItemModal, { ItemForm } from "./addItemModal";
 import ViewItemModal from "./viewItemModal";
 import EditItemModal from "./editItemModal";
 import AddCategoryModal, { CategoryForm } from "./category/addCategoryModal";
+import { getItems, createItem, updateItem } from '@/app/lib/api';
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
 import "@/styles/chips.css"
 import "@/styles/loading.css"
-
-const hardcodedData = [
-    {
-        id: 1,
-        itemName: "Tires",
-        itemUnit: "pcs",
-        itemCategory: "Consumable",
-        itemStatus: "active",
-        linkedSupplier: 2,
-    },
-    {
-        id: 2,
-        itemName: "Lathe Machine",
-        itemUnit: "unit",
-        itemCategory: "Machine",
-        itemStatus: "active",
-        linkedSupplier: 1,
-    },
-    {
-        id: 3,
-        itemName: "Welding Machine",
-        itemUnit: "unit",
-        itemCategory: "Equipment",
-        itemStatus: "inactive",
-        linkedSupplier: 3,
-    },
-    {
-        id: 4,
-        itemName: "Hammer",
-        itemUnit: "pcs",
-        itemCategory: "Tool",
-        itemStatus: "active",
-        linkedSupplier: 4,
-    },
-    {
-        id: 5,
-        itemName: "Hydraulic Oil",
-        itemUnit: "liters",
-        itemCategory: "Consumable",
-        itemStatus: "active",
-        linkedSupplier: 2,
-    },
-    {
-        id: 6,
-        itemName: "Compressor",
-        itemUnit: "unit",
-        itemCategory: "Equipment",
-        itemStatus: "active",
-        linkedSupplier: 5,
-    },
-    {
-        id: 7,
-        itemName: "Wrench Set",
-        itemUnit: "sets",
-        itemCategory: "Tool",
-        itemStatus: "inactive",
-        linkedSupplier: 3,
-    },
-    {
-        id: 8,
-        itemName: "Drill Press",
-        itemUnit: "unit",
-        itemCategory: "Machine",
-        itemStatus: "active",
-        linkedSupplier: 6,
-    },
-    {
-        id: 9,
-        itemName: "Cutting Discs",
-        itemUnit: "pcs",
-        itemCategory: "Consumable",
-        itemStatus: "active",
-        linkedSupplier: 4,
-    },
-    {
-        id: 10,
-        itemName: "Safety Gloves",
-        itemUnit: "pairs",
-        itemCategory: "Tool",
-        itemStatus: "active",
-        linkedSupplier: 1,
-    },
-];
-
-
 
 export default function ItemManagement() {
     // for modal
@@ -109,7 +25,10 @@ export default function ItemManagement() {
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
     // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
+    const [filteredData, setFilteredData] = useState<any[]>([]);
+    const [allItems, setAllItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -179,15 +98,15 @@ export default function ItemManagement() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
-
-        // Example implementation for filtering and sorting:
-        let newData = [...hardcodedData];
+        // Start with all items from API
+        let newData = [...allItems];
 
         // Filter by status if selected
         if (filterValues.itemStatus && filterValues.itemStatus.length > 0) {
-            newData = newData.filter(item => filterValues.itemStatus.includes(item.itemStatus));
+            newData = newData.filter(item => {
+                const status = (item.status || '').toLowerCase();
+                return filterValues.itemStatus.some((s: string) => status.includes(s.toLowerCase()));
+            });
         }
 
         // Sort by itemName or linkedSupplier
@@ -199,7 +118,9 @@ export default function ItemManagement() {
         } else if (filterValues.sortBy === "linkedSupplier") {
             newData.sort((a, b) => {
                 const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.linkedSupplier ?? 0) - (b.linkedSupplier ?? 0) * sortOrder;
+                const aCount = a.supplierItems?.length || 0;
+                const bCount = b.supplierItems?.length || 0;
+                return (aCount - bCount) * sortOrder;
             });
         }
 
@@ -267,20 +188,77 @@ export default function ItemManagement() {
     };
 
     // Handle add item
-    const handleAddItem = (itemForm: ItemForm) => {
-        console.log("Saving form:", itemForm);
-        // Logic to add item to the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleAddItem = async (itemForm: ItemForm & { linkedItems?: any[] }) => {
+        try {
+            setLoading(true);
+            const payload = {
+                stockItems: [
+                    {
+                        itemName: itemForm.itemName,
+                        unit: itemForm.itemUnit,
+                        category: itemForm.itemCategory,
+                        status: itemForm.itemStatus,
+                        description: itemForm.itemDescription,
+                        // if linked suppliers exist, attach minimal supplier info — server will resolve
+                        linkedSuppliers: itemForm['linkedSuppliers'] || []
+                    }
+                ]
+            };
+            await createItem(payload);
+            const data = await getItems();
+            setAllItems(data.items || []);
+            setFilteredData(data.items || []);
+        } catch (err) {
+            console.error('Error creating item', err);
+        } finally {
+            setLoading(false);
+            closeModal();
+        }
     };
 
     // Handle edit item
-    const handleEditItem = (updatedItem: any) => {
-        console.log("Updating item:", updatedItem);
-        // Logic to update the item in the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleEditItem = async (updatedItem: any & { linkedSuppliers?: any[] }) => {
+        try {
+            setLoading(true);
+            const payload = {
+                item_id: updatedItem.id || updatedItem.itemId || updatedItem.item_id,
+                reorder_level: updatedItem.reorderLevel || updatedItem.reorder_level || 0,
+                status: updatedItem.itemStatus || updatedItem.status,
+                category_id: updatedItem.itemCategory || updatedItem.categoryId,
+                // include linked suppliers if any
+                linkedSuppliers: updatedItem.linkedSuppliers || []
+            };
+            await updateItem(payload);
+            const data = await getItems();
+            setAllItems(data.items || []);
+            setFilteredData(data.items || []);
+        } catch (err) {
+            console.error('Error updating item', err);
+        } finally {
+            setLoading(false);
+            closeModal();
+        }
     };
+
+    // initial load of items
+    React.useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                setLoading(true);
+                const data = await getItems();
+                if (mounted) {
+                    setAllItems(data.items || []);
+                    setFilteredData(data.items || []);
+                }
+            } catch (err) {
+                console.error('Failed to load items', err);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false };
+    }, []);
 
     // Handle add category
     const handleAddCategory = (categoryForm: CategoryForm) => {
@@ -355,14 +333,14 @@ export default function ItemManagement() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.itemName}</td>
-                                        <td>{item.itemUnit}</td>
-                                        <td>{item.itemCategory}</td>
+                                        <td>{item.unitMeasure}</td>
+                                        <td>{item.category?.categoryName || 'N/A'}</td>
                                         <td className="table-status">
-                                            <span className={`chip ${item.itemStatus}`}>
-                                                {formatStatus(item.itemStatus)}
+                                            <span className={`chip ${(item.status || '').toLowerCase()}`}>
+                                                {formatStatus(item.status)}
                                             </span>
                                         </td>
-                                        <td>{item.linkedSupplier}</td>
+                                        <td>{item.supplierItems?.length || 0}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-item", item)}

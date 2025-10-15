@@ -116,27 +116,27 @@ export async function GET(request: NextRequest) {
             const fuelItems = await prisma.inventoryItem.findMany({
                 where: {
                     OR: [
-                        { item_name: { contains: 'fuel', mode: 'insensitive' } },
-                        { item_name: { contains: 'oil', mode: 'insensitive' } },
-                        { item_name: { contains: 'gasoline', mode: 'insensitive' } },
-                        { item_name: { contains: 'diesel', mode: 'insensitive' } }
-                    ],
-                    isdeleted: false
+                                { itemName: { contains: 'fuel', mode: 'insensitive' } },
+                                { itemName: { contains: 'oil', mode: 'insensitive' } },
+                                { itemName: { contains: 'gasoline', mode: 'insensitive' } },
+                                { itemName: { contains: 'diesel', mode: 'insensitive' } }
+                            ],
+                            isDeleted: false
                 },
-                select: { item_id: true },
-            });
-            fuelItemIds = fuelItems.map(item => item.item_id);
+                        select: { itemId: true },
+                    });
+                    fuelItemIds = fuelItems.map(item => item.itemId);
         } else {
             // Get specific fuel item
             const fuelItem = await prisma.inventoryItem.findFirst({
                 where: { 
-                    item_id: fuelType,
-                    isdeleted: false
+                            itemId: fuelType,
+                            isDeleted: false
                 },
-                select: { item_id: true },
+                        select: { itemId: true },
             });
             if (fuelItem) {
-                fuelItemIds = [fuelItem.item_id];
+                        fuelItemIds = [fuelItem.itemId];
             }
         }
 
@@ -259,37 +259,37 @@ export async function POST(request: NextRequest) {
             const fuelItems = await prisma.inventoryItem.findMany({
                 where: {
                     OR: [
-                        { item_name: { contains: 'fuel', mode: 'insensitive' } },
-                        { item_name: { contains: 'oil', mode: 'insensitive' } },
-                        { item_name: { contains: 'gasoline', mode: 'insensitive' } },
-                        { item_name: { contains: 'diesel', mode: 'insensitive' } },
-                        { item_name: { contains: 'petrol', mode: 'insensitive' } }
+                        { itemName: { contains: 'fuel', mode: 'insensitive' } },
+                        { itemName: { contains: 'oil', mode: 'insensitive' } },
+                        { itemName: { contains: 'gasoline', mode: 'insensitive' } },
+                        { itemName: { contains: 'diesel', mode: 'insensitive' } },
+                        { itemName: { contains: 'petrol', mode: 'insensitive' } }
                     ],
-                    isdeleted: false
+                    isDeleted: false
                 },
                 select: {
-                    item_id: true,
-                    item_name: true,
+                    itemId: true,
+                    itemName: true,
                     category: {
                         select: {
-                            category_name: true
+                            categoryName: true
                         }
                     },
-                    current_stock: true,
-                    unit_measure: true
+                    currentStock: true,
+                    unitMeasure: true
                 },
                 orderBy: {
-                    item_name: 'asc'
+                    itemName: 'asc'
                 }
             });
 
             // Add "All Fuel Types" option
             const allFuelTypes = {
-                item_id: 'all',
-                item_name: 'All Fuel Types',
-                category: { category_name: 'All Categories' },
-                current_stock: 0,
-                unit_measure: 'gallons'
+                itemId: 'all',
+                itemName: 'All Fuel Types',
+                category: { categoryName: 'All Categories' },
+                currentStock: 0,
+                unitMeasure: 'gallons'
             };
 
             return NextResponse.json({

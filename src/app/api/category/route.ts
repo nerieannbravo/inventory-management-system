@@ -6,15 +6,15 @@ export async function GET() {
     // Fetch all categories except 'Bus'
     const categories = await prisma.category.findMany({
       where: {
-        category_name: {
-          not: 'Bus'
-        },
-        isdeleted: false
+        categoryName: { not: 'Bus' },
+        isDeleted: false,
       },
       select: {
-        category_id: true,
-        category_name: true
-      }
+        categoryId: true,
+        categoryName: true,
+        description: true,
+      },
+      orderBy: { categoryName: 'asc' }
     });
 
     return NextResponse.json({ success: true, categories });

@@ -23,13 +23,8 @@ export async function GET(request: NextRequest) {
 
       // Check if item exists in the local database
       const existingItem = await prisma.inventoryItem.findFirst({
-        where: {
-          item_name: itemName,
-          isdeleted: false
-        },
-        include: {
-          category: true
-        }
+        where: { itemName, isDeleted: false },
+        include: { category: true },
       });
 
       console.log('Found existing item:', existingItem); // Debug log
@@ -39,11 +34,11 @@ export async function GET(request: NextRequest) {
           success: true,
           exists: true,
           item: {
-            category_name: existingItem.category.category_name,
-            category_id: existingItem.category_id,
-            reorder_level: existingItem.reorder_level,
-            unit_measure: existingItem.unit_measure
-          }
+            categoryName: existingItem.category.categoryName,
+            categoryId: existingItem.categoryId,
+            reorderLevel: existingItem.reorderLevel,
+            unitMeasure: existingItem.unitMeasure,
+          },
         });
       } else {
         return NextResponse.json({
@@ -65,17 +60,13 @@ export async function GET(request: NextRequest) {
 export async function PATCH (req: NextRequest) {
     if (req.method === 'PATCH') {
         try {
-            const { batch_id } = await req.json();
+            const { batchId } = await req.json();
     
             // First, get the batch data to retrieve usable_quantity and item_id
-            const batch = await prisma.batch.findUnique({
-                where: { batch_id: String(batch_id) },
-                select: {
-                    usable_quantity: true,
-                    item_id: true,
-                    isdeleted: true
-                }
-            });
+      const batch = await prisma.batch.findUnique({
+        where: { batchId: String(batchId) },
+        select: { usableQuantity: true, itemId: true, isDeleted: true },
+      });
 
             if (!batch) {
                 return NextResponse.json({ 
@@ -84,7 +75,7 @@ export async function PATCH (req: NextRequest) {
                 }, { status: 404 });
             }
 
-            if (batch.isdeleted) {
+      if (batch.isDeleted) {
                 return NextResponse.json({ 
                     success: false, 
                     error: "Batch is already deleted" 
@@ -94,20 +85,17 @@ export async function PATCH (req: NextRequest) {
             // Use a transaction to ensure both operations succeed or fail together
             await prisma.$transaction(async (tx) => {
                 // Mark batch as deleted
-                await tx.batch.update({
-                    where: { batch_id: String(batch_id) },
-                    data: { isdeleted: true },
-                });
+                await tx.batch.update({ where: { batchId: String(batchId) }, data: { isDeleted: true } });
 
                 // Subtract usable_quantity from current_stock
-                await tx.inventoryItem.update({
-                    where: { item_id: batch.item_id },
-                    data: {
-                        current_stock: {
-                            decrement: batch.usable_quantity
-                        }
-                    }
-                });
+                // Resolve numeric inventoryItem id
+                const targetItem = await tx.inventoryItem.findUnique({ where: { id: batch.itemId } });
+                if (targetItem) {
+                  await tx.inventoryItem.update({
+                    where: { id: targetItem.id },
+                    data: { currentStock: { decrement: batch.usableQuantity } },
+                  });
+                }
             });
 
             return NextResponse.json({ success: true });

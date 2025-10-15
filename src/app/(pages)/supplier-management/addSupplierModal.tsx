@@ -15,14 +15,16 @@ import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
 export interface SupplierForm {
-    supplierName: string,
-    supplierStreet: string,
-    supplierBarangay: string,
-    supplierCity: string,
-    supplierProvince: string,
-    supplierContact: string,
-    supplierEmail: string,
-    supplierStatus: string,
+    supplierName: string;
+    contactPerson: string;
+    phone: string;
+    email: string;
+    street: string;
+    barangay: string;
+    city: string;
+    province: string;
+    status: string;
+    remarks: string;
 }
 
 interface FormError {
@@ -30,25 +32,32 @@ interface FormError {
 }
 
 interface AddSupplierModalProps {
-    onSave: (supplierForm: SupplierForm) => void;
+    onSave: (supplierForm: SupplierForm & { linkedItems?: any[] }) => void;
     onClose: () => void;
 }
 
 // Sample linked item data - replace with your actual data source
+// Use normalized keys so the page mapper can convert to API expected shape (item_id)
 const sampleLinkedItems = [
     {
         id: 1,
-        linkedItemName: "Item 1",
-        itemUnit: "liters",
-        itemCategory: "Consumable",
+        itemId: "ITEM-001",
+        itemName: "Item 1",
+        unitMeasure: "liters",
+        category: "Consumable",
         unitPrice: 100,
+        averageDeliveryTime: "3 days",
+        notes: "Preferred supplier"
     },
     {
         id: 2,
-        linkedItemName: "Item 2",
-        itemUnit: "pcs",
-        itemCategory: "Tool",
+        itemId: "ITEM-002",
+        itemName: "Item 2",
+        unitMeasure: "pcs",
+        category: "Tool",
         unitPrice: 1500,
+        averageDeliveryTime: "7 days",
+        notes: null
     }
 ];
 
@@ -59,18 +68,20 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
     const [activeRow, setActiveRow] = useState<any>(null);
 
     // State for linked items list
-    const [linkedItems, setLinkedItems] = useState(sampleLinkedItems);
+    const [linkedItems, setLinkedItems] = useState<any[]>(sampleLinkedItems);
 
     // Initial supplier form state
     const [supplierForm, setSupplierForm] = useState<SupplierForm>({
         supplierName: "",
-        supplierStreet: "",
-        supplierBarangay: "",
-        supplierCity: "",
-        supplierProvince: "",
-        supplierContact: "",
-        supplierEmail: "",
-        supplierStatus: "",
+        contactPerson: "",
+        phone: "",
+        email: "",
+        street: "",
+        barangay: "",
+        city: "",
+        province: "",
+        status: "ACTIVE",
+        remarks: "",
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
@@ -96,35 +107,36 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
         const errors: FormError = {};
 
         if (!supplierForm.supplierName) errors.supplierName = "Supplier name is required";
-        if (!supplierForm.supplierContact) {
-            errors.supplierContact = "Contact number is required";
-        } else if (!/^\d{11}$/.test(supplierForm.supplierContact)) {
-            errors.supplierContact = "Contact number must be exactly 11 digits";
+        if (!supplierForm.phone) {
+            errors.phone = "Contact number is required";
+        } else if (!/^\d{11}$/.test(supplierForm.phone)) {
+            errors.phone = "Contact number must be 11 digits";
         }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplierForm.supplierEmail)) {
-            errors.supplierEmail = "Invalid email format";
-        } 
-        // else if (!supplierForm.supplierEmail) {
-        //     errors.supplierEmail = "Email is required";
-        // }
-        if (!supplierForm.supplierStatus) errors.supplierStatus = "Status is required";
-        // if (!supplierForm.supplierStreet) errors.supplierStreet = "Street is required";
-        // if (!supplierForm.supplierBarangay) errors.supplierBarangay = "Barangay is required";
-        if (!supplierForm.supplierCity) errors.supplierCity = "City is required";
-        // if (!supplierForm.supplierProvince) errors.supplierProvince = "Province is required";
+        if (supplierForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplierForm.email)) {
+            errors.email = "Valid email format is required";
+        }
+        if (!supplierForm.status) errors.status = "Status is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    };    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateForm()) return;
 
         const result = await showSupplierSaveConfirmation();
         if (result.isConfirmed) {
-            onSave(supplierForm);
+            // include linked items in the payload - normalize keys expected by page mapper
+            const normalizedLinked = linkedItems.map((li: any) => ({
+                itemId: li.itemId ?? li.id ?? null,
+                itemName: li.itemName ?? li.linkedItemName ?? null,
+                unitMeasure: li.unitMeasure ?? li.itemUnit ?? null,
+                unitPrice: Number(li.unitPrice) || 0,
+                averageDeliveryTime: li.averageDeliveryTime ?? null,
+                notes: li.notes ?? null,
+            })).filter((x: any) => x.itemId != null);
+
+            onSave({ ...supplierForm, linkedItems: normalizedLinked });
             await showSupplierSavedSuccess();
         }
     };
@@ -186,13 +198,16 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
     const handleAddLinkedItem = (linkedItemForm: LinkedItemForm) => {
         console.log("New item:", linkedItemForm);
 
-        // Add the new item to the list (can be replaced with actual data handling logic)
+        // Add the new item to the list using normalized keys
         const newItem = {
             id: linkedItems.length + 1,
-            linkedItemName: linkedItemForm.linkedItemName,
-            itemCategory: linkedItemForm.itemCategory,
-            itemUnit: linkedItemForm.itemUnit,
-            unitPrice: linkedItemForm.unitPrice
+            itemId: linkedItemForm.itemId || `ITEM-${String(linkedItems.length + 1).padStart(3, '0')}`,
+            itemName: linkedItemForm.linkedItemName,
+            unitMeasure: linkedItemForm.itemUnit,
+            category: linkedItemForm.itemCategory,
+            unitPrice: Number(linkedItemForm.unitPrice) || 0,
+            averageDeliveryTime: linkedItemForm.averageDeliveryTime || null,
+            notes: linkedItemForm.notes || null,
         };
         setLinkedItems([...linkedItems, newItem]);
         closeModal();
@@ -208,10 +223,12 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                 item.id === updatedItem.id
                     ? {
                         ...item,
-                        linkedItemName: updatedItem.linkedItemName,
-                        itemCategory: updatedItem.itemCategory,
-                        itemUnit: updatedItem.itemUnit,
-                        unitPrice: updatedItem.unitPrice
+                        itemName: updatedItem.linkedItemName,
+                        category: updatedItem.itemCategory,
+                        unitMeasure: updatedItem.itemUnit,
+                        unitPrice: Number(updatedItem.unitPrice) || 0,
+                        averageDeliveryTime: updatedItem.averageDeliveryTime || null,
+                        notes: updatedItem.notes || null,
                     }
                     : item
             )
@@ -260,46 +277,44 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                     </div>
 
                     <div className="form-row">
-                        {/* Supplier Contact */}
+                        {/* Contact Person */}
+                        <div className="form-group">
+                            <label>Contact Person</label>
+                            <input
+                                className={formErrors?.contactPerson ? "invalid-input" : ""}
+                                type="text"
+                                value={supplierForm.contactPerson}
+                                onChange={(e) => handleChange("contactPerson", e.target.value)}
+                                placeholder="Enter contact person name..."
+                            />
+                            <p className="add-error-message">{formErrors?.contactPerson}</p>
+                        </div>
+
+                        {/* Contact Number */}
                         <div className="form-group">
                             <label>Contact Number</label>
                             <input
-                                className={formErrors?.supplierContact ? "invalid-input" : ""}
+                                className={formErrors?.phone ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierContact}
-                                onChange={(e) => handleChange("supplierContact", e.target.value)}
+                                value={supplierForm.phone}
+                                onChange={(e) => handleChange("phone", e.target.value)}
                                 placeholder="Enter contact number here..."
                                 maxLength={11}
                             />
-                            <p className="add-error-message">{formErrors?.supplierContact}</p>
+                            <p className="add-error-message">{formErrors?.phone}</p>
                         </div>
 
-                        {/* Supplier Email */}
+                        {/* Email */}
                         <div className="form-group">
                             <label>Email</label>
                             <input
-                                className={formErrors?.supplierEmail ? "invalid-input" : ""}
+                                className={formErrors?.email ? "invalid-input" : ""}
                                 type="email"
-                                value={supplierForm.supplierEmail}
-                                onChange={(e) => handleChange("supplierEmail", e.target.value)}
+                                value={supplierForm.email}
+                                onChange={(e) => handleChange("email", e.target.value)}
                                 placeholder="Enter email here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierEmail}</p>
-                        </div>
-
-                        {/* Status */}
-                        <div className="form-group">
-                            <label>Status</label>
-                            <select
-                                value={supplierForm.supplierStatus}
-                                onChange={(e) => handleChange("supplierStatus", e.target.value)}
-                                className={formErrors?.supplierStatus ? "invalid-input" : ""}
-                            >
-                                <option value="" disabled>Select status...</option>
-                                <option value="sold">Active</option>
-                                <option value="traded">Inactive</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.supplierStatus}</p>
+                            <p className="add-error-message">{formErrors?.email}</p>
                         </div>
                     </div>
 
@@ -308,26 +323,26 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                         <div className="form-group">
                             <label>Street</label>
                             <input
-                                className={formErrors?.supplierStreet ? "invalid-input" : ""}
+                                className={formErrors?.street ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierStreet}
-                                onChange={(e) => handleChange("supplierStreet", e.target.value)}
+                                value={supplierForm.street}
+                                onChange={(e) => handleChange("street", e.target.value)}
                                 placeholder="Enter street here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierStreet}</p>
+                            <p className="add-error-message">{formErrors?.street}</p>
                         </div>
 
                         {/* Barangay */}
                         <div className="form-group">
                             <label>Barangay</label>
                             <input
-                                className={formErrors?.supplierBarangay ? "invalid-input" : ""}
+                                className={formErrors?.barangay ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierBarangay}
-                                onChange={(e) => handleChange("supplierBarangay", e.target.value)}
+                                value={supplierForm.barangay}
+                                onChange={(e) => handleChange("barangay", e.target.value)}
                                 placeholder="Enter barangay here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierBarangay}</p>
+                            <p className="add-error-message">{formErrors?.barangay}</p>
                         </div>
                     </div>
 
@@ -336,27 +351,59 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                         <div className="form-group">
                             <label>City</label>
                             <input
-                                className={formErrors?.supplierCity ? "invalid-input" : ""}
+                                className={formErrors?.city ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierCity}
-                                onChange={(e) => handleChange("supplierCity", e.target.value)}
+                                value={supplierForm.city}
+                                onChange={(e) => handleChange("city", e.target.value)}
                                 placeholder="Enter city here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierCity}</p>
+                            <p className="add-error-message">{formErrors?.city}</p>
                         </div>
 
                         {/* Province */}
                         <div className="form-group">
                             <label>Province</label>
                             <input
-                                className={formErrors?.supplierProvince ? "invalid-input" : ""}
+                                className={formErrors?.province ? "invalid-input" : ""}
                                 type="text"
-                                value={supplierForm.supplierProvince}
-                                onChange={(e) => handleChange("supplierProvince", e.target.value)}
+                                value={supplierForm.province}
+                                onChange={(e) => handleChange("province", e.target.value)}
                                 placeholder="Enter province here..."
                             />
-                            <p className="add-error-message">{formErrors?.supplierProvince}</p>
+                            <p className="add-error-message">{formErrors?.province}</p>
                         </div>
+                    </div>
+
+                    <div className="form-row">
+                        {/* Status */}
+                        <div className="form-group">
+                            <label>Status</label>
+                            <select
+                                value={supplierForm.status}
+                                onChange={(e) => handleChange("status", e.target.value)}
+                                className={formErrors?.status ? "invalid-input" : ""}
+                            >
+                                <option value="" disabled>Select status...</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                                <option value="FLAGGED">Flagged</option>
+                                <option value="BLOCKED">Blocked</option>
+                            </select>
+                            <p className="add-error-message">{formErrors?.status}</p>
+                        </div>
+                    </div>
+
+                    {/* Remarks */}
+                    <div className="form-group">
+                        <label>Remarks</label>
+                        <textarea
+                            className={formErrors?.remarks ? "invalid-input" : ""}
+                            value={supplierForm.remarks}
+                            onChange={(e) => handleChange("remarks", e.target.value)}
+                            placeholder="Enter any additional remarks..."
+                            rows={3}
+                        />
+                        <p className="add-error-message">{formErrors?.remarks}</p>
                     </div>
                 </form>
             </div>
@@ -381,12 +428,12 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                     </tr>
                 </thead>
                 <tbody className="modal-table-body">
-                    {linkedItems.map(item => (
+                    {linkedItems.map((item: any) => (
                         <tr key={item.id}>
-                            <td>{item.linkedItemName}</td>
-                            <td>{item.itemUnit}</td>
+                            <td>{item.itemName ?? item.linkedItemName}</td>
+                            <td>{item.unitMeasure ?? item.itemUnit}</td>
                             <td>{item.unitPrice}</td>
-                            <td>{item.itemCategory}</td>
+                            <td>{item.category ?? item.itemCategory}</td>
                             <td>
                                 <ActionButtons
                                     onEdit={() => openModal("edit-linkedItem", item)}

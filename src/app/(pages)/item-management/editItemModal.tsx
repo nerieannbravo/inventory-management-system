@@ -22,7 +22,7 @@ interface EditItemModalProps {
         itemStatus: string,
         // Additional fields would be included in a real application
     };
-    onSave: (updatedItem: any) => void;
+    onSave: (updatedItem: any & { linkedSuppliers?: any[] }) => void;
     onClose: () => void;
 }
 
@@ -105,7 +105,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
 
         const result = await showItemUpdateConfirmation(formData.itemName);
         if (result.isConfirmed) {
-            onSave(formData);
+            onSave({ ...formData, linkedSuppliers });
             await showItemUpdatedSuccess();
         }
     };

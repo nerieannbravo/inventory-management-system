@@ -4,12 +4,14 @@ import {
     showSupplierUpdateConfirmation, showSupplierUpdatedSuccess,
     showCloseWithoutUpdatingConfirmation
 } from "@/utils/sweetAlert";
+import { getSuppliers } from "@/app/lib/api";
 
 import "@/styles/forms.css";
 
 interface EditLinkedSupplierModalProps {
     item: {
         id: number;
+        supplierId?: string;
         linkedSupplierName: string;
         unitPrice: number;
         deliveryTime: string;
@@ -22,6 +24,7 @@ interface EditLinkedSupplierModalProps {
 export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditLinkedSupplierModalProps) {
     const [formData, setFormData] = useState({
         id: item.id,
+        supplierId: item.supplierId || "",
         linkedSupplierName: item.linkedSupplierName,
         unitPrice: item.unitPrice,
         deliveryTime: item.deliveryTime,
@@ -35,6 +38,27 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+    // Fetch suppliers
+    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [loadingSuppliers, setLoadingSuppliers] = useState(true);
+
+    useEffect(() => {
+        const fetchSuppliers = async () => {
+            try {
+                setLoadingSuppliers(true);
+                const data = await getSuppliers();
+                if (data.success) {
+                    setSuppliers(data.suppliers || []);
+                }
+            } catch (err) {
+                console.error('Error fetching suppliers:', err);
+            } finally {
+                setLoadingSuppliers(false);
+            }
+        };
+        fetchSuppliers();
+    }, []);
+
     // Check if form data has changed from original
     useEffect(() => {
         const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
@@ -46,6 +70,14 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
             ...prev,
             [field]: value
         }));
+
+        // When supplier is selected, also store the supplierId
+        if (field === "linkedSupplierName") {
+            const selected = suppliers.find(s => s.supplierName === value);
+            if (selected) {
+                setFormData(prev => ({ ...prev, supplierId: selected.supplierId }));
+            }
+        }
     };
 
     const validateForm = (): boolean => {
@@ -104,13 +136,21 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
                     {/* Linked Supplier Name */}
                     <div className="form-group">
                         <label>Supplier Name</label>
-                        <input disabled
+                        <select
                             className={formErrors?.linkedSupplierName ? "invalid-input" : ""}
-                            type="text"
                             value={formData.linkedSupplierName}
                             onChange={(e) => handleChange("linkedSupplierName", e.target.value)}
-                            placeholder="Enter supplier name here..."
-                        />
+                            disabled={loadingSuppliers}
+                        >
+                            <option value="" disabled>
+                                {loadingSuppliers ? "Loading suppliers..." : "Select supplier name..."}
+                            </option>
+                            {suppliers.map((supplier) => (
+                                <option key={supplier.id} value={supplier.supplierName}>
+                                    {supplier.supplierName}
+                                </option>
+                            ))}
+                        </select>
                         <p className="edit-error-message">{formErrors?.linkedSupplierName}</p>
                     </div>
 

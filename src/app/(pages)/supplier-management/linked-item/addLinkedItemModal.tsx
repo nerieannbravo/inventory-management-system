@@ -4,6 +4,7 @@ import {
     showItemSaveConfirmation, showItemSavedSuccess,
     showCloseWithoutSavingConfirmation
 } from "@/utils/sweetAlert";
+import { getItems } from "@/app/lib/api";
 
 import "@/styles/forms.css";
 
@@ -12,6 +13,10 @@ export interface LinkedItemForm {
     itemCategory: string;
     itemUnit: string;
     unitPrice: number;
+    // optional normalized fields
+    itemId?: string;
+    averageDeliveryTime?: string | null;
+    notes?: string | null;
 }
 
 interface FormError {
@@ -31,8 +36,33 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
         unitPrice: 0
     });
 
+    // enhance initial state with optional props
+    useEffect(() => {
+        setLinkedItemForm(prev => ({ ...prev, itemId: prev.itemId ?? undefined, averageDeliveryTime: prev.averageDeliveryTime ?? null, notes: prev.notes ?? null }));
+    }, []);
+
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+    const [items, setItems] = useState<any[]>([]);
+    const [loadingItems, setLoadingItems] = useState(true);
+
+    // Fetch items from API
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                setLoadingItems(true);
+                const data = await getItems();
+                if (data.success) {
+                    setItems(data.items || []);
+                }
+            } catch (err) {
+                console.error('Error fetching items:', err);
+            } finally {
+                setLoadingItems(false);
+            }
+        };
+        fetchItems();
+    }, []);
 
     // Track if form has been modified
     useEffect(() => {
@@ -41,6 +71,19 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
 
     const handleChange = (field: string, value: any) => {
         setLinkedItemForm((prev) => ({ ...prev, [field]: value }));
+
+        // When item is selected, populate related fields from API data
+        if (field === "linkedItemName") {
+            const selected = items.find(i => i.itemName === value);
+            if (selected) {
+                setLinkedItemForm(prev => ({
+                    ...prev,
+                    itemId: selected.itemId,
+                    itemCategory: selected.category?.categoryName || "",
+                    itemUnit: selected.unitMeasure || ""
+                }));
+            }
+        }
 
         // Clear the error for that field
         if (formErrors[field]) {
@@ -102,11 +145,16 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
                             className={formErrors?.linkedItemName ? "invalid-input" : ""}
                             value={linkedItemForm.linkedItemName}
                             onChange={(e) => handleChange("linkedItemName", e.target.value)}
+                            disabled={loadingItems}
                         >
-                            <option value="" disabled>Select item name...</option>
-                            <option value="Fuel Filter">Fuel Filter</option>
-                            <option value="Break Pad">Break Pad</option>
-                            <option value="Tire">Tire</option>
+                            <option value="" disabled>
+                                {loadingItems ? "Loading items..." : "Select item name..."}
+                            </option>
+                            {items.map((item) => (
+                                <option key={item.id} value={item.itemName}>
+                                    {item.itemName}
+                                </option>
+                            ))}
                         </select>
                         <p className="add-error-message">{formErrors?.linkedItemName}</p>
                     </div>
@@ -121,6 +169,7 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
                                 value={linkedItemForm.itemUnit}
                                 onChange={(e) => handleChange("itemUnit", e.target.value)}
                                 placeholder="Enter unit measure here..."
+                                disabled
                             />
                             <p className="add-error-message">{formErrors?.itemUnit}</p>
                         </div>
@@ -141,18 +190,47 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
                         {/* Item Category */}
                         <div className="form-group">
                             <label>Item Category</label>
-                            <select
+                            <input
                                 className={formErrors?.itemCategory ? "invalid-input" : ""}
+                                type="text"
                                 value={linkedItemForm.itemCategory}
                                 onChange={(e) => handleChange("itemCategory", e.target.value)}
-                            >
-                                <option value="" disabled>Select category...</option>
-                                <option value="Consumable">Consumable</option>
-                                <option value="Tool">Tool</option>
-                                <option value="Equipment">Equipment</option>
-                                <option value="Machine">Machine</option>
-                            </select>
+                                placeholder="Category"
+                                disabled
+                            />
                             <p className="add-error-message">{formErrors?.itemCategory}</p>
+                        </div>
+                        {/* External ItemId (optional) */}
+                        <div className="form-group">
+                            <label>Item ID (optional)</label>
+                            <input
+                                type="text"
+                                value={linkedItemForm.itemId || ""}
+                                onChange={(e) => handleChange("itemId", e.target.value)}
+                                placeholder="External item identifier (e.g., ITEM-001)"
+                            />
+                        </div>
+
+                        {/* Avg Delivery Time */}
+                        <div className="form-group">
+                            <label>Average Delivery Time (optional)</label>
+                            <input
+                                type="text"
+                                value={linkedItemForm.averageDeliveryTime ?? ""}
+                                onChange={(e) => handleChange("averageDeliveryTime", e.target.value)}
+                                placeholder="e.g., 3 days"
+                            />
+                        </div>
+
+                        {/* Notes */}
+                        <div className="form-group">
+                            <label>Notes (optional)</label>
+                            <input
+                                type="text"
+                                value={linkedItemForm.notes ?? ""}
+                                onChange={(e) => handleChange("notes", e.target.value)}
+                                placeholder="Notes about this supplier-item relation"
+                            />
                         </div>
                     </div>
                 </form >

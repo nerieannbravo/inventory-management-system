@@ -20,6 +20,7 @@ export interface ItemForm {
     itemCategory: string,
     itemStatus: string,
     itemDescription: string,
+    linkedSuppliers?: any[];
 }
 
 interface FormError {
@@ -107,7 +108,7 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
 
         const result = await showItemSaveConfirmation();
         if (result.isConfirmed) {
-            onSave(itemForm);
+            onSave({ ...itemForm, linkedSuppliers });
             await showItemSavedSuccess();
         }
     };

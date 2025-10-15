@@ -10,11 +10,11 @@ export async function POST(req: NextRequest) {
       bus: busForm,
       secondHandDetails,
       brandNewDetails,
-      busOtherFiles
+      busFiles
     } = data;
 
-    // Enforce 10-file limit
-    if (Array.isArray(busOtherFiles) && busOtherFiles.length > 10) {
+  // Enforce 10-file limit
+  if (Array.isArray(busFiles) && busFiles.length > 10) {
       return NextResponse.json(
         { success: false, error: "You can only attach up to 10 files per bus record." },
         { status: 400 }
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     // Check for duplicate plate number
     const existingBus = await prisma.bus.findFirst({
-      where: { plate_number: busForm.plate_number },
+      where: { plateNumber: busForm.plateNumber },
     });
     if (existingBus) {
       return NextResponse.json(
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     }
     // Check for duplicate body number
     const existingBodyNumber = await prisma.bus.findFirst({
-      where: { body_number: busForm.body_number },
+      where: { bodyNumber: busForm.bodyNumber },
     });
     if (existingBodyNumber) {
       return NextResponse.json(
@@ -96,35 +96,33 @@ export async function POST(req: NextRequest) {
     if (busForm.condition === 'second-hand' && !secondHandDetails) {
       createdBus = await prisma.bus.create({
         data: {
-          bus_id,
-          item_id: "ITEM-00001", // Make sure to provide item_id from frontend or generate if needed
-          plate_number: busForm.plate_number,
-          body_number: busForm.body_number,
-          body_builder: mapEnum(bodyBuilderMap, busForm.bodyBuilder, 'AGILA') as BodyBuilder,
-          bus_type: mapEnum(busTypeMap, busForm.bus_type, 'ORDINARY') as BusType,
+          busId: bus_id,
+          itemId: (await prisma.inventoryItem.findUnique({ where: { itemId: 'ITEM-00001' } }))?.id ?? 1,
+          plateNumber: busForm.plateNumber,
+          bodyNumber: busForm.bodyNumber,
+          bodyBuilder: mapEnum(bodyBuilderMap, busForm.bodyBuilder, 'AGILA') as BodyBuilder,
+          busType: mapEnum(busTypeMap, busForm.bus_type, 'ORDINARY') as BusType,
           manufacturer: busForm.manufacturer,
           status: mapEnum(busStatusMap, busForm.status, 'ACTIVE') as BusStatus,
-          chasis_number: busForm.chasis_number,
-          engine_number: busForm.engine_number,
-          seat_capacity: Number(busForm.seat_capacity),
+          chasisNumber: busForm.chasis_number,
+          engineNumber: busForm.engine_number,
+          seatCapacity: Number(busForm.seat_capacity),
           model: busForm.model,
-          year_model: Number(busForm.year_model),
+          yearModel: Number(busForm.year_model),
           condition: mapEnum(busConditionMap, busForm.condition, 'BRAND_NEW') as BusCondition,
-          acquisition_date: new Date(busForm.acquisition_date),
-          acquisition_method: mapEnum(acquisitionMethodMap, busForm.acquisition_method, 'PURCHASED') as AcquisitionMethod,
-          warranty_expiration_date: busForm.warranty_expiration_date ? new Date(busForm.warranty_expiration_date) : null,
-          registration_status: mapEnum(registrationStatusMap, busForm.registration_status, 'REGISTERED') as RegistrationStatus,
-          date_created: new Date(),
-          created_by: 1, // Replace with actual user ID if available
+          acquisitionDate: new Date(busForm.acquisition_date),
+          acquisitionMethod: mapEnum(acquisitionMethodMap, busForm.acquisition_method, 'PURCHASED') as AcquisitionMethod,
+          warrantyExpirationDate: busForm.warranty_expiration_date ? new Date(busForm.warranty_expiration_date) : null,
+          registrationStatus: mapEnum(registrationStatusMap, busForm.registration_status, 'REGISTERED') as RegistrationStatus,
           secondHandDetails: {
             create: {
-              previous_owner: busForm.previous_owner || null,
-              previous_owner_contact: busForm?.previous_owner_contact || null,
+              previousOwner: busForm.previous_owner || null,
+              previousOwnerContact: busForm?.previous_owner_contact || null,
               source: mapEnum(busSourceMap, busForm.source, 'DEALERSHIP') as BusSource,
-              odometer_reading: Number(busForm.odometer_reading),
-              last_registration_date: new Date(busForm.last_registration_date),
-              last_maintenance_date: new Date(busForm.last_maintenance_date),
-              bus_condition_notes: busForm?.bus_condition_notes || null,
+              odometerReading: Number(busForm.odometer_reading),
+              lastRegistrationDate: new Date(busForm.last_registration_date),
+              lastMaintenanceDate: new Date(busForm.last_maintenance_date),
+              conditionNotes: busForm?.bus_condition_notes || null,
             }
           }
         }
@@ -132,30 +130,28 @@ export async function POST(req: NextRequest) {
     } else if (busForm.condition === 'brand-new' && !brandNewDetails) {
       createdBus = await prisma.bus.create({
         data: {
-          bus_id,
-          item_id: "ITEM-00001", // Make sure to provide item_id from frontend or generate if needed
-          plate_number: busForm.plate_number,
-          body_number: busForm.body_number,
-          body_builder: mapEnum(bodyBuilderMap, busForm.bodyBuilder, 'AGILA') as BodyBuilder,
-          bus_type: mapEnum(busTypeMap, busForm.bus_type, 'ORDINARY') as BusType,
+          busId: bus_id,
+          itemId: (await prisma.inventoryItem.findUnique({ where: { itemId: 'ITEM-00001' } }))?.id ?? 1,
+          plateNumber: busForm.plateNumber,
+          bodyNumber: busForm.bodyNumber,
+          bodyBuilder: mapEnum(bodyBuilderMap, busForm.bodyBuilder, 'AGILA') as BodyBuilder,
+          busType: mapEnum(busTypeMap, busForm.bus_type, 'ORDINARY') as BusType,
           manufacturer: busForm.manufacturer,
           status: mapEnum(busStatusMap, busForm.status, 'ACTIVE') as BusStatus,
-          chasis_number: busForm.chasis_number,
-          engine_number: busForm.engine_number,
-          seat_capacity: Number(busForm.seat_capacity),
+          chasisNumber: busForm.chasis_number,
+          engineNumber: busForm.engine_number,
+          seatCapacity: Number(busForm.seat_capacity),
           model: busForm.model,
-          year_model: Number(busForm.year_model),
+          yearModel: Number(busForm.year_model),
           condition: mapEnum(busConditionMap, busForm.condition, 'BRAND_NEW') as BusCondition,
-          acquisition_date: new Date(busForm.acquisition_date),
-          acquisition_method: mapEnum(acquisitionMethodMap, busForm.acquisition_method, 'PURCHASED') as AcquisitionMethod,
-          warranty_expiration_date: busForm.warranty_expiration_date ? new Date(busForm.warranty_expiration_date) : null,
-          registration_status: mapEnum(registrationStatusMap, busForm.registration_status, 'REGISTERED') as RegistrationStatus,
-          date_created: new Date(),
-          created_by: 1, // Replace with actual user ID if available
+          acquisitionDate: new Date(busForm.acquisition_date),
+          acquisitionMethod: mapEnum(acquisitionMethodMap, busForm.acquisition_method, 'PURCHASED') as AcquisitionMethod,
+          warrantyExpirationDate: busForm.warranty_expiration_date ? new Date(busForm.warranty_expiration_date) : null,
+          registrationStatus: mapEnum(registrationStatusMap, busForm.registration_status, 'REGISTERED') as RegistrationStatus,
           brandNewDetails: {
             create: {
-              dealer_name: busForm.dealer_name,
-              dealer_contact: busForm.dealer_contact,
+              dealerName: busForm.dealer_name,
+              dealerContact: busForm.dealer_contact,
             }
           }
         }
@@ -163,16 +159,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Always create BusOtherFiles after the bus is created
-    if (createdBus && Array.isArray(busOtherFiles) && busOtherFiles.length > 0) {
-      for (const file of busOtherFiles) {
-        await prisma.busOtherFiles.create({
+    if (createdBus && Array.isArray(busFiles) && busFiles.length > 0) {
+      for (const file of busFiles) {
+        await prisma.busFile.create({
           data: {
-            bus_files_id: await generateId('busOtherFiles', 'FILE'), // Unique id for each file
-            file_name: file.file_name,
-            file_type: file.file_type,
-            file_url: file.file_url,
-            date_uploaded: new Date(),
-            bus_id, // Link file to the created bus
+            fileId: await generateId('busOtherFiles', 'FILE'), // Unique id for each file
+            fileName: file.file_name,
+            fileType: file.file_type,
+            fileUrl: file.file_url,
+            uploadedAt: new Date(),
+            busId: createdBus.id, // Link file to the created bus (numeric FK)
           }
         });
       }
@@ -195,7 +191,7 @@ export async function GET() {
       include: {
         secondHandDetails: true,
         brandNewDetails: true,
-        busOtherFiles: true,
+        busFiles: true,
       },
     });
     return NextResponse.json({ success: true, buses });
@@ -209,10 +205,10 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const data = await req.json();
-    const { bus_id, newlyUploadedFiles, busOtherFiles, ...busData } = data;
+  const { bus_id, newlyUploadedFiles, busFiles, ...busData } = data;
 
     // Enforce 10-file limit
-    const totalFiles = (Array.isArray(busOtherFiles) ? busOtherFiles.length : 0) + (Array.isArray(newlyUploadedFiles) ? newlyUploadedFiles.length : 0);
+  const totalFiles = (Array.isArray(busFiles) ? busFiles.length : 0) + (Array.isArray(newlyUploadedFiles) ? newlyUploadedFiles.length : 0);
     if (totalFiles > 10) {
       return NextResponse.json(
         { success: false, error: "You can only attach up to 10 files per bus record." },
@@ -231,7 +227,7 @@ export async function PUT(req: NextRequest) {
 
     // 1. Update the main bus details
     await prisma.bus.update({
-      where: { bus_id: String(bus_id) },
+      where: { busId: String(bus_id) },
       data: {
         ...mainBusData,
         // Ensure nested details are not passed to the top-level update
@@ -243,10 +239,10 @@ export async function PUT(req: NextRequest) {
     // 2. Update nested details if they exist using upsert
     if (secondHandDetails) {
       await prisma.secondHandDetails.upsert({
-        where: { s_bus_id: String(bus_id) },
+        where: { busId: Number(bus_id) },
         update: secondHandDetails,
         create: {
-          s_bus_id: String(bus_id),
+          busId: Number(bus_id),
           ...secondHandDetails,
         },
       });
@@ -254,10 +250,10 @@ export async function PUT(req: NextRequest) {
     
     if (brandNewDetails) {
       await prisma.brandNewDetails.upsert({
-        where: { b_bus_id: String(bus_id) },
+        where: { busId: Number(bus_id) },
         update: brandNewDetails,
         create: {
-          b_bus_id: String(bus_id),
+          busId: Number(bus_id),
           ...brandNewDetails,
         },
       });
@@ -265,21 +261,21 @@ export async function PUT(req: NextRequest) {
 
     // 3. Handle file updates
     // Get the original files from the DB
-    const originalFiles = await prisma.busOtherFiles.findMany({
-      where: { bus_id: String(bus_id) },
+    const originalFiles = await prisma.busFile.findMany({
+      where: { busId: Number(bus_id) },
     });
 
-    const clientFileIds = busOtherFiles.map((file: any) => file.bus_files_id);
+    const clientFileIds = (busFiles || []).map((file: any) => file.fileId);
 
     // Identify files to be deleted
     const filesToDelete = originalFiles.filter(
-      (dbFile) => !clientFileIds.includes(dbFile.bus_files_id)
+      (dbFile) => !clientFileIds.includes(dbFile.fileId)
     );
 
     // Delete files that were removed in the UI
     for (const fileToDelete of filesToDelete) {
-      await prisma.busOtherFiles.delete({
-        where: { bus_files_id: fileToDelete.bus_files_id },
+      await prisma.busFile.delete({
+        where: { fileId: fileToDelete.fileId },
       });
       // TODO: Add logic here to delete the actual file from storage
     }
@@ -289,44 +285,44 @@ export async function PUT(req: NextRequest) {
       for (const file of newlyUploadedFiles) {
         if (file.file_type === 'CR') {
           // Check if CR file already exists in the database
-          const existingCRFile = await prisma.busOtherFiles.findFirst({
+          const existingCRFile = await prisma.busFile.findFirst({
             where: { 
-              bus_id: String(bus_id),
-              file_type: 'CR'
+              busId: Number(bus_id),
+              fileType: 'CR'
             }
           });
 
           if (existingCRFile) {
             // Update existing CR file
-            await prisma.busOtherFiles.update({
-              where: { bus_files_id: existingCRFile.bus_files_id },
+            await prisma.busFile.update({
+              where: { fileId: existingCRFile.fileId },
               data: {
-                file_name: file.file_name,
-                file_url: file.file_url,
-                date_uploaded: new Date(),
+                fileName: file.file_name,
+                fileUrl: file.file_url,
+                uploadedAt: new Date(),
               },
             });
           } else {
             // Create new CR file
-            await prisma.busOtherFiles.create({
+            await prisma.busFile.create({
               data: {
-                bus_files_id: await generateId('busOtherFiles', 'FILE'),
-                file_name: file.file_name,
-                file_type: file.file_type,
-                file_url: file.file_url,
-                bus_id: String(bus_id),
+                fileId: await generateId('busOtherFiles', 'FILE'),
+                fileName: file.file_name,
+                fileType: file.file_type,
+                fileUrl: file.file_url,
+                busId: Number(bus_id),
               },
             });
           }
         } else {
           // For other file types, just create new
-          await prisma.busOtherFiles.create({
+          await prisma.busFile.create({
             data: {
-              bus_files_id: await generateId('busOtherFiles', 'FILE'),
-              file_name: file.file_name,
-              file_type: file.file_type,
-              file_url: file.file_url,
-              bus_id: String(bus_id),
+              fileId: await generateId('busOtherFiles', 'FILE'),
+              fileName: file.file_name,
+              fileType: file.file_type,
+              fileUrl: file.file_url,
+              busId: Number(bus_id),
             },
           });
         }
