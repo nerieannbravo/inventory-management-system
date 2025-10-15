@@ -189,9 +189,12 @@ export default function SupplierManagement() {
             const linkedItemsPayload = (supplierForm.linkedItems || []).map((li: any) => ({
                 // the API expects `item_id` (external item identifier string); accept multiple possible UI shapes
                 item_id: li.itemId ?? li.item_id ?? li.id ?? li.linkedItemId ?? null,
+                supplierUnitMeasureId: li.supplierUnitMeasureId ?? li.supplier_unit_measure_id ?? null,
+                conversionFactor: li.conversionFactor ?? li.conversion_factor ?? 1,
                 unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
                 averageDeliveryTime: li.averageDeliveryTime ?? li.average_delivery_time ?? null,
                 notes: li.notes ?? li.note ?? null,
+                isPreferred: li.isPreferred ?? li.is_preferred ?? false,
             })).filter((li: any) => li.item_id != null); // drop entries without an item identifier
 
             const payload = {
@@ -227,9 +230,9 @@ export default function SupplierManagement() {
         // Normalize the linked items data with full schema fields
         const linkedItemsPayload = (updatedSupplier.linkedItems || []).map((li: any) => ({
             item_id: li.itemId ?? li.item_id ?? li.id ?? li.linkedItemId ?? null,
-            unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
             supplierUnitMeasureId: li.supplierUnitMeasureId ?? li.supplier_unit_measure_id ?? null,
             conversionFactor: li.conversionFactor ?? li.conversion_factor ?? 1,
+            unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
             averageDeliveryTime: li.averageDeliveryTime ?? li.average_delivery_time ?? null,
             notes: li.notes ?? li.note ?? null,
             isPreferred: li.isPreferred ?? li.is_preferred ?? false,

@@ -102,15 +102,22 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
         if (field === "itemName") {
             const selected = items.find(i => i.itemName === value);
             if (selected) {
+                // Extract unit measure information properly
+                const unitMeasureName = selected.unitMeasure?.abbreviation || selected.unitMeasure?.unitName || "";
+                const unitMeasureId = selected.unitMeasure?.id || selected.unitMeasureId || 0;
+                
+                // Extract category information properly
+                const categoryName = selected.category?.categoryName || "";
+                
                 setLinkedItemForm(prev => ({
                     ...prev,
                     itemId: selected.itemId,
-                    itemCategory: selected.category?.categoryName || "",
-                    canonicalUnit: selected.unitMeasure || "",
-                    canonicalUnitId: selected.unitMeasureId || 0,
+                    itemCategory: categoryName,
+                    canonicalUnit: unitMeasureName,
+                    canonicalUnitId: unitMeasureId,
                     // Default supplier unit to canonical unit
-                    supplierUnitMeasureId: selected.unitMeasureId || 0,
-                    supplierUnitName: selected.unitMeasure || "",
+                    supplierUnitMeasureId: unitMeasureId,
+                    supplierUnitName: unitMeasureName,
                     conversionFactor: 1
                 }));
             }

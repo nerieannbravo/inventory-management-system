@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../lib/prisma';
+import { generateId } from '../../lib/idGenerator';
 
 /*
   Supplier API
@@ -108,11 +109,15 @@ export async function POST(request: NextRequest) {
       linkedItems // optional array of { item_id, unitPrice, averageDeliveryTime, notes }
     } = body;
 
+    // Generate unique supplierId
+    const supplierId = await generateId('supplier', 'SUP');
+
     // Create supplier inside transaction and create supplierItems if provided
     // use any-typed transaction to avoid strict generated types
     const created = await (prisma as any).$transaction(async (tx: any) => {
       const s = await tx.supplier.create({
         data: {
+          supplierId,
           supplierName,
           contactPerson,
           phone,
@@ -142,7 +147,7 @@ export async function POST(request: NextRequest) {
               supplierId: s.id,
               itemId: inv.id,
               categoryId: inv.categoryId, // Add categoryId from InventoryItem
-              supplierUnitMeasureId: supplierUnitMeasureId,
+              supplierUnitMeasureId: Number(supplierUnitMeasureId),
               conversionFactor: Number(conversionFactor),
               unitPrice: Number(li.unitPrice) || 0,
               averageDeliveryTime: li.averageDeliveryTime || null,
@@ -213,7 +218,7 @@ export async function PUT(request: NextRequest) {
           const conversionFactor = li.conversionFactor || 1;
           const itemData = {
             categoryId: inv.categoryId, // Ensure categoryId is included
-            supplierUnitMeasureId: supplierUnitMeasureId,
+            supplierUnitMeasureId: Number(supplierUnitMeasureId),
             conversionFactor: Number(conversionFactor),
             unitPrice: Number(li.unitPrice) || 0,
             averageDeliveryTime: li.averageDeliveryTime || null,

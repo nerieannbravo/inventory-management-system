@@ -50,7 +50,7 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
             canonicalUnit: li.canonicalUnit || li.canonical_unit || '',
             canonicalUnitId: li.canonicalUnitId || li.canonical_unit_id || 0,
             supplierUnitMeasureId: li.supplierUnitMeasureId || li.supplier_unit_measure_id || 0,
-            supplierUnitName: li.unitMeasure || li.unit_measure || '',
+            supplierUnitName: li.supplierUnitName || li.supplier_unit_name || '',
             conversionFactor: li.conversionFactor || li.conversion_factor || 1,
             unitPrice: li.unitPrice || li.unit_price || 0,
             averageDeliveryTime: li.averageDeliveryTime || li.average_delivery_time || null,
@@ -77,15 +77,17 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
     // State to track if form is dirty (has changes)
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [originalData] = useState({ ...formData });
+    const [originalLinkedItems] = useState(JSON.stringify(linkedItems));
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Check if form data has changed from original
+    // Check if form data or linked items have changed from original
     useEffect(() => {
-        const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
-        setIsFormDirty(hasChanges);
-    }, [formData, originalData]);
+        const formChanged = JSON.stringify(originalData) !== JSON.stringify(formData);
+        const linkedItemsChanged = originalLinkedItems !== JSON.stringify(linkedItems);
+        setIsFormDirty(formChanged || linkedItemsChanged);
+    }, [formData, linkedItems, originalData, originalLinkedItems]);
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({
@@ -118,15 +120,16 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
 
         const result = await showSupplierUpdateConfirmation(formData.supplierName);
         if (result.isConfirmed) {
-            // normalize linked items shape before saving
+            // normalize linked items shape before saving - must match API expected format
             const normalizedLinked = linkedItems.map((li: any) => ({
-                itemId: li.itemId ?? li.id ?? null,
-                itemName: li.itemName ?? li.linkedItemName ?? null,
-                unitMeasure: li.unitMeasure ?? li.itemUnit ?? null,
+                item_id: li.itemId, // Use item_id for API
+                supplierUnitMeasureId: li.supplierUnitMeasureId,
+                conversionFactor: li.conversionFactor,
                 unitPrice: Number(li.unitPrice) || 0,
                 averageDeliveryTime: li.averageDeliveryTime ?? null,
                 notes: li.notes ?? null,
-            })).filter((x: any) => x.itemId != null);
+                isPreferred: li.isPreferred ?? false,
+            })).filter((x: any) => x.item_id != null);
 
             onSave({ ...formData, linkedItems: normalizedLinked });
             await showSupplierUpdatedSuccess();
