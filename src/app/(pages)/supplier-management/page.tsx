@@ -29,6 +29,9 @@ export default function SupplierManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Search state
+    const [searchTerm, setSearchTerm] = useState<string>("");
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
@@ -54,11 +57,11 @@ export default function SupplierManagement() {
         setCurrentPage(1); // Reset to first page when changing page size
     };
 
-    // Filter sections
+    // Filter sections - aligned with schema
     const filterSections: FilterSection[] = [
         {
             id: "dateRange",
-            title: "Date Range",
+            title: "Date Range (Created)",
             type: "dateRange",
             defaultValue: { from: "", to: "" }
         },
@@ -67,8 +70,10 @@ export default function SupplierManagement() {
             title: "Status",
             type: "checkbox",
             options: [
-                { id: "active", label: "Active" },
-                { id: "inactive", label: "Inactive" }
+                { id: "ACTIVE", label: "Active" },
+                { id: "INACTIVE", label: "Inactive" },
+                { id: "FLAGGED", label: "Flagged" },
+                { id: "BLOCKED", label: "Blocked" }
             ]
         },
         {
@@ -77,7 +82,8 @@ export default function SupplierManagement() {
             type: "radio",
             options: [
                 { id: "supplierName", label: "Supplier Name" },
-                { id: "linkedItem", label: "Linked Supplier" }
+                { id: "createdAt", label: "Date Created" },
+                { id: "linkedItems", label: "Linked Items Count" }
             ],
             defaultValue: "supplierName"
         },
@@ -93,33 +99,88 @@ export default function SupplierManagement() {
         }
     ];
 
-    // Handle filter application
-    const handleApplyFilters = (filterValues: Record<string, any>) => {
-        console.log("Applied filters:", filterValues);
+    // Handle search - searches across: Supplier Name, Address, Contact, Email, Status
+    const handleSearch = (term: string) => {
+        setSearchTerm(term);
+        applyFiltersAndSearch(term);
+    };
 
+    // Unified filter and search application
+    const applyFiltersAndSearch = (search: string = searchTerm, filterValues?: Record<string, any>) => {
         // Start with all suppliers from API
         let newData = [...allSuppliers];
 
-        // Filter by status if selected
-        if (filterValues.supplierStatus && filterValues.supplierStatus.length > 0) {
+        // Apply search filter across multiple fields
+        if (search && search.trim() !== "") {
+            const searchLower = search.toLowerCase().trim();
             newData = newData.filter(supplier => {
-                const status = (supplier.status || '').toLowerCase();
-                return filterValues.supplierStatus.some((s: string) => status.includes(s.toLowerCase()));
+                // Search in Supplier Name
+                const nameMatch = (supplier.supplierName || "").toLowerCase().includes(searchLower);
+                
+                // Search in Address (Street, Barangay, City, Province)
+                const addressParts = [
+                    supplier.street || "",
+                    supplier.barangay || "",
+                    supplier.city || "",
+                    supplier.province || ""
+                ].filter(Boolean).join(" ").toLowerCase();
+                const addressMatch = addressParts.includes(searchLower);
+                
+                // Search in Contact Number
+                const phoneMatch = (supplier.phone || "").toLowerCase().includes(searchLower);
+                
+                // Search in Email
+                const emailMatch = (supplier.email || "").toLowerCase().includes(searchLower);
+                
+                // Search in Status
+                const statusMatch = (supplier.status || "").toLowerCase().includes(searchLower);
+                
+                return nameMatch || addressMatch || phoneMatch || emailMatch || statusMatch;
             });
         }
 
-        // Sort by supplierName or linkedItem
-        if (filterValues.sortBy === "supplierName") {
+        // Apply status filter if provided
+        if (filterValues?.supplierStatus && filterValues.supplierStatus.length > 0) {
+            newData = newData.filter(supplier => {
+                return filterValues.supplierStatus.includes(supplier.status);
+            });
+        }
+
+        // Apply date range filter if provided
+        if (filterValues?.dateRange?.from || filterValues?.dateRange?.to) {
+            const fromDate = filterValues.dateRange.from ? new Date(filterValues.dateRange.from) : null;
+            const toDate = filterValues.dateRange.to ? new Date(filterValues.dateRange.to) : null;
+            
+            newData = newData.filter(supplier => {
+                const createdDate = new Date(supplier.createdAt);
+                const matchFrom = !fromDate || createdDate >= fromDate;
+                const matchTo = !toDate || createdDate <= toDate;
+                return matchFrom && matchTo;
+            });
+        }
+
+        // Apply sorting
+        const sortBy = filterValues?.sortBy || "supplierName";
+        const order = filterValues?.order || "asc";
+        
+        if (sortBy === "supplierName") {
             newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                const sortOrder = order === "asc" ? 1 : -1;
                 return (a.supplierName ?? "").localeCompare(b.supplierName ?? "") * sortOrder;
             });
-        } else if (filterValues.sortBy === "linkedItem") {
+        } else if (sortBy === "linkedItems") {
             newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                const sortOrder = order === "asc" ? 1 : -1;
                 const aCount = a.linkedItems?.length || 0;
                 const bCount = b.linkedItems?.length || 0;
                 return (aCount - bCount) * sortOrder;
+            });
+        } else if (sortBy === "createdAt") {
+            newData.sort((a, b) => {
+                const sortOrder = order === "asc" ? 1 : -1;
+                const aDate = new Date(a.createdAt || 0).getTime();
+                const bDate = new Date(b.createdAt || 0).getTime();
+                return (aDate - bDate) * sortOrder;
             });
         }
 
@@ -127,16 +188,26 @@ export default function SupplierManagement() {
         setCurrentPage(1); // Reset to first page when filters change
     };
 
+    // Handle filter application (called from FilterDropdown)
+    const handleApplyFilters = (filterValues: Record<string, any>) => {
+        console.log("Applied filters:", filterValues);
+        applyFiltersAndSearch(searchTerm, filterValues);
+    };
 
-    // for order status formatting
+
+    // for supplier status formatting - aligns with SupplierStatus enum
     function formatStatus(supplierStatus: string) {
-        switch (supplierStatus) {
-            case "active":
+        switch (supplierStatus?.toUpperCase()) {
+            case "ACTIVE":
                 return "Active";
-            case "inactive":
+            case "INACTIVE":
                 return "Inactive";
+            case "FLAGGED":
+                return "Flagged";
+            case "BLOCKED":
+                return "Blocked";
             default:
-                return supplierStatus;
+                return supplierStatus || "Unknown";
         }
     }
 
@@ -292,7 +363,12 @@ export default function SupplierManagement() {
                 <div className="entries">
                     <div className="search">
                         <i className="ri-search-line" />
-                        <input type="text" placeholder="Search here..." />
+                        <input 
+                            type="text" 
+                            placeholder="Search by name, address, contact, email, or status..." 
+                            value={searchTerm}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
                     </div>
 
                     {/* Filter Button with Dropdown */}
