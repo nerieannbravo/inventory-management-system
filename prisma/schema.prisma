@@ -74,17 +74,18 @@ model Category {
 }
 
 model UnitMeasure {
-  id            Int              @id @default(autoincrement())
-  unitId        String           @unique @db.VarChar(20) // e.g., UNIT-001
-  unitName      String           @unique @db.VarChar(50) // pcs, liters, kg, etc.
-  abbreviation  String           @unique @db.VarChar(10) // pcs, L, kg, etc.
-  description   String?          @db.Text
-  isDeleted     Boolean          @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id                    Int              @id @default(autoincrement())
+  unitId                String           @unique @db.VarChar(20) // e.g., UNIT-001
+  unitName              String           @unique @db.VarChar(50) // pcs, liters, kg, etc.
+  abbreviation          String           @unique @db.VarChar(10) // pcs, L, kg, etc.
+  description           String?          @db.Text
+  isDeleted             Boolean          @default(false)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   // Relations
-  items         InventoryItem[]
+  items                 InventoryItem[]
+  supplierItemsAsSupplierUnit SupplierItem[] @relation("SupplierUnitMeasure")
 
   @@map("unit_measures")
 }
@@ -219,22 +220,26 @@ model Supplier {
 }
 
 model SupplierItem {
-  id                   Int              @id @default(autoincrement())
-  supplierId           Int
-  itemId               Int
-  unitPrice            Float            @default(0)
-  averageDeliveryTime  String?          @db.VarChar(50) // e.g., "1 week", "3-5 days"
-  notes                String?          @db.Text // Supplier-specific notes for this item
-  lastPurchaseDate     DateTime?
-  isPreferred          Boolean          @default(false)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  id                     Int              @id @default(autoincrement())
+  supplierId             Int
+  itemId                 Int
+  supplierUnitMeasureId  Int              // Supplier's unit for this item
+  conversionFactor       Float            @default(1) // Multiplier: supplier unit -> InventoryItem canonical unit
+  unitPrice              Float            @default(0) // Price per supplier unit
+  averageDeliveryTime    String?          @db.VarChar(50) // e.g., "1 week", "3-5 days"
+  notes                  String?          @db.Text // Supplier-specific notes for this item
+  lastPurchaseDate       DateTime?
+  isPreferred            Boolean          @default(false)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   // Relations
-  supplier             Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-  item                 InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  supplier               Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  item                   InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  supplierUnitMeasure    UnitMeasure      @relation("SupplierUnitMeasure", fields: [supplierUnitMeasureId], references: [id], onDelete: Restrict)
 
   @@unique([supplierId, itemId])
+  @@index([supplierUnitMeasureId])
   @@map("supplier_items")
 }
 

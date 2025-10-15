@@ -15,7 +15,22 @@ export async function GET() {
       where: { isDeleted: false },
       include: {
         supplierItems: {
-          include: { item: { select: { itemId: true, itemName: true, unitMeasure: true } } }
+          include: { 
+            item: { 
+              select: { 
+                itemId: true, 
+                itemName: true, 
+                unitMeasureId: true 
+              } 
+            },
+            supplierUnitMeasure: {
+              select: {
+                id: true,
+                unitName: true,
+                abbreviation: true
+              }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -39,6 +54,9 @@ export async function GET() {
         id: si.id,
         itemId: si.item?.itemId || null,
         itemName: si.item?.itemName || null,
+        unitMeasure: si.supplierUnitMeasure?.abbreviation || si.supplierUnitMeasure?.unitName || 'N/A',
+        supplierUnitMeasureId: si.supplierUnitMeasureId || null,
+        conversionFactor: si.conversionFactor || 1,
         unitPrice: si.unitPrice,
         averageDeliveryTime: si.averageDeliveryTime,
         notes: si.notes,
@@ -93,10 +111,18 @@ export async function POST(request: NextRequest) {
           // Resolve inventory item id (int) by itemId string
           const inv = await tx.inventoryItem.findFirst({ where: { itemId: String(li.item_id) } });
           if (!inv) continue;
+          
+          // Determine supplier unit measure and conversion factor
+          // Default to item's canonical unit if not provided
+          const supplierUnitMeasureId = li.supplierUnitMeasureId || inv.unitMeasureId;
+          const conversionFactor = li.conversionFactor || 1;
+          
           await tx.supplierItem.create({
             data: {
               supplierId: s.id,
               itemId: inv.id,
+              supplierUnitMeasureId: supplierUnitMeasureId,
+              conversionFactor: Number(conversionFactor),
               unitPrice: Number(li.unitPrice) || 0,
               averageDeliveryTime: li.averageDeliveryTime || null,
               notes: li.notes || null,
@@ -135,9 +161,17 @@ export async function PUT(request: NextRequest) {
         for (const li of linkedItems) {
           const inv = await tx.inventoryItem.findFirst({ where: { itemId: String(li.item_id) } });
           if (!inv) continue;
+          
+          // Determine supplier unit measure and conversion factor
+          // Default to item's canonical unit if not provided
+          const supplierUnitMeasureId = li.supplierUnitMeasureId || inv.unitMeasureId;
+          const conversionFactor = li.conversionFactor || 1;
+          
           await tx.supplierItem.create({ data: {
             supplierId: s.id,
             itemId: inv.id,
+            supplierUnitMeasureId: supplierUnitMeasureId,
+            conversionFactor: Number(conversionFactor),
             unitPrice: Number(li.unitPrice) || 0,
             averageDeliveryTime: li.averageDeliveryTime || null,
             notes: li.notes || null,
