@@ -33,32 +33,30 @@ interface EditSupplierModalProps {
     onClose: () => void;
 }
 
-// Sample linked item data - replace with your actual data source
-const sampleLinkedItems = [
-    {
-        id: 1,
-        linkedItemName: "Item 1",
-        itemUnit: "liters",
-        itemCategory: "Consumable",
-        unitPrice: 100,
-    },
-    {
-        id: 2,
-        linkedItemName: "Item 2",
-        itemUnit: "pcs",
-        itemCategory: "Tool",
-        unitPrice: 1500,
-    }
-];
-
 export default function EditSupplierModal({ item, onSave, onClose }: EditSupplierModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
     const [activeRow, setActiveRow] = useState<any>(null);
 
-    // State for linked items list
-    const [linkedItems, setLinkedItems] = useState<any[]>(sampleLinkedItems);
+    // State for linked items list - initialize from item.linkedItems
+    const [linkedItems, setLinkedItems] = useState<any[]>(() => {
+        // Transform API data to match component expected format
+        return (item.linkedItems || []).map((li: any) => ({
+            id: li.id || Date.now() + Math.random(), // Ensure unique ID
+            itemId: li.itemId || li.item_id,
+            itemName: li.itemName || li.item_name,
+            itemCategory: li.itemCategory || li.category || '',
+            canonicalUnit: li.canonicalUnit || li.canonical_unit || '',
+            canonicalUnitId: li.canonicalUnitId || li.canonical_unit_id || 0,
+            supplierUnitMeasureId: li.supplierUnitMeasureId || li.supplier_unit_measure_id || 0,
+            supplierUnitName: li.unitMeasure || li.unit_measure || '',
+            conversionFactor: li.conversionFactor || li.conversion_factor || 1,
+            unitPrice: li.unitPrice || li.unit_price || 0,
+            averageDeliveryTime: li.averageDeliveryTime || li.average_delivery_time || null,
+            notes: li.notes || null
+        }));
+    });
 
     // Initial supplier form state
     const [formData, setFormData] = useState({
@@ -192,13 +190,20 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
     const handleAddLinkedItem = (linkedItemForm: LinkedItemForm) => {
         console.log("New item:", linkedItemForm);
 
-        // Add the new item to the list (can be replaced with actual data handling logic)
+        // Add the new item to the list with full schema
         const newItem = {
-            id: linkedItems.length + 1,
-            linkedItemName: linkedItemForm.linkedItemName,
+            id: Date.now() + Math.random(), // Ensure unique ID
+            itemId: linkedItemForm.itemId,
+            itemName: linkedItemForm.itemName,
             itemCategory: linkedItemForm.itemCategory,
-            itemUnit: linkedItemForm.itemUnit,
-            unitPrice: linkedItemForm.unitPrice
+            canonicalUnit: linkedItemForm.canonicalUnit,
+            canonicalUnitId: linkedItemForm.canonicalUnitId,
+            supplierUnitMeasureId: linkedItemForm.supplierUnitMeasureId,
+            supplierUnitName: linkedItemForm.supplierUnitName,
+            conversionFactor: linkedItemForm.conversionFactor,
+            unitPrice: linkedItemForm.unitPrice,
+            averageDeliveryTime: linkedItemForm.averageDeliveryTime,
+            notes: linkedItemForm.notes
         };
         setLinkedItems([...linkedItems, newItem]);
         closeModal();
@@ -208,16 +213,23 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
     const handleEditLinkedItem = (updatedItem: LinkedItemForm & { id: number }) => {
         console.log("Updating item:", updatedItem);
 
-        // Edit the item to the list (can be replaced with actual data handling logic)
+        // Update the item with full schema
         setLinkedItems(prevItems =>
             prevItems.map(item =>
                 item.id === updatedItem.id
                     ? {
                         ...item,
-                        linkedItemName: updatedItem.linkedItemName,
+                        itemId: updatedItem.itemId,
+                        itemName: updatedItem.itemName,
                         itemCategory: updatedItem.itemCategory,
-                        itemUnit: updatedItem.itemUnit,
-                        unitPrice: updatedItem.unitPrice
+                        canonicalUnit: updatedItem.canonicalUnit,
+                        canonicalUnitId: updatedItem.canonicalUnitId,
+                        supplierUnitMeasureId: updatedItem.supplierUnitMeasureId,
+                        supplierUnitName: updatedItem.supplierUnitName,
+                        conversionFactor: updatedItem.conversionFactor,
+                        unitPrice: updatedItem.unitPrice,
+                        averageDeliveryTime: updatedItem.averageDeliveryTime,
+                        notes: updatedItem.notes
                     }
                     : item
             )
@@ -398,19 +410,25 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                 <thead className="modal-table-heading">
                     <tr>
                         <th>Item Name</th>
-                        <th>Unit Measure</th>
-                        <th>Unit Price</th>
                         <th>Category</th>
+                        <th>Supplier Unit</th>
+                        <th>Conversion</th>
+                        <th>Unit Price</th>
+                        <th>Delivery Time</th>
+                        <th>Notes</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody className="modal-table-body">
                     {linkedItems.map((item: any) => (
                         <tr key={item.id}>
-                            <td>{item.itemName ?? item.linkedItemName}</td>
-                            <td>{item.unitMeasure ?? item.itemUnit}</td>
-                            <td>{item.unitPrice}</td>
-                            <td>{item.category ?? item.itemCategory}</td>
+                            <td>{item.itemName}</td>
+                            <td>{item.itemCategory}</td>
+                            <td>{item.supplierUnitName}</td>
+                            <td>{item.conversionFactor}</td>
+                            <td>₱{Number(item.unitPrice).toFixed(2)}</td>
+                            <td>{item.averageDeliveryTime || '—'}</td>
+                            <td>{item.notes || '—'}</td>
                             <td>
                                 <ActionButtons
                                     onEdit={() => openModal("edit-linkedItem", item)}

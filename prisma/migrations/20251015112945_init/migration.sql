@@ -216,11 +216,15 @@ CREATE TABLE "supplier_items" (
     "id" SERIAL NOT NULL,
     "supplierId" INTEGER NOT NULL,
     "itemId" INTEGER NOT NULL,
+    "categoryId" INTEGER NOT NULL,
+    "supplierUnitMeasureId" INTEGER NOT NULL,
+    "conversionFactor" DOUBLE PRECISION NOT NULL DEFAULT 1,
     "unitPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "averageDeliveryTime" VARCHAR(50),
     "notes" TEXT,
     "lastPurchaseDate" TIMESTAMP(3),
     "isPreferred" BOOLEAN NOT NULL DEFAULT false,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -501,6 +505,12 @@ CREATE UNIQUE INDEX "employee_requests_requestId_key" ON "employee_requests"("re
 CREATE UNIQUE INDEX "suppliers_supplierId_key" ON "suppliers"("supplierId");
 
 -- CreateIndex
+CREATE INDEX "supplier_items_supplierUnitMeasureId_idx" ON "supplier_items"("supplierUnitMeasureId");
+
+-- CreateIndex
+CREATE INDEX "supplier_items_categoryId_idx" ON "supplier_items"("categoryId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "supplier_items_supplierId_itemId_key" ON "supplier_items"("supplierId", "itemId");
 
 -- CreateIndex
@@ -583,6 +593,12 @@ ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_supplierId_fkey" FOR
 
 -- AddForeignKey
 ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_itemId_fkey" FOREIGN KEY ("itemId") REFERENCES "inventory_items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_supplierUnitMeasureId_fkey" FOREIGN KEY ("supplierUnitMeasureId") REFERENCES "unit_measures"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "purchase_requests" ADD CONSTRAINT "purchase_requests_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

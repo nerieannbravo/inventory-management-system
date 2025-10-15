@@ -263,11 +263,19 @@ async function main() {
     for (let i = 0; i < 1000; i++) {
       const supplier = suppliers[i % suppliers.length];
       const item = items[i % items.length];
+      const supplierUnit = unitMeasures[i % unitMeasures.length];
+      
+      // Generate varied conversion factors (1, 6, 12, 24, 50, 100)
+      const conversionFactors = [1, 6, 12, 24, 50, 100];
+      const conversionFactor = conversionFactors[i % conversionFactors.length];
       
       await prisma.supplierItem.create({
         data: {
           supplierId: supplier.id,
           itemId: item.id,
+          categoryId: item.categoryId, // Add categoryId from InventoryItem
+          supplierUnitMeasureId: supplierUnit.id,
+          conversionFactor: conversionFactor,
           unitPrice: 100 + i * 10,
           averageDeliveryTime: `${3 + (i % 5)} days`,
           notes: `Supplier item notes ${i + 1}`,

@@ -15,13 +15,24 @@ export async function GET() {
       where: { isDeleted: false },
       include: {
         supplierItems: {
+          where: { isDeleted: false }, // Exclude soft-deleted supplier items
           include: { 
             item: { 
-              select: { 
-                itemId: true, 
-                itemName: true, 
-                unitMeasureId: true 
-              } 
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    categoryName: true
+                  }
+                },
+                unitMeasure: {
+                  select: {
+                    id: true,
+                    unitName: true,
+                    abbreviation: true
+                  }
+                }
+              }
             },
             supplierUnitMeasure: {
               select: {
@@ -54,12 +65,21 @@ export async function GET() {
         id: si.id,
         itemId: si.item?.itemId || null,
         itemName: si.item?.itemName || null,
-        unitMeasure: si.supplierUnitMeasure?.abbreviation || si.supplierUnitMeasure?.unitName || 'N/A',
+        // Category information (from InventoryItem)
+        itemCategory: si.item?.category?.categoryName || 'N/A',
+        categoryId: si.item?.categoryId || si.categoryId || null,
+        // Canonical unit (from InventoryItem.unitMeasure)
+        canonicalUnit: si.item?.unitMeasure?.abbreviation || si.item?.unitMeasure?.unitName || 'N/A',
+        canonicalUnitId: si.item?.unitMeasureId || null,
+        // Supplier unit (from SupplierItem.supplierUnitMeasure)
+        supplierUnitName: si.supplierUnitMeasure?.abbreviation || si.supplierUnitMeasure?.unitName || 'N/A',
         supplierUnitMeasureId: si.supplierUnitMeasureId || null,
+        // Other fields
         conversionFactor: si.conversionFactor || 1,
         unitPrice: si.unitPrice,
         averageDeliveryTime: si.averageDeliveryTime,
         notes: si.notes,
+        isPreferred: si.isPreferred || false,
         lastPurchaseDate: si.lastPurchaseDate
       }))
     }));
@@ -121,11 +141,13 @@ export async function POST(request: NextRequest) {
             data: {
               supplierId: s.id,
               itemId: inv.id,
+              categoryId: inv.categoryId, // Add categoryId from InventoryItem
               supplierUnitMeasureId: supplierUnitMeasureId,
               conversionFactor: Number(conversionFactor),
               unitPrice: Number(li.unitPrice) || 0,
               averageDeliveryTime: li.averageDeliveryTime || null,
               notes: li.notes || null,
+              isPreferred: li.isPreferred || false,
             }
           });
         }
@@ -149,33 +171,73 @@ export async function PUT(request: NextRequest) {
     if (!id) return NextResponse.json({ success: false, error: 'Missing supplier id' }, { status: 400 });
 
     const updated = await (prisma as any).$transaction(async (tx: any) => {
+      // Update supplier
       const s = await tx.supplier.update({
         where: { id: Number(id) },
         data: { supplierName, contactPerson, phone, email, street, barangay, city, province, status, remarks }
       });
 
-      // Replace supplier items: delete existing and recreate
-      await tx.supplierItem.deleteMany({ where: { supplierId: s.id } });
+      // Get existing supplier items
+      const existingItems = await tx.supplierItem.findMany({ 
+        where: { supplierId: s.id, isDeleted: false } 
+      });
 
+      // Create a map of incoming items by item_id
+      const incomingItemIds = new Set(
+        (linkedItems || [])
+          .map((li: any) => String(li.item_id))
+          .filter(Boolean)
+      );
+
+      // Soft-delete items that are no longer in the list
+      for (const existing of existingItems) {
+        const inv = await tx.inventoryItem.findUnique({ where: { id: existing.itemId } });
+        if (!inv || !incomingItemIds.has(inv.itemId)) {
+          await tx.supplierItem.update({
+            where: { id: existing.id },
+            data: { isDeleted: true }
+          });
+        }
+      }
+
+      // Update or create items from linkedItems payload
       if (Array.isArray(linkedItems) && linkedItems.length > 0) {
         for (const li of linkedItems) {
           const inv = await tx.inventoryItem.findFirst({ where: { itemId: String(li.item_id) } });
           if (!inv) continue;
           
-          // Determine supplier unit measure and conversion factor
-          // Default to item's canonical unit if not provided
+          // Check if this supplier-item combination already exists
+          const existing = existingItems.find((e: any) => e.itemId === inv.id);
+          
           const supplierUnitMeasureId = li.supplierUnitMeasureId || inv.unitMeasureId;
           const conversionFactor = li.conversionFactor || 1;
-          
-          await tx.supplierItem.create({ data: {
-            supplierId: s.id,
-            itemId: inv.id,
+          const itemData = {
+            categoryId: inv.categoryId, // Ensure categoryId is included
             supplierUnitMeasureId: supplierUnitMeasureId,
             conversionFactor: Number(conversionFactor),
             unitPrice: Number(li.unitPrice) || 0,
             averageDeliveryTime: li.averageDeliveryTime || null,
             notes: li.notes || null,
-          }});
+            isPreferred: li.isPreferred || false,
+            isDeleted: false,
+          };
+
+          if (existing) {
+            // Update existing item
+            await tx.supplierItem.update({
+              where: { id: existing.id },
+              data: itemData
+            });
+          } else {
+            // Create new item
+            await tx.supplierItem.create({ 
+              data: {
+                supplierId: s.id,
+                itemId: inv.id,
+                ...itemData
+              }
+            });
+          }
         }
       }
 
@@ -195,8 +257,18 @@ export async function PATCH(request: NextRequest) {
     const { id } = body;
     if (!id) return NextResponse.json({ success: false, error: 'Missing supplier id' }, { status: 400 });
 
-  await (prisma as any).supplier.update({ where: { id: Number(id) }, data: { isDeleted: true } });
-  await (prisma as any).supplierItem.deleteMany({ where: { supplierId: Number(id) } });
+    // Soft delete: set isDeleted = true for Supplier and all linked SupplierItems
+    await (prisma as any).$transaction(async (tx: any) => {
+      await tx.supplier.update({ 
+        where: { id: Number(id) }, 
+        data: { isDeleted: true } 
+      });
+      
+      await tx.supplierItem.updateMany({ 
+        where: { supplierId: Number(id) }, 
+        data: { isDeleted: true } 
+      });
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

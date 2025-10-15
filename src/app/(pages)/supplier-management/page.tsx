@@ -224,14 +224,16 @@ export default function SupplierManagement() {
     const handleEditSupplier = async (updatedSupplier: any & { linkedItems?: any[] }) => {
         try {
             setLoading(true);
-            const linkedItemsPayload = (updatedSupplier.linkedItems || []).map((li: any) => ({
-                item_id: li.itemId ?? li.item_id ?? li.id ?? li.linkedItemId ?? null,
-                unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
-                averageDeliveryTime: li.averageDeliveryTime ?? li.average_delivery_time ?? null,
-                notes: li.notes ?? li.note ?? null,
-            })).filter((li: any) => li.item_id != null);
-
-            const payload = {
+        // Normalize the linked items data with full schema fields
+        const linkedItemsPayload = (updatedSupplier.linkedItems || []).map((li: any) => ({
+            item_id: li.itemId ?? li.item_id ?? li.id ?? li.linkedItemId ?? null,
+            unitPrice: Number(li.unitPrice ?? li.unit_price ?? li.price ?? 0),
+            supplierUnitMeasureId: li.supplierUnitMeasureId ?? li.supplier_unit_measure_id ?? null,
+            conversionFactor: li.conversionFactor ?? li.conversion_factor ?? 1,
+            averageDeliveryTime: li.averageDeliveryTime ?? li.average_delivery_time ?? null,
+            notes: li.notes ?? li.note ?? null,
+            isPreferred: li.isPreferred ?? li.is_preferred ?? false,
+        })).filter((li: any) => li.item_id != null);            const payload = {
                 id: updatedSupplier.id,
                 supplierName: updatedSupplier.supplierName,
                 contactPerson: updatedSupplier.contactPerson,

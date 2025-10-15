@@ -68,6 +68,7 @@ model Category {
 
   // Relations
   items         InventoryItem[]
+  supplierItems SupplierItem[]
   purchaseRequests PurchaseRequest[]
 
   @@map("categories")
@@ -223,6 +224,7 @@ model SupplierItem {
   id                     Int              @id @default(autoincrement())
   supplierId             Int
   itemId                 Int
+  categoryId             Int              // Denormalized from InventoryItem.categoryId for performance
   supplierUnitMeasureId  Int              // Supplier's unit for this item
   conversionFactor       Float            @default(1) // Multiplier: supplier unit -> InventoryItem canonical unit
   unitPrice              Float            @default(0) // Price per supplier unit
@@ -230,16 +232,19 @@ model SupplierItem {
   notes                  String?          @db.Text // Supplier-specific notes for this item
   lastPurchaseDate       DateTime?
   isPreferred            Boolean          @default(false)
+  isDeleted              Boolean          @default(false)
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
 
   // Relations
   supplier               Supplier         @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   item                   InventoryItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  category               Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   supplierUnitMeasure    UnitMeasure      @relation("SupplierUnitMeasure", fields: [supplierUnitMeasureId], references: [id], onDelete: Restrict)
 
   @@unique([supplierId, itemId])
   @@index([supplierUnitMeasureId])
+  @@index([categoryId])
   @@map("supplier_items")
 }
 

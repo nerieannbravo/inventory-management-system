@@ -18,10 +18,17 @@ interface ViewSupplierModalProps {
             id: number;
             itemId?: string;
             itemName?: string;
+            itemCategory?: string;
+            category?: string;
+            canonicalUnit?: string;
+            supplierUnitName?: string;
             unitMeasure?: string;
+            supplierUnitMeasureId?: number;
+            conversionFactor?: number;
             unitPrice: number;
             averageDeliveryTime?: string;
             notes?: string;
+            isPreferred?: boolean;
         }>;
     };
     formatStatus: (status: string) => string;
@@ -41,11 +48,6 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
 
             <div className="modal-content view">
                 <div className="view-form">
-                    <div className="form-group">
-                        <label>Supplier ID</label>
-                        <p>{item.supplierId || 'N/A'}</p>
-                    </div>
-
                     <div className="form-group">
                         <label>Supplier Name</label>
                         <p>{item.supplierName}</p>
@@ -113,21 +115,25 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                 <table className="modal-table">
                     <thead className="modal-table-heading">
                         <tr>
-                            <th>Item ID</th>
                             <th>Item Name</th>
-                            <th>Unit Measure</th>
+                            <th>Category</th>
+                            <th>Supplier Unit</th>
+                            <th>Conversion</th>
                             <th>Unit Price</th>
                             <th>Delivery Time</th>
+                            <th>Notes</th>
                         </tr>
                     </thead>
                     <tbody className="modal-table-body">
-                        {item.linkedItems.map((linkedItem, index) => (
+                        {item.linkedItems.map((linkedItem: any, index) => (
                             <tr key={linkedItem.id || index}>
-                                <td>{linkedItem.itemId || 'N/A'}</td>
                                 <td>{linkedItem.itemName || 'N/A'}</td>
-                                <td>{linkedItem.unitMeasure || 'N/A'}</td>
+                                <td>{linkedItem.itemCategory || linkedItem.category || 'N/A'}</td>
+                                <td>{linkedItem.supplierUnitName || linkedItem.unitMeasure || 'N/A'}</td>
+                                <td>{linkedItem.conversionFactor || '—'}</td>
                                 <td>₱{linkedItem.unitPrice?.toFixed(2) || '0.00'}</td>
                                 <td>{linkedItem.averageDeliveryTime || 'N/A'}</td>
+                                <td>{linkedItem.notes || '—'}</td>
                             </tr>
                         ))}
                     </tbody>

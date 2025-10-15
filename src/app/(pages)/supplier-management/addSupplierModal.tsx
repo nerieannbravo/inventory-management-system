@@ -36,39 +36,14 @@ interface AddSupplierModalProps {
     onClose: () => void;
 }
 
-// Sample linked item data - replace with your actual data source
-// Use normalized keys so the page mapper can convert to API expected shape (item_id)
-const sampleLinkedItems = [
-    {
-        id: 1,
-        itemId: "ITEM-001",
-        itemName: "Item 1",
-        unitMeasure: "liters",
-        category: "Consumable",
-        unitPrice: 100,
-        averageDeliveryTime: "3 days",
-        notes: "Preferred supplier"
-    },
-    {
-        id: 2,
-        itemId: "ITEM-002",
-        itemName: "Item 2",
-        unitMeasure: "pcs",
-        category: "Tool",
-        unitPrice: 1500,
-        averageDeliveryTime: "7 days",
-        notes: null
-    }
-];
-
 export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
     const [activeRow, setActiveRow] = useState<any>(null);
 
-    // State for linked items list
-    const [linkedItems, setLinkedItems] = useState<any[]>(sampleLinkedItems);
+    // State for linked items list - start with empty array (no dummy data)
+    const [linkedItems, setLinkedItems] = useState<any[]>([]);
 
     // Initial supplier form state
     const [supplierForm, setSupplierForm] = useState<SupplierForm>({
@@ -126,15 +101,16 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
 
         const result = await showSupplierSaveConfirmation();
         if (result.isConfirmed) {
-            // include linked items in the payload - normalize keys expected by page mapper
+            // Map linked items to API expected format
             const normalizedLinked = linkedItems.map((li: any) => ({
-                itemId: li.itemId ?? li.id ?? null,
-                itemName: li.itemName ?? li.linkedItemName ?? null,
-                unitMeasure: li.unitMeasure ?? li.itemUnit ?? null,
+                item_id: li.itemId, // Use item_id for API
+                supplierUnitMeasureId: li.supplierUnitMeasureId,
+                conversionFactor: li.conversionFactor,
                 unitPrice: Number(li.unitPrice) || 0,
                 averageDeliveryTime: li.averageDeliveryTime ?? null,
                 notes: li.notes ?? null,
-            })).filter((x: any) => x.itemId != null);
+                isPreferred: li.isPreferred ?? false,
+            })).filter((x: any) => x.item_id != null);
 
             onSave({ ...supplierForm, linkedItems: normalizedLinked });
             await showSupplierSavedSuccess();
@@ -198,13 +174,16 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
     const handleAddLinkedItem = (linkedItemForm: LinkedItemForm) => {
         console.log("New item:", linkedItemForm);
 
-        // Add the new item to the list using normalized keys
+        // Add the new item to the list with all required fields
         const newItem = {
-            id: linkedItems.length + 1,
-            itemId: linkedItemForm.itemId || `ITEM-${String(linkedItems.length + 1).padStart(3, '0')}`,
-            itemName: linkedItemForm.linkedItemName,
-            unitMeasure: linkedItemForm.itemUnit,
-            category: linkedItemForm.itemCategory,
+            id: Date.now(), // Use timestamp as temporary ID
+            itemId: linkedItemForm.itemId,
+            itemName: linkedItemForm.itemName,
+            supplierUnitName: linkedItemForm.supplierUnitName,
+            supplierUnitMeasureId: linkedItemForm.supplierUnitMeasureId,
+            conversionFactor: linkedItemForm.conversionFactor,
+            canonicalUnit: linkedItemForm.canonicalUnit,
+            itemCategory: linkedItemForm.itemCategory,
             unitPrice: Number(linkedItemForm.unitPrice) || 0,
             averageDeliveryTime: linkedItemForm.averageDeliveryTime || null,
             notes: linkedItemForm.notes || null,
@@ -217,15 +196,19 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
     const handleEditLinkedItem = (updatedItem: LinkedItemForm & { id: number }) => {
         console.log("Updating item:", updatedItem);
 
-        // Edit the item to the list (can be replaced with actual data handling logic)
+        // Update the item in the list
         setLinkedItems(prevItems =>
             prevItems.map(item =>
                 item.id === updatedItem.id
                     ? {
                         ...item,
-                        itemName: updatedItem.linkedItemName,
-                        category: updatedItem.itemCategory,
-                        unitMeasure: updatedItem.itemUnit,
+                        itemId: updatedItem.itemId,
+                        itemName: updatedItem.itemName,
+                        supplierUnitName: updatedItem.supplierUnitName,
+                        supplierUnitMeasureId: updatedItem.supplierUnitMeasureId,
+                        conversionFactor: updatedItem.conversionFactor,
+                        canonicalUnit: updatedItem.canonicalUnit,
+                        itemCategory: updatedItem.itemCategory,
                         unitPrice: Number(updatedItem.unitPrice) || 0,
                         averageDeliveryTime: updatedItem.averageDeliveryTime || null,
                         notes: updatedItem.notes || null,
@@ -421,27 +404,41 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                 <thead className="modal-table-heading">
                     <tr>
                         <th>Item Name</th>
-                        <th>Unit Measure</th>
-                        <th>Unit Price</th>
                         <th>Category</th>
+                        <th>Supplier Unit</th>
+                        <th>Conversion</th>
+                        <th>Unit Price</th>
+                        <th>Delivery Time</th>
+                        <th>Notes</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody className="modal-table-body">
-                    {linkedItems.map((item: any) => (
-                        <tr key={item.id}>
-                            <td>{item.itemName ?? item.linkedItemName}</td>
-                            <td>{item.unitMeasure ?? item.itemUnit}</td>
-                            <td>{item.unitPrice}</td>
-                            <td>{item.category ?? item.itemCategory}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-linkedItem", item)}
-                                    onDelete={() => openModal("delete-linkedItem", item)}
-                                />
+                    {linkedItems.length === 0 ? (
+                        <tr>
+                            <td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>
+                                No linked items yet. Click "Add Item" to get started.
                             </td>
                         </tr>
-                    ))}
+                    ) : (
+                        linkedItems.map((item: any) => (
+                            <tr key={item.id}>
+                                <td>{item.itemName}</td>
+                                <td>{item.itemCategory}</td>
+                                <td>{item.supplierUnitName}</td>
+                                <td>{item.conversionFactor}</td>
+                                <td>₱{Number(item.unitPrice).toFixed(2)}</td>
+                                <td>{item.averageDeliveryTime || '—'}</td>
+                                <td>{item.notes || '—'}</td>
+                                <td>
+                                    <ActionButtons
+                                        onEdit={() => openModal("edit-linkedItem", item)}
+                                        onDelete={() => openModal("delete-linkedItem", item)}
+                                    />
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
 
