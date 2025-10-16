@@ -98,14 +98,15 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
         fetchUnitMeasures();
     }, []);
 
-    // Filter items based on search term
+    // Filter items based on search term and exclude INACTIVE items
     useEffect(() => {
         let result = [];
         if (searchTerm.trim() === "") {
-            result = [...items];
+            result = [...items].filter(itm => itm.itemStatus === 'ACTIVE');
         } else {
             result = items.filter(itm =>
-                itm.itemName.toLowerCase().includes(searchTerm.toLowerCase())
+                itm.itemName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+                itm.itemStatus === 'ACTIVE'
             );
         }
         
@@ -394,7 +395,7 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
                                 </option>
                                 {unitMeasures.map((unit: any) => (
                                     <option key={unit.id} value={unit.id}>
-                                        {unit.unitName} ({unit.abbreviation})
+                                        {unit.abbreviation} - {unit.unitName}
                                     </option>
                                 ))}
                             </select>

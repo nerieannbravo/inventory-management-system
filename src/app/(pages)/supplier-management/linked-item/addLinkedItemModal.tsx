@@ -80,13 +80,13 @@ export default function AddLinkedItemModal({ supplierId, currentlyLinkedItemIds,
         fetchItems();
     }, []);
 
-    // Filter items to show only those not currently linked (excluding soft-deleted)
+    // Filter items to show only those not currently linked (excluding soft-deleted) and only ACTIVE items
     useEffect(() => {
         // Handle case when currentlyLinkedItemIds is undefined or empty
         const linkedIds = currentlyLinkedItemIds || [];
         
         const filtered = items.filter(item => 
-            !linkedIds.includes(item.itemId)
+            !linkedIds.includes(item.itemId) && item.itemStatus === 'ACTIVE'
         );
         setAvailableItems(filtered);
     }, [items, currentlyLinkedItemIds]);
@@ -415,7 +415,7 @@ export default function AddLinkedItemModal({ supplierId, currentlyLinkedItemIds,
                                 </option>
                                 {unitMeasures.map((unit, index) => (
                                     <option key={unit.id || `unit-${index}`} value={unit.id}>
-                                        {unit.unitName} ({unit.abbreviation})
+                                        {unit.abbreviation} - {unit.unitName}
                                     </option>
                                 ))}
                             </select>

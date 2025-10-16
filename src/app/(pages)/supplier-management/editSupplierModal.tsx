@@ -468,8 +468,6 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                             <td>{item.notes || '—'}</td>
                             <td>
                                 <ActionButtons
-                                    onToggleStar={() => handleTogglePreferred(item.id)}
-                                    isStarred={item.isPreferred}
                                     onEdit={() => openModal("edit-linkedItem", item)}
                                     onDelete={() => openModal("delete-linkedItem", item)}
                                 />

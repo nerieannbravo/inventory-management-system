@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "@/styles/forms.css";
 import ActionButtons from "@/components/actionButtons";
 
@@ -39,12 +39,55 @@ interface ViewSupplierModalProps {
 
 export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewSupplierModalProps) {
     // State to manage linked items with star preferences
-    const [linkedItems, setLinkedItems] = useState<any[]>(() => {
-        return (item.linkedItems || []).map((li: any) => ({
-            ...li,
-            isPreferred: li.isPreferred ?? false
-        }));
-    });
+    const [linkedItems, setLinkedItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch fresh supplier data when modal opens
+    useEffect(() => {
+        const fetchFreshSupplierData = async () => {
+            try {
+                setLoading(true);
+                // Fetch fresh data from API
+                const response = await fetch('/api/supplier');
+                const data = await response.json();
+                
+                // Find the current supplier in the fresh data
+                const freshSupplier = data.suppliers?.find((s: any) => s.id === item.id);
+                
+                if (freshSupplier && freshSupplier.linkedItems) {
+                    console.log('ViewSupplierModal - Fresh linkedItems:', freshSupplier.linkedItems);
+                    const items = freshSupplier.linkedItems.map((li: any) => {
+                        console.log(`Linked Item ${li.id}: isPreferred =`, li.isPreferred);
+                        return {
+                            ...li,
+                            isPreferred: li.isPreferred ?? false
+                        };
+                    });
+                    setLinkedItems(items);
+                } else {
+                    // Fallback to prop data if fetch fails
+                    console.log('ViewSupplierModal - Using prop data (fallback)');
+                    const items = (item.linkedItems || []).map((li: any) => ({
+                        ...li,
+                        isPreferred: li.isPreferred ?? false
+                    }));
+                    setLinkedItems(items);
+                }
+            } catch (error) {
+                console.error('Error fetching fresh supplier data:', error);
+                // Fallback to prop data on error
+                const items = (item.linkedItems || []).map((li: any) => ({
+                    ...li,
+                    isPreferred: li.isPreferred ?? false
+                }));
+                setLinkedItems(items);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFreshSupplierData();
+    }, [item.id, item.linkedItems]);
 
     // Handle toggle preferred status
     const handleTogglePreferred = async (supplierItemId: number) => {
@@ -145,7 +188,12 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
             </div >
 
             <p className="details-title">Linked Item/s ({linkedItems.length || 0})</p>
-            {linkedItems && linkedItems.length > 0 ? (
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <div className="loading-spinner"></div>
+                    <p>Loading linked items...</p>
+                </div>
+            ) : linkedItems && linkedItems.length > 0 ? (
                 <table className="modal-table">
                     <thead className="modal-table-heading">
                         <tr>

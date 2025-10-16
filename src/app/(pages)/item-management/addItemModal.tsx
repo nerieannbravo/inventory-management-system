@@ -10,16 +10,17 @@ import {
     showCloseWithoutSavingConfirmation,
     showDeleteLinkedSupplierConfirmation, showDeleteLinkedSupplierSuccess
 } from "@/utils/sweetAlert";
+import { getCategories } from "@/app/lib/api";
 
 import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
 export interface ItemForm {
     itemName: string,
-    itemUnit: string,
-    itemCategory: string,
-    itemStatus: string,
-    itemDescription: string,
+    unitMeasureId: number,
+    categoryId: number,
+    itemStatus: string,  // ACTIVE or INACTIVE
+    description: string,
     linkedSuppliers?: any[];
 }
 
@@ -32,26 +33,6 @@ interface AddItemModalProps {
     onClose: () => void;
 }
 
-// Sample linked supplier data - replace with your actual data source
-const sampleLinkedSuppliers = [
-    {
-        id: 1,
-        linkedSupplierName: "Supplier 1",
-        unitPrice: 50,
-        deliveryTime: "1 week",
-        lastUpdated: "07/01/2025",
-        notes: "Can be delayed"
-    },
-    {
-        id: 2,
-        linkedSupplierName: "Supplier 2",
-        unitPrice: 55,
-        deliveryTime: "1 week",
-        lastUpdated: "09/03/2025",
-        notes: "N/A"
-    }
-];
-
 export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,19 +40,114 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
     const [activeRow, setActiveRow] = useState<any>(null);
 
     // State for linked suppliers list
-    const [linkedSuppliers, setLinkedSuppliers] = useState(sampleLinkedSuppliers);
+    const [linkedSuppliers, setLinkedSuppliers] = useState<any[]>([]);
+
+    // State for categories and unit measures
+    const [categories, setCategories] = useState<any[]>([]);
+    const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [loadingUnits, setLoadingUnits] = useState(true);
+    const [selectedUnitAbbr, setSelectedUnitAbbr] = useState<string>("");
+
+    // Search states for dropdowns
+    const [unitSearchTerm, setUnitSearchTerm] = useState<string>("");
+    const [categorySearchTerm, setCategorySearchTerm] = useState<string>("");
+    const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
     // Initial item form state
     const [itemForm, setItemForm] = useState<ItemForm>({
         itemName: "",
-        itemUnit: "",
-        itemCategory: "",
-        itemStatus: "",
-        itemDescription: "",
+        unitMeasureId: 0,
+        categoryId: 0,
+        itemStatus: "ACTIVE",  // Default to ACTIVE
+        description: "",
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+
+    // Filter and sort functions for searchable dropdowns
+    const getFilteredUnits = () => {
+        return unitMeasures
+            .filter(unit => 
+                unit.unitName.toLowerCase().includes(unitSearchTerm.toLowerCase()) ||
+                unit.abbreviation?.toLowerCase().includes(unitSearchTerm.toLowerCase())
+            )
+            .sort((a, b) => a.unitName.localeCompare(b.unitName));
+    };
+
+    const getFilteredCategories = () => {
+        return categories
+            .filter(cat => 
+                cat.categoryName.toLowerCase().includes(categorySearchTerm.toLowerCase())
+            )
+            .sort((a, b) => a.categoryName.localeCompare(b.categoryName));
+    };
+
+    const handleUnitSelect = (unit: any) => {
+        handleChange("unitMeasureId", unit.id);
+        setUnitSearchTerm(unit.unitName);
+        setSelectedUnitAbbr(unit.abbreviation || unit.unitName);
+        setShowUnitDropdown(false);
+    };
+
+    const handleCategorySelect = (category: any) => {
+        handleChange("categoryId", category.id);
+        setCategorySearchTerm(category.categoryName);
+        setShowCategoryDropdown(false);
+    };
+
+    // Fetch categories
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoadingCategories(true);
+                const data = await getCategories();
+                if (data.success) {
+                    setCategories(data.categories || []);
+                }
+            } catch (err) {
+                console.error('Error fetching categories:', err);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    // Fetch unit measures
+    useEffect(() => {
+        const fetchUnitMeasures = async () => {
+            try {
+                setLoadingUnits(true);
+                const response = await fetch('/api/unit-measure');
+                const data = await response.json();
+                if (data.success) {
+                    setUnitMeasures(data.unitMeasures || []);
+                }
+            } catch (err) {
+                console.error('Error fetching unit measures:', err);
+            } finally {
+                setLoadingUnits(false);
+            }
+        };
+        fetchUnitMeasures();
+    }, []);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest('.searchable-dropdown')) {
+                setShowUnitDropdown(false);
+                setShowCategoryDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Track if form has been modified
     useEffect(() => {
@@ -80,6 +156,14 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
 
     const handleChange = (field: string, value: any) => {
         setItemForm((prev) => ({ ...prev, [field]: value }));
+
+        // When unit measure is selected, store the abbreviation for display
+        if (field === "unitMeasureId") {
+            const selected = unitMeasures.find(u => u.id === parseInt(value));
+            if (selected) {
+                setSelectedUnitAbbr(selected.abbreviation || selected.unitName || "");
+            }
+        }
 
         // Clear the error for that field
         if (formErrors[field]) {
@@ -93,8 +177,8 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
         const errors: FormError = {};
 
         if (!itemForm.itemName) errors.itemName = "Item name is required";
-        if (!itemForm.itemUnit) errors.itemUnit = "Item unit is required";
-        if (!itemForm.itemCategory) errors.itemCategory = "Item category is required";
+        if (!itemForm.unitMeasureId || itemForm.unitMeasureId === 0) errors.unitMeasureId = "Canonical unit is required";
+        if (!itemForm.categoryId || itemForm.categoryId === 0) errors.categoryId = "Category is required";
         if (!itemForm.itemStatus) errors.itemStatus = "Item status is required";
 
         setFormErrors(errors);
@@ -170,13 +254,17 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
     const handleAddLinkedSupplier = (linkedSupplierForm: LinkedSupplierForm) => {
         console.log("New supplier:", linkedSupplierForm);
 
-        // Add the new supplier to the list (can be replaced with actual data handling logic)
+        // Add the new supplier to the list
         const newSupplier = {
             id: linkedSuppliers.length + 1,
+            supplierId: linkedSupplierForm.supplierId,
             linkedSupplierName: linkedSupplierForm.linkedSupplierName,
+            supplierUnitMeasureId: linkedSupplierForm.supplierUnitMeasureId,
+            supplierUnitName: linkedSupplierForm.supplierUnitName,
+            conversionFactor: linkedSupplierForm.conversionFactor,
             unitPrice: linkedSupplierForm.unitPrice,
-            deliveryTime: linkedSupplierForm.deliveryTime,
-            lastUpdated: new Date().toLocaleDateString("en-US"),
+            averageDeliveryTime: linkedSupplierForm.averageDeliveryTime,
+            isPreferred: linkedSupplierForm.isPreferred,
             notes: linkedSupplierForm.notes
         };
         setLinkedSuppliers([...linkedSuppliers, newSupplier]);
@@ -187,17 +275,20 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
     const handleEditLinkedSupplier = (updatedSupplier: LinkedSupplierForm & { id: number }) => {
         console.log("Updating supplier:", updatedSupplier);
 
-        // Edit the supplier to the list (can be replaced with actual data handling logic)
+        // Edit the supplier in the list
         setLinkedSuppliers(prevSuppliers =>
             prevSuppliers.map(supplier =>
                 supplier.id === updatedSupplier.id
                     ? {
                         ...supplier,
                         linkedSupplierName: updatedSupplier.linkedSupplierName,
+                        supplierUnitMeasureId: updatedSupplier.supplierUnitMeasureId,
+                        supplierUnitName: updatedSupplier.supplierUnitName,
+                        conversionFactor: updatedSupplier.conversionFactor,
                         unitPrice: updatedSupplier.unitPrice,
-                        deliveryTime: updatedSupplier.deliveryTime,
-                        notes: updatedSupplier.notes,
-                        lastUpdated: new Date().toLocaleDateString("en-US")
+                        averageDeliveryTime: updatedSupplier.averageDeliveryTime,
+                        isPreferred: updatedSupplier.isPreferred,
+                        notes: updatedSupplier.notes
                     }
                     : supplier
             )
@@ -246,47 +337,91 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                     </div>
 
                     <div className="form-row">
-                        {/* Unit Measure */}
+                        {/* Canonical Unit - Searchable Dropdown */}
                         <div className="form-group">
-                            <label>Unit Measure</label>
-                            <input
-                                className={formErrors?.itemUnit ? "invalid-input" : ""}
-                                type="text"
-                                value={itemForm.itemUnit}
-                                onChange={(e) => handleChange("itemUnit", e.target.value)}
-                                placeholder="Enter unit measure here..."
-                            />
-                            <p className="add-error-message">{formErrors?.itemUnit}</p>
+                            <label>Canonical Unit</label>
+                            <div className="searchable-dropdown">
+                                <input
+                                    type="text"
+                                    className={formErrors?.unitMeasureId ? "invalid-input" : ""}
+                                    value={unitSearchTerm}
+                                    onChange={(e) => {
+                                        setUnitSearchTerm(e.target.value);
+                                        setShowUnitDropdown(true);
+                                    }}
+                                    onFocus={() => setShowUnitDropdown(true)}
+                                    placeholder="Search unit..."
+                                    disabled={loadingUnits}
+                                />
+                                {showUnitDropdown && !loadingUnits && (
+                                    <div className="dropdown-list">
+                                        {getFilteredUnits().length > 0 ? (
+                                            getFilteredUnits().map((unit: any) => (
+                                                <div
+                                                    key={unit.id}
+                                                    className="dropdown-item"
+                                                    onClick={() => handleUnitSelect(unit)}
+                                                >
+                                                    {unit.abbreviation} - {unit.unitName}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="dropdown-item disabled">No units found</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <p className="add-error-message">{formErrors?.unitMeasureId}</p>
                         </div>
 
-                        {/* Category */}
+                        {/* Category - Searchable Dropdown */}
                         <div className="form-group">
                             <label>Category</label>
-                            <select
-                                value={itemForm.itemCategory}
-                                onChange={(e) => handleChange("itemCategory", e.target.value)}
-                                className={formErrors?.itemCategory ? "invalid-input" : ""}
-                            >
-                                <option value="" disabled>Select category...</option>
-                                <option value="Consumable">Consumable</option>
-                                <option value="Tool">Tool</option>
-                                <option value="Equipment">Equipment</option>
-                                <option value="Machine">Machine</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.itemCategory}</p>
+                            <div className="searchable-dropdown">
+                                <input
+                                    type="text"
+                                    className={formErrors?.categoryId ? "invalid-input" : ""}
+                                    value={categorySearchTerm}
+                                    onChange={(e) => {
+                                        setCategorySearchTerm(e.target.value);
+                                        setShowCategoryDropdown(true);
+                                    }}
+                                    onFocus={() => setShowCategoryDropdown(true)}
+                                    placeholder="Search category..."
+                                    disabled={loadingCategories}
+                                />
+                                {showCategoryDropdown && !loadingCategories && (
+                                    <div className="dropdown-list">
+                                        {getFilteredCategories().length > 0 ? (
+                                            getFilteredCategories().map((cat: any) => (
+                                                <div
+                                                    key={cat.id}
+                                                    className="dropdown-item"
+                                                    onClick={() => handleCategorySelect(cat)}
+                                                >
+                                                    {cat.categoryName}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="dropdown-item disabled">No categories found</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                            <p className="add-error-message">{formErrors?.categoryId}</p>
                         </div>
 
-                        {/* Status */}
+                        {/* Item Status */}
                         <div className="form-group">
-                            <label>Status</label>
+                            <label>Item Status</label>
                             <select
                                 value={itemForm.itemStatus}
                                 onChange={(e) => handleChange("itemStatus", e.target.value)}
                                 className={formErrors?.itemStatus ? "invalid-input" : ""}
                             >
-                                <option value="" disabled>Select status...</option>
-                                <option value="sold">Active</option>
-                                <option value="traded">Inactive</option>
+                                <option value="" disabled>Select item status...</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
                             </select>
                             <p className="add-error-message">{formErrors?.itemStatus}</p>
                         </div>
@@ -296,13 +431,13 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                     <div className="form-group">
                         <label>Description</label>
                         <textarea
-                            className={formErrors?.itemDescription ? "invalid-input" : ""}
-                            value={itemForm.itemDescription}
-                            onChange={(e) => handleChange("itemDescription", e.target.value)}
+                            className={formErrors?.description ? "invalid-input" : ""}
+                            value={itemForm.description}
+                            onChange={(e) => handleChange("description", e.target.value)}
                             placeholder="Enter item description here..."
                         >
                         </textarea>
-                        <p className="add-error-message">{formErrors?.itemDescription}</p>
+                        <p className="add-error-message">{formErrors?.description}</p>
                     </div>
                 </form>
             </div>
@@ -320,29 +455,39 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                 <thead className="modal-table-heading">
                     <tr>
                         <th>Supplier Name</th>
+                        <th>Supplier Unit</th>
+                        <th>Conversion</th>
                         <th>Unit Price</th>
-                        <th>Average Delivery Time</th>
-                        <th>Last Updated</th>
-                        <th>Notes</th>
+                        <th>Delivery Time</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody className="modal-table-body">
-                    {linkedSuppliers.map(supplier => (
-                        <tr key={supplier.id}>
-                            <td>{supplier.linkedSupplierName}</td>
-                            <td>{supplier.unitPrice}</td>
-                            <td>{supplier.deliveryTime}</td>
-                            <td>{supplier.lastUpdated}</td>
-                            <td>{supplier.notes}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-linkedSupplier", supplier)}
-                                    onDelete={() => openModal("delete-linkedSupplier", supplier)}
-                                />
-                            </td>
+                    {linkedSuppliers && linkedSuppliers.length > 0 ? (
+                        linkedSuppliers.map(supplier => (
+                            <tr key={supplier.id}>
+                                <td>{supplier.linkedSupplierName}</td>
+                                <td>{supplier.supplierUnitName || '—'}</td>
+                                <td>
+                                    {supplier.conversionFactor ? (
+                                        <>1 {supplier.supplierUnitName} = {supplier.conversionFactor} {selectedUnitAbbr}</>
+                                    ) : '—'}
+                                </td>
+                                <td>₱{supplier.unitPrice?.toFixed(2) || '0.00'}</td>
+                                <td>{supplier.averageDeliveryTime || '—'}</td>
+                                <td>
+                                    <ActionButtons
+                                        onEdit={() => openModal("edit-linkedSupplier", supplier)}
+                                        onDelete={() => openModal("delete-linkedSupplier", supplier)}
+                                    />
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={6} style={{ textAlign: 'center' }}>No linked suppliers</td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
 

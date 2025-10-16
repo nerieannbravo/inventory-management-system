@@ -1,22 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
-  try {
-    const FTMS_ITEMS_URL = process.env.FTMS_ITEMS_URL;
-    if (!FTMS_ITEMS_URL) {
-      throw new Error('FTMS_ITEMS_URL is not configured in the environment');
-    }
-    const response = await fetch(FTMS_ITEMS_URL, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch external inventory: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
+/**
+ * FTMS Integration Removed
+ * 
+ * This endpoint was previously used to fetch items from an external FTMS (Finance Tracking Management System).
+ * The system has been updated to serve as the primary source for item records.
+ * 
+ * FTMS integration has been completely removed from the system.
+ */
+export async function GET() {
+  return NextResponse.json(
+    { 
+      success: false, 
+      error: 'FTMS integration has been removed. This system is now the primary source for item records.' 
+    }, 
+    { status: 410 } // 410 Gone - indicates the resource is no longer available
+  );
 } 

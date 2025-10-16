@@ -7,7 +7,8 @@ import {
   AcquisitionMethod,
   RegistrationStatus,
   BusSource,
-  InventoryStatus,
+  InventoryStockStatus,
+  ItemStatus,
   StockTransactionType,
   RequestType,
   RequestStatus,
@@ -127,29 +128,41 @@ async function main() {
       unitMeasures.push(created);
     }
 
-    // ========================================================================
-    // 4. SEED INVENTORY ITEMS (1000 records)
-    // ========================================================================
-    console.log('🧾 Seeding 1000 inventory items...');
-    const items: any[] = [];
-    for (let i = 1; i <= 1000; i++) {
-      const itemId = await generateId('inventoryItem', 'ITEM');
-      const category = categories[(i - 1) % categories.length];
-      const unitMeasure = unitMeasures[(i - 1) % unitMeasures.length];
-      const created = await prisma.inventoryItem.create({
-        data: {
-          itemId,
-          categoryId: category.id,
-          itemName: `Inventory Item ${i}`,
-          description: `Description for item ${i}`,
-          unitMeasureId: unitMeasure.id,
-          currentStock: 50 + i * 10,
-          reorderLevel: 10 + i,
-          status: InventoryStatus.AVAILABLE,
-        },
-      });
-      items.push(created);
-    }
+  // ========================================================================
+  // 4. SEED INVENTORY ITEMS (1000 records)
+  // ========================================================================
+  console.log('🧾 Seeding 1000 inventory items...');
+  const items: any[] = [];
+
+  // Convert enums to arrays of their string values
+  const stockStatuses = Object.keys(InventoryStockStatus) as Array<keyof typeof InventoryStockStatus>;
+  const itemStatuses = Object.keys(ItemStatus) as Array<keyof typeof ItemStatus>;
+
+  for (let i = 1; i <= 1000; i++) {
+    const itemId = await generateId('inventoryItem', 'ITEM');
+    const category = categories[(i - 1) % categories.length];
+    const unitMeasure = unitMeasures[(i - 1) % unitMeasures.length];
+
+    // Pick random enum values
+    const randomStockStatus = stockStatuses[Math.floor(Math.random() * stockStatuses.length)];
+    const randomItemStatus = itemStatuses[Math.floor(Math.random() * itemStatuses.length)];
+
+    const created = await prisma.inventoryItem.create({
+      data: {
+        itemId,
+        categoryId: category.id,
+        itemName: `Inventory Item ${i}`,
+        description: `Description for item ${i}`,
+        unitMeasureId: unitMeasure.id,
+        currentStock: 50 + i * 10,
+        reorderLevel: 10 + i,
+        stockStatus: randomStockStatus as any, // Prisma enum typing
+        itemStatus: randomItemStatus as any,   // Prisma enum typing
+      },
+    });
+    items.push(created);
+  }
+
 
     // ========================================================================
     // 4. SEED BATCHES (1000 records)
@@ -279,7 +292,7 @@ async function main() {
           unitPrice: 100 + i * 10,
           averageDeliveryTime: `${3 + (i % 5)} days`,
           notes: `Supplier item notes ${i + 1}`,
-          isPreferred: i % 3 === 0,
+          isPreferred: false,
         },
       });
     }

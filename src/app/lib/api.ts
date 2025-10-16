@@ -47,6 +47,13 @@ export async function deleteUnitMeasure(payload: any) {
   return res.json();
 }
 
+// Categories
+export async function getCategories() {
+  const res = await fetch('/api/category');
+  if (!res.ok) throw new Error('Failed to fetch categories');
+  return res.json();
+}
+
 // Items
 export async function getItems() {
   const res = await fetch('/api/item');

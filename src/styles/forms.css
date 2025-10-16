@@ -404,3 +404,88 @@
 .modal-table-add-btn:hover {
     background-color: var(--info-hover-color);
 }
+
+
+/* ----- SEARCHABLE DROPDOWN STYLING ----- */
+.searchable-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.searchable-dropdown input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: var(--foreground-color);
+    color: var(--text-color);
+    transition: border-color 0.2s ease;
+}
+
+.searchable-dropdown input:focus {
+    outline: none;
+    border-color: var(--info-color);
+}
+
+.searchable-dropdown input:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.searchable-dropdown .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background-color: var(--foreground-color);
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.searchable-dropdown .dropdown-item {
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.searchable-dropdown .dropdown-item:hover {
+    background-color: #f3f4f6;
+}
+
+.searchable-dropdown .dropdown-item.disabled {
+    cursor: not-allowed;
+    color: #9ca3af;
+    background-color: transparent;
+}
+
+.searchable-dropdown .dropdown-item.disabled:hover {
+    background-color: transparent;
+}
+
+/* Custom scrollbar for dropdown list */
+.searchable-dropdown .dropdown-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.searchable-dropdown .dropdown-list::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 8px;
+}
+
+.searchable-dropdown .dropdown-list::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 8px;
+}
+
+.searchable-dropdown .dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}

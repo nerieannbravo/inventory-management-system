@@ -21,21 +21,22 @@ export async function calculateAndUpdateStatus(itemId: string) {
     return expirationDate <= today;
   });
 
-  let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE' | 'IN_USE' | string;
+  // Calculate stockStatus (stock-level tracking)
+  let stockStatus: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE' | 'IN_USE' | string;
   if (hasExpiredBatch) {
-    status = 'EXPIRED';
+    stockStatus = 'EXPIRED';
   } else if (item.category.categoryName === "Consumable" && current_stock === 0) {
-    status = 'OUT_OF_STOCK';
+    stockStatus = 'OUT_OF_STOCK';
   } else if (item.category.categoryName === "Consumable" && current_stock <= item.reorderLevel) {
-    status = 'LOW_STOCK';
+    stockStatus = 'LOW_STOCK';
   } else if (["Machine", "Tool", "Equipment"].includes(item.category.categoryName) && current_stock === 0) {
-    status = 'IN_USE';
+    stockStatus = 'IN_USE';
   } else {
-    status = "AVAILABLE" as typeof status;
+    stockStatus = "AVAILABLE" as typeof stockStatus;
   }
 
   await prisma.inventoryItem.update({
     where: { itemId },
-    data: { status: status as any }
+    data: { stockStatus: stockStatus as any }
   });
 }

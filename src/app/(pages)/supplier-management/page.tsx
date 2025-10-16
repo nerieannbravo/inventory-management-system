@@ -139,10 +139,16 @@ export default function SupplierManagement() {
             });
         }
 
-        // Apply status filter if provided
+        // Apply status filter
         if (filterValues?.supplierStatus && filterValues.supplierStatus.length > 0) {
+            // User has explicitly selected status filters
             newData = newData.filter(supplier => {
                 return filterValues.supplierStatus.includes(supplier.status);
+            });
+        } else {
+            // No filter applied or empty array (Clear All) - use default behavior: show only ACTIVE and FLAGGED
+            newData = newData.filter(supplier => {
+                return supplier.status === 'ACTIVE' || supplier.status === 'FLAGGED';
             });
         }
 
@@ -342,7 +348,11 @@ export default function SupplierManagement() {
                 const data = await getSuppliers();
                 if (mounted) {
                     setAllSuppliers(data.suppliers || []);
-                    setFilteredData(data.suppliers || []);
+                    // By default, show only ACTIVE and FLAGGED suppliers
+                    const defaultFilteredSuppliers = (data.suppliers || []).filter((supplier: any) => 
+                        supplier.status === 'ACTIVE' || supplier.status === 'FLAGGED'
+                    );
+                    setFilteredData(defaultFilteredSuppliers);
                 }
             } catch (err) {
                 console.error('Failed to load suppliers', err);
@@ -400,6 +410,7 @@ export default function SupplierManagement() {
                         <table className="data-table">
                             <thead className="table-heading">
                                 <tr>
+                                    <th>No.</th>
                                     <th>Supplier Name</th>
                                     <th>Address</th>
                                     <th>Contact Number</th>
@@ -410,8 +421,9 @@ export default function SupplierManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map((supplier: any) => (
+                                {paginatedData.map((supplier: any, index: number) => (
                                     <tr key={supplier.id} className={selectedIds.includes(supplier.id) ? "selected" : ""}>
+                                        <td>{(currentPage - 1) * pageSize + index + 1}</td>
                                         <td>{supplier.supplierName}</td>
                                         <td>
                                             {[supplier.street, supplier.barangay, supplier.city, supplier.province]

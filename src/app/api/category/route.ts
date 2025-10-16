@@ -10,6 +10,7 @@ export async function GET() {
         isDeleted: false,
       },
       select: {
+        id: true,
         categoryId: true,
         categoryName: true,
         description: true,

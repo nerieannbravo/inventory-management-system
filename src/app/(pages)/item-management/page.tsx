@@ -10,7 +10,7 @@ import AddItemModal, { ItemForm } from "./addItemModal";
 import ViewItemModal from "./viewItemModal";
 import EditItemModal from "./editItemModal";
 import AddCategoryModal, { CategoryForm } from "./category/addCategoryModal";
-import { getItems, createItem, updateItem } from '@/app/lib/api';
+import { getItems, createItem, updateItem, getCategories } from '@/app/lib/api';
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -27,8 +27,13 @@ export default function ItemManagement() {
     // For filtering
     const [filteredData, setFilteredData] = useState<any[]>([]);
     const [allItems, setAllItems] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // Search state
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -94,24 +99,56 @@ export default function ItemManagement() {
         }
     ];
 
-    // Handle filter application
-    const handleApplyFilters = (filterValues: Record<string, any>) => {
-        console.log("Applied filters:", filterValues);
+    // Handle search - searches in Item Name, Unit Measure, Category, and Item Status
+    const handleSearch = (query: string) => {
+        setSearchQuery(query);
+        applyFiltersAndSearch(query, {}); // Apply with current search and no new filters
+    };
 
-        // Start with all items from API
+    // Combined filter and search function
+    const applyFiltersAndSearch = (search: string, filterValues: Record<string, any>) => {
         let newData = [...allItems];
 
-        // Filter by status if selected
-        if (filterValues.itemStatus && filterValues.itemStatus.length > 0) {
+        // Apply search filter - Search in: Item Name, Unit Measure, Category, Item Status
+        if (search.trim()) {
+            const searchLower = search.toLowerCase().trim();
             newData = newData.filter(item => {
-                const status = (item.status || '').toLowerCase();
-                // Map the filter IDs back to status values
+                // Search in Item Name
+                const itemName = (item.itemName || '').toLowerCase();
+                
+                // Search in Unit Measure (abbreviation or name)
+                const unitMeasure = (item.unitMeasure?.abbreviation || item.unitMeasure?.unitName || '').toLowerCase();
+                
+                // Search in Category
+                const category = (item.category?.categoryName || '').toLowerCase();
+                
+                // Search in Item Status (ACTIVE/INACTIVE)
+                const itemStatus = (item.itemStatus || '').toLowerCase();
+                
+                return itemName.includes(searchLower) || 
+                       unitMeasure.includes(searchLower) || 
+                       category.includes(searchLower) || 
+                       itemStatus.includes(searchLower);
+            });
+        }
+
+        // Filter by Item Status if selected
+        if (filterValues.itemStatus && filterValues.itemStatus.length > 0) {
+            // User has explicitly selected status filters
+            newData = newData.filter(item => {
+                const itemStatus = (item.itemStatus || '').toUpperCase();
                 const hasActive = filterValues.itemStatus.includes("item-status-active");
                 const hasInactive = filterValues.itemStatus.includes("item-status-inactive");
                 
-                if (hasActive && status.includes("active")) return true;
-                if (hasInactive && status.includes("inactive")) return true;
+                if (hasActive && itemStatus === "ACTIVE") return true;
+                if (hasInactive && itemStatus === "INACTIVE") return true;
                 return false;
+            });
+        } else {
+            // No filter applied or empty array (Clear All) - use default behavior: show only ACTIVE items
+            newData = newData.filter(item => {
+                const itemStatus = (item.itemStatus || '').toUpperCase();
+                return itemStatus === 'ACTIVE';
             });
         }
 
@@ -137,16 +174,22 @@ export default function ItemManagement() {
         setCurrentPage(1); // Reset to first page when filters change
     };
 
+    // Handle filter application
+    const handleApplyFilters = (filterValues: Record<string, any>) => {
+        console.log("Applied filters:", filterValues);
+        applyFiltersAndSearch(searchQuery, filterValues);
+    };
 
-    // for order status formatting
+
+    // for item status formatting
     function formatStatus(itemStatus: string) {
-        switch (itemStatus) {
-            case "active":
+        switch (itemStatus?.toUpperCase()) {
+            case "ACTIVE":
                 return "Active";
-            case "inactive":
+            case "INACTIVE":
                 return "Inactive";
             default:
-                return itemStatus;
+                return itemStatus || 'N/A';
         }
     }
 
@@ -197,26 +240,37 @@ export default function ItemManagement() {
     };
 
     // Handle add item
-    const handleAddItem = async (itemForm: ItemForm & { linkedItems?: any[] }) => {
+    const handleAddItem = async (itemForm: ItemForm & { linkedSuppliers?: any[] }) => {
         try {
             setLoading(true);
+            
+            // Find category and unit names from IDs
+            const category = categories.find((c: any) => c.id === itemForm.categoryId);
+            const unitMeasure = unitMeasures.find((u: any) => u.id === itemForm.unitMeasureId);
+            
             const payload = {
                 stockItems: [
                     {
                         itemName: itemForm.itemName,
-                        unit: itemForm.itemUnit,
-                        category: itemForm.itemCategory,
-                        status: itemForm.itemStatus,
-                        description: itemForm.itemDescription,
-                        // if linked suppliers exist, attach minimal supplier info — server will resolve
-                        linkedSuppliers: itemForm['linkedSuppliers'] || []
+                        unit: unitMeasure?.abbreviation || unitMeasure?.unitName || '',
+                        category: category?.categoryName || '',
+                        status: 'available',  // Default stock status
+                        description: itemForm.description,
+                        reorder: 1,  // Default value as per requirements
+                        current_stock: 1,  // Default value as per requirements
+                        itemStatus: itemForm.itemStatus,  // ACTIVE or INACTIVE
+                        linkedSuppliers: itemForm.linkedSuppliers || []
                     }
                 ]
             };
             await createItem(payload);
             const data = await getItems();
             setAllItems(data.items || []);
-            setFilteredData(data.items || []);
+            // Apply default filter: show only ACTIVE items
+            const defaultFilteredItems = (data.items || []).filter((item: any) => 
+                item.itemStatus === 'ACTIVE'
+            );
+            setFilteredData(defaultFilteredItems);
         } catch (err) {
             console.error('Error creating item', err);
         } finally {
@@ -229,18 +283,25 @@ export default function ItemManagement() {
     const handleEditItem = async (updatedItem: any & { linkedSuppliers?: any[] }) => {
         try {
             setLoading(true);
+            
+            // Update item info including linked suppliers
             const payload = {
-                item_id: updatedItem.id || updatedItem.itemId || updatedItem.item_id,
-                reorder_level: updatedItem.reorderLevel || updatedItem.reorder_level || 0,
-                status: updatedItem.itemStatus || updatedItem.status,
-                category_id: updatedItem.itemCategory || updatedItem.categoryId,
-                // include linked suppliers if any
-                linkedSuppliers: updatedItem.linkedSuppliers || []
+                itemId: updatedItem.itemId,
+                reorderLevel: 1,  // Default as per requirements
+                itemStatus: updatedItem.itemStatus,  // ACTIVE or INACTIVE
+                categoryId: updatedItem.categoryId,
+                unitMeasureId: updatedItem.unitMeasureId,
+                linkedSuppliers: updatedItem.linkedSuppliers || []  // Include linked suppliers
             };
             await updateItem(payload);
+            
             const data = await getItems();
             setAllItems(data.items || []);
-            setFilteredData(data.items || []);
+            // Apply default filter: show only ACTIVE items
+            const defaultFilteredItems = (data.items || []).filter((item: any) => 
+                item.itemStatus === 'ACTIVE'
+            );
+            setFilteredData(defaultFilteredItems);
         } catch (err) {
             console.error('Error updating item', err);
         } finally {
@@ -249,25 +310,42 @@ export default function ItemManagement() {
         }
     };
 
-    // initial load of items
+    // initial load of items, categories, and unit measures
     React.useEffect(() => {
         let mounted = true;
         (async () => {
             try {
                 setLoading(true);
-                const data = await getItems();
+                const [itemsData, categoriesData, unitMeasuresData] = await Promise.all([
+                    getItems(),
+                    getCategories(),
+                    fetch('/api/unit-measure').then(res => res.json())
+                ]);
                 if (mounted) {
-                    setAllItems(data.items || []);
-                    setFilteredData(data.items || []);
+                    const sortedItems = (itemsData.items || []).sort((a: any, b: any) =>
+                        (a.itemName ?? "").localeCompare(b.itemName ?? "")
+                    );
+
+                    setAllItems(sortedItems);
+                    
+                    // By default, show only ACTIVE items
+                    const defaultFilteredItems = sortedItems.filter((item: any) => 
+                        item.itemStatus === 'ACTIVE'
+                    );
+                    setFilteredData(defaultFilteredItems);
+                    
+                    setCategories(categoriesData.categories || []);
+                    setUnitMeasures(unitMeasuresData.unitMeasures || []);
                 }
             } catch (err) {
-                console.error('Failed to load items', err);
+                console.error('Failed to load data', err);
             } finally {
                 if (mounted) setLoading(false);
             }
         })();
         return () => { mounted = false };
     }, []);
+
 
     // Handle add category
     const handleAddCategory = (categoryForm: CategoryForm) => {
@@ -286,7 +364,12 @@ export default function ItemManagement() {
                 <div className="entries">
                     <div className="search">
                         <i className="ri-search-line" />
-                        <input type="text" placeholder="Search here..." />
+                        <input 
+                            type="text" 
+                            placeholder="Search by item name, unit, category, or status..." 
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                        />
                     </div>
 
                     {/* Filter Button with Dropdown */}
@@ -327,6 +410,7 @@ export default function ItemManagement() {
                         <table className="data-table">
                             <thead className="table-heading">
                                 <tr>
+                                    <th>No.</th>
                                     <th>Item Name</th>
                                     <th>Unit Measure</th>
                                     <th>Category</th>
@@ -336,11 +420,12 @@ export default function ItemManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(item => (
+                                {paginatedData.map((item, index) => (
                                     <tr
                                         key={item.itemId}
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
+                                        <td>{(currentPage - 1) * pageSize + index + 1}</td>
                                         <td>{item.itemName}</td>
                                         <td>{item.unitMeasure?.abbreviation || item.unitMeasure?.unitName || 'N/A'}</td>
                                         <td>{item.category?.categoryName || 'N/A'}</td>

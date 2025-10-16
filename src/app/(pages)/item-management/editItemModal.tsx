@@ -29,7 +29,8 @@ interface EditItemModalProps {
             categoryId: string;
             categoryName: string;
         };
-        status: string;
+        itemStatus: string;  // ACTIVE or INACTIVE
+        stockStatus?: string;  // For display only (auto-calculated)
         description?: string;
         supplierItems?: any[];
     };
@@ -46,6 +47,12 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
     // State for linked suppliers list (from item.supplierItems)
     const [linkedSuppliers, setLinkedSuppliers] = useState<any[]>(item.supplierItems || []);
 
+    // State for categories and unit measures
+    const [categories, setCategories] = useState<any[]>([]);
+    const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [loadingUnits, setLoadingUnits] = useState(true);
+
     // Initial item form state
     const [formData, setFormData] = useState({
         id: item.id,
@@ -55,22 +62,62 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
         unitMeasure: item.unitMeasure,
         categoryId: item.categoryId,
         category: item.category,
-        status: item.status,
+        itemStatus: item.itemStatus,  // ACTIVE or INACTIVE
+        stockStatus: item.stockStatus,  // For display only
         description: item.description || ""
     });
 
     // State to track if form is dirty (has changes)
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [originalData] = useState({ ...formData });
+    const [originalLinkedSuppliers] = useState(JSON.stringify(item.supplierItems || []));
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Check if form data has changed from original
+    // Fetch categories and unit measures
     useEffect(() => {
-        const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
-        setIsFormDirty(hasChanges);
-    }, [formData, originalData]);
+        const fetchCategories = async () => {
+            try {
+                setLoadingCategories(true);
+                const response = await fetch('/api/category');
+                const data = await response.json();
+                if (data.success) {
+                    setCategories(data.categories || []);
+                }
+            } catch (err) {
+                console.error('Error fetching categories:', err);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        const fetchUnitMeasures = async () => {
+            try {
+                setLoadingUnits(true);
+                const response = await fetch('/api/unit-measure');
+                const data = await response.json();
+                if (data.success) {
+                    setUnitMeasures(data.unitMeasures || []);
+                }
+            } catch (err) {
+                console.error('Error fetching unit measures:', err);
+            } finally {
+                setLoadingUnits(false);
+            }
+        };
+        fetchUnitMeasures();
+    }, []);
+
+    // Check if form data or linked suppliers have changed from original
+    useEffect(() => {
+        const formChanged = JSON.stringify(originalData) !== JSON.stringify(formData);
+        const linkedSuppliersChanged = originalLinkedSuppliers !== JSON.stringify(linkedSuppliers);
+        setIsFormDirty(formChanged || linkedSuppliersChanged);
+    }, [formData, linkedSuppliers, originalData, originalLinkedSuppliers]);
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({
@@ -86,7 +133,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
         if (!formData.itemName) errors.itemName = "Item name is required";
         if (!formData.unitMeasureId) errors.unitMeasureId = "Unit measure is required";
         if (!formData.categoryId) errors.categoryId = "Category is required";
-        if (!formData.status) errors.status = "Status is required";
+        if (!formData.itemStatus) errors.itemStatus = "Item status is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -124,6 +171,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
             case "add-linkedSupplier":
                 content = (
                     <AddLinkedSupplierModal
+                        existingLinkedSuppliers={linkedSuppliers}
                         onSave={handleAddLinkedSupplier}
                         onClose={closeModal}
                     />
@@ -163,7 +211,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
     const handleAddLinkedSupplier = (linkedSupplierForm: LinkedSupplierForm) => {
         console.log("New supplier:", linkedSupplierForm);
 
-        // Add the new supplier to the list (can be replaced with actual data handling logic)
+        // Add the new supplier to the list with full supplier object for status display
         const newSupplier = {
             id: linkedSuppliers.length + 1,
             supplierId: linkedSupplierForm.supplierId,
@@ -173,8 +221,8 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
             conversionFactor: linkedSupplierForm.conversionFactor,
             unitPrice: linkedSupplierForm.unitPrice,
             averageDeliveryTime: linkedSupplierForm.averageDeliveryTime,
-            isPreferred: linkedSupplierForm.isPreferred,
-            notes: linkedSupplierForm.notes
+            notes: linkedSupplierForm.notes,
+            supplier: linkedSupplierForm.supplier // Include full supplier object with status
         };
         setLinkedSuppliers([...linkedSuppliers, newSupplier]);
         closeModal();
@@ -184,20 +232,22 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
     const handleEditLinkedSupplier = (updatedSupplier: any) => {
         console.log("Updating supplier:", updatedSupplier);
 
-        // Edit the supplier to the list (can be replaced with actual data handling logic)
+        // Edit the supplier in the list with all updated fields
         setLinkedSuppliers((prevSuppliers: any) =>
             prevSuppliers.map((supplier: any) =>
                 supplier.id === updatedSupplier.id
                     ? {
                         ...supplier,
+                        supplierId: updatedSupplier.supplierId, // Preserve string supplierId (SUP-XXXX)
                         linkedSupplierName: updatedSupplier.linkedSupplierName,
                         supplierUnitMeasureId: updatedSupplier.supplierUnitMeasureId,
                         supplierUnitName: updatedSupplier.supplierUnitName,
                         conversionFactor: updatedSupplier.conversionFactor,
                         unitPrice: updatedSupplier.unitPrice,
                         averageDeliveryTime: updatedSupplier.averageDeliveryTime,
-                        isPreferred: updatedSupplier.isPreferred,
-                        notes: updatedSupplier.notes
+                        notes: updatedSupplier.notes,
+                        // Preserve the supplier object structure for proper display and saving
+                        supplier: supplier.supplier // Keep original supplier object with status
                     }
                     : supplier
             )
@@ -248,38 +298,80 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                     <div className="form-row">
                         {/* Unit Measure */}
                         <div className="form-group">
-                            <label>Unit Measure</label>
-                            <input
-                                disabled
-                                type="text"
-                                value={formData.unitMeasure?.abbreviation || formData.unitMeasure?.unitName || ""}
-                                placeholder="Unit measure..."
-                            />
-                            <p className="field-hint">Unit measure cannot be changed after creation</p>
+                            <label>Unit Measure <span className="required">*</span></label>
+                            <select
+                                className={formErrors?.unitMeasureId ? "invalid-input" : ""}
+                                value={formData.unitMeasureId || ""}
+                                onChange={(e) => {
+                                    const selectedId = parseInt(e.target.value);
+                                    const selectedUnit = unitMeasures.find(u => u.id === selectedId);
+                                    handleChange("unitMeasureId", selectedId);
+                                    if (selectedUnit) {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            unitMeasure: selectedUnit
+                                        }));
+                                    }
+                                }}
+                                disabled={loadingUnits}
+                            >
+                                <option value="" disabled>
+                                    {loadingUnits ? "Loading units..." : "Select unit measure..."}
+                                </option>
+                                {unitMeasures.map((unit: any) => (
+                                    <option key={unit.id} value={unit.id}>
+                                        {unit.abbreviation} - {unit.unitName}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="edit-error-message">{formErrors?.unitMeasureId}</p>
                         </div>
 
                         {/* Category */}
                         <div className="form-group">
-                            <label>Category</label>
-                            <input
-                                disabled
-                                type="text"
-                                value={formData.category?.categoryName || ""}
-                                placeholder="Category..."
-                            />
-                            <p className="field-hint">Category cannot be changed after creation</p>
+                            <label>Category <span className="required">*</span></label>
+                            <select
+                                className={formErrors?.categoryId ? "invalid-input" : ""}
+                                value={formData.categoryId || ""}
+                                onChange={(e) => {
+                                    const selectedId = parseInt(e.target.value);
+                                    const selectedCategory = categories.find(c => c.id === selectedId);
+                                    handleChange("categoryId", selectedId);
+                                    if (selectedCategory) {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            category: selectedCategory
+                                        }));
+                                    }
+                                }}
+                                disabled={loadingCategories}
+                            >
+                                <option value="" disabled>
+                                    {loadingCategories ? "Loading categories..." : "Select category..."}
+                                </option>
+                                {categories.map((category: any) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.categoryName}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="edit-error-message">{formErrors?.categoryId}</p>
                         </div>
 
-                        {/* Status */}
+                        {/* Item Status */}
                         <div className="form-group">
-                            <label>Status</label>
-                            <input
-                                disabled
-                                type="text"
-                                value={formData.status || ""}
-                                placeholder="Status..."
-                            />
-                            <p className="field-hint">Status is automatically calculated based on stock and conditions</p>
+                            <label>Item Status <span className="required">*</span></label>
+                            <select
+                                value={formData.itemStatus}
+                                onChange={(e) => handleChange("itemStatus", e.target.value)}
+                                className={formErrors?.itemStatus ? "invalid-input" : ""}
+                            >
+                                <option value="" disabled>Select item status...</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                            <p className="edit-error-message">{formErrors?.itemStatus}</p>
+                            <p className="field-hint">Set whether this item is active or inactive in the system</p>
                         </div>
                     </div>
 
@@ -311,43 +403,45 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                 <thead className="modal-table-heading">
                     <tr>
                         <th>Supplier Name</th>
-                        <th>Category</th>
                         <th>Supplier Unit</th>
                         <th>Conversion</th>
                         <th>Unit Price</th>
                         <th>Delivery Time</th>
-                        <th>Is Preferred</th>
-                        <th>Notes</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody className="modal-table-body">
-                    {linkedSuppliers.map((supplier: any) => (
-                        <tr key={supplier.id}>
-                            <td>{supplier.supplier?.supplierName || supplier.linkedSupplierName || '—'}</td>
-                            <td>{formData.category?.categoryName || '—'}</td>
-                            <td>{supplier.supplierUnitName || supplier.supplierUnit || '—'}</td>
-                            <td>
-                                {supplier.conversionFactor ? (
-                                    <>1 {supplier.supplierUnitName} = {supplier.conversionFactor} {formData.unitMeasure?.abbreviation}</>
-                                ) : '—'}
-                            </td>
-                            <td>₱{supplier.unitPrice?.toFixed(2) || '0.00'}</td>
-                            <td>{supplier.averageDeliveryTime || supplier.deliveryTime || '—'}</td>
-                            <td>
-                                {supplier.isPreferred && (
-                                    <span className="chip preferred">⭐ Preferred</span>
-                                )}
-                            </td>
-                            <td>{supplier.notes || '—'}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-linkedSupplier", supplier)}
-                                    onDelete={() => openModal("delete-linkedSupplier", supplier)}
-                                />
-                            </td>
+                    {linkedSuppliers && linkedSuppliers.length > 0 ? (
+                        linkedSuppliers.map((supplier: any) => (
+                            <tr key={supplier.id}>
+                                <td>{supplier.supplier?.supplierName || supplier.linkedSupplierName || '—'}</td>
+                                <td>{supplier.supplierUnitMeasure?.abbreviation || supplier.supplierUnitName || '—'}</td>
+                                <td>
+                                    {supplier.conversionFactor ? (
+                                        <>1 {supplier.supplierUnitMeasure?.abbreviation || supplier.supplierUnitName} = {supplier.conversionFactor} {formData.unitMeasure?.abbreviation}</>
+                                    ) : '—'}
+                                </td>
+                                <td>₱{supplier.unitPrice?.toFixed(2) || '0.00'}</td>
+                                <td>{supplier.averageDeliveryTime || supplier.deliveryTime || '—'}</td>
+                                <td>
+                                    <span className={`chip ${(supplier.supplier?.status || '').toLowerCase()}`}>
+                                        {supplier.supplier?.status || 'N/A'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <ActionButtons
+                                        onEdit={() => openModal("edit-linkedSupplier", supplier)}
+                                        onDelete={() => openModal("delete-linkedSupplier", supplier)}
+                                    />
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={8} style={{ textAlign: 'center' }}>No linked suppliers</td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
             </table>
 

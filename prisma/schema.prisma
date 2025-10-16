@@ -92,18 +92,19 @@ model UnitMeasure {
 }
 
 model InventoryItem {
-  id              Int                @id @default(autoincrement())
-  itemId          String             @unique @db.VarChar(20) // e.g., ITM-001
+  id              Int                   @id @default(autoincrement())
+  itemId          String                @unique @db.VarChar(20) // e.g., ITM-001
   categoryId      Int
-  itemName        String             @db.VarChar(150)
-  description     String?            @db.Text
-  unitMeasureId   Int                // Foreign key to UnitMeasure
-  currentStock    Int                @default(0)
-  reorderLevel    Int                @default(0)
-  status          InventoryStatus    @default(AVAILABLE)
-  isDeleted       Boolean            @default(false)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  itemName        String                @db.VarChar(150)
+  description     String?               @db.Text
+  unitMeasureId   Int                   // Foreign key to UnitMeasure
+  currentStock    Int                   @default(0)
+  reorderLevel    Int                   @default(0)
+  stockStatus     InventoryStockStatus  @default(AVAILABLE) // For stock-level tracking
+  itemStatus      ItemStatus            @default(ACTIVE)    // For item management (Active/Inactive)
+  isDeleted       Boolean               @default(false)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
 
   // Relations
   category           Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
@@ -569,7 +570,8 @@ model Approval {
 // ENUMS
 // ============================================================================
 
-enum InventoryStatus {
+// Stock status - tracks the availability and condition of stock items
+enum InventoryStockStatus {
   LOW_STOCK
   AVAILABLE
   NOT_AVAILABLE
@@ -578,6 +580,12 @@ enum InventoryStatus {
   EXPIRED
   IN_USE
   DISPOSED
+}
+
+// Item status - for item management (Active/Inactive only)
+enum ItemStatus {
+  ACTIVE
+  INACTIVE
 }
 
 enum StockTransactionType {

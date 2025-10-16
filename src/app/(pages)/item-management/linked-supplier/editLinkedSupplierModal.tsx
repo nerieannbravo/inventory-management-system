@@ -23,7 +23,6 @@ interface EditLinkedSupplierModalProps {
         unitPrice: number;
         averageDeliveryTime?: string;
         deliveryTime?: string;
-        isPreferred: boolean;
         notes?: string;
     };
     itemCategory?: string;
@@ -35,14 +34,13 @@ interface EditLinkedSupplierModalProps {
 export default function EditLinkedSupplierModal({ item, itemCategory, itemUnitMeasure, onSave, onClose }: EditLinkedSupplierModalProps) {
     const [formData, setFormData] = useState({
         id: item.id,
-        supplierId: item.supplierId,
+        supplierId: item.supplier?.supplierId || "", // IMPORTANT: Must use string supplierId from supplier object (e.g., "SUP-4002")
         linkedSupplierName: item.supplier?.supplierName || item.linkedSupplierName || "",
         supplierUnitMeasureId: item.supplierUnitMeasureId,
         supplierUnitName: item.supplierUnitName || "",
         conversionFactor: item.conversionFactor || 1,
         unitPrice: item.unitPrice,
         averageDeliveryTime: item.averageDeliveryTime || item.deliveryTime || "",
-        isPreferred: item.isPreferred ?? false,
         notes: item.notes || ""
     });
 
@@ -59,13 +57,23 @@ export default function EditLinkedSupplierModal({ item, itemCategory, itemUnitMe
     const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
     const [loadingUnits, setLoadingUnits] = useState(true);
 
+    // Searchable dropdown states
+    const [supplierSearchTerm, setSupplierSearchTerm] = useState<string>(formData.linkedSupplierName);
+    const [unitSearchTerm, setUnitSearchTerm] = useState<string>("");
+    const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
+    const [showUnitDropdown, setShowUnitDropdown] = useState(false);
+
     useEffect(() => {
         const fetchSuppliers = async () => {
             try {
                 setLoadingSuppliers(true);
                 const data = await getSuppliers();
                 if (data.success) {
-                    setSuppliers(data.suppliers || []);
+                    // Filter to only include ACTIVE and FLAGGED suppliers
+                    const activeSuppliers = (data.suppliers || []).filter(
+                        (s: any) => s.status === 'ACTIVE' || s.status === 'FLAGGED'
+                    );
+                    setSuppliers(activeSuppliers);
                 }
             } catch (err) {
                 console.error('Error fetching suppliers:', err);
@@ -100,6 +108,82 @@ export default function EditLinkedSupplierModal({ item, itemCategory, itemUnitMe
         const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
         setIsFormDirty(hasChanges);
     }, [formData, originalData]);
+
+    // Initialize unit search term when unit measures load
+    useEffect(() => {
+        if (unitMeasures.length > 0 && formData.supplierUnitMeasureId) {
+            const unit = unitMeasures.find(u => u.id === formData.supplierUnitMeasureId);
+            if (unit) {
+                setUnitSearchTerm(unit.abbreviation || unit.unitName);
+            }
+        }
+    }, [unitMeasures, formData.supplierUnitMeasureId]);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (!target.closest('.searchable-dropdown')) {
+                setShowSupplierDropdown(false);
+                setShowUnitDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Filter and sort functions for searchable dropdowns
+    const getFilteredSuppliers = () => {
+        return suppliers
+            .filter(supplier => 
+                supplier.supplierName.toLowerCase().includes(supplierSearchTerm.toLowerCase())
+            )
+            .sort((a, b) => a.supplierName.localeCompare(b.supplierName));
+    };
+
+    const getFilteredUnits = () => {
+        return unitMeasures
+            .filter(unit => 
+                unit.unitName.toLowerCase().includes(unitSearchTerm.toLowerCase()) ||
+                unit.abbreviation?.toLowerCase().includes(unitSearchTerm.toLowerCase())
+            )
+            .sort((a, b) => a.unitName.localeCompare(b.unitName));
+    };
+
+    const handleSupplierSelect = (supplier: any) => {
+        setFormData(prev => ({
+            ...prev,
+            linkedSupplierName: supplier.supplierName,
+            supplierId: supplier.supplierId
+        }));
+        setSupplierSearchTerm(supplier.supplierName);
+        setShowSupplierDropdown(false);
+        
+        // Clear error if exists
+        if (formErrors.linkedSupplierName) {
+            const newErrors = { ...formErrors };
+            delete newErrors.linkedSupplierName;
+            setFormErrors(newErrors);
+        }
+    };
+
+    const handleUnitSelect = (unit: any) => {
+        setFormData(prev => ({
+            ...prev,
+            supplierUnitMeasureId: unit.id,
+            supplierUnitName: unit.abbreviation || unit.unitName || ""
+        }));
+        setUnitSearchTerm(unit.abbreviation || unit.unitName);
+        setShowUnitDropdown(false);
+        
+        // Clear error if exists
+        if (formErrors.supplierUnitMeasureId) {
+            const newErrors = { ...formErrors };
+            delete newErrors.supplierUnitMeasureId;
+            setFormErrors(newErrors);
+        }
+    };
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({
@@ -195,21 +279,39 @@ export default function EditLinkedSupplierModal({ item, itemCategory, itemUnitMe
                     {/* Linked Supplier Name */}
                     <div className="form-group">
                         <label>Supplier Name</label>
-                        <select
-                            className={formErrors?.linkedSupplierName ? "invalid-input" : ""}
-                            value={formData.linkedSupplierName}
-                            onChange={(e) => handleChange("linkedSupplierName", e.target.value)}
-                            disabled={loadingSuppliers}
-                        >
-                            <option value="" disabled>
-                                {loadingSuppliers ? "Loading suppliers..." : "Select supplier name..."}
-                            </option>
-                            {suppliers.map((supplier) => (
-                                <option key={supplier.id} value={supplier.supplierName}>
-                                    {supplier.supplierName}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="searchable-dropdown">
+                            <input
+                                type="text"
+                                className={formErrors?.linkedSupplierName ? "invalid-input" : ""}
+                                value={supplierSearchTerm}
+                                onChange={(e) => {
+                                    setSupplierSearchTerm(e.target.value);
+                                    setShowSupplierDropdown(true);
+                                }}
+                                onFocus={() => setShowSupplierDropdown(true)}
+                                placeholder={loadingSuppliers ? "Loading suppliers..." : "Search supplier name..."}
+                                disabled={loadingSuppliers}
+                            />
+                            {showSupplierDropdown && !loadingSuppliers && (
+                                <div className="dropdown-list">
+                                    {getFilteredSuppliers().length > 0 ? (
+                                        getFilteredSuppliers().map((supplier) => (
+                                            <div
+                                                key={supplier.id}
+                                                className="dropdown-item"
+                                                onClick={() => handleSupplierSelect(supplier)}
+                                            >
+                                                {supplier.supplierName}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="dropdown-item disabled">
+                                            No suppliers found
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                         <p className="edit-error-message">{formErrors?.linkedSupplierName}</p>
                     </div>
 
@@ -217,21 +319,39 @@ export default function EditLinkedSupplierModal({ item, itemCategory, itemUnitMe
                         {/* Supplier Unit Measure */}
                         <div className="form-group">
                             <label>Supplier Unit Measure <span className="required">*</span></label>
-                            <select
-                                className={formErrors?.supplierUnitMeasureId ? "invalid-input" : ""}
-                                value={formData.supplierUnitMeasureId || ""}
-                                onChange={(e) => handleChange("supplierUnitMeasureId", parseInt(e.target.value))}
-                                disabled={loadingUnits}
-                            >
-                                <option value="" disabled>
-                                    {loadingUnits ? "Loading units..." : "Select unit measure..."}
-                                </option>
-                                {unitMeasures.map((unit) => (
-                                    <option key={unit.id} value={unit.id}>
-                                        {unit.abbreviation || unit.unitName}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="searchable-dropdown">
+                                <input
+                                    type="text"
+                                    className={formErrors?.supplierUnitMeasureId ? "invalid-input" : ""}
+                                    value={unitSearchTerm}
+                                    onChange={(e) => {
+                                        setUnitSearchTerm(e.target.value);
+                                        setShowUnitDropdown(true);
+                                    }}
+                                    onFocus={() => setShowUnitDropdown(true)}
+                                    placeholder={loadingUnits ? "Loading units..." : "Search unit measure..."}
+                                    disabled={loadingUnits}
+                                />
+                                {showUnitDropdown && !loadingUnits && (
+                                    <div className="dropdown-list">
+                                        {getFilteredUnits().length > 0 ? (
+                                            getFilteredUnits().map((unit) => (
+                                                <div
+                                                    key={unit.id}
+                                                    className="dropdown-item"
+                                                    onClick={() => handleUnitSelect(unit)}
+                                                >
+                                                    {unit.abbreviation} - {unit.unitName}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="dropdown-item disabled">
+                                                No units found
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                             <p className="edit-error-message">{formErrors?.supplierUnitMeasureId}</p>
                             <p className="field-hint">The unit measure used by this supplier</p>
                         </div>
@@ -284,19 +404,6 @@ export default function EditLinkedSupplierModal({ item, itemCategory, itemUnitMe
                                 placeholder="e.g., 3-5 days"
                             />
                         </div>
-                    </div>
-
-                    {/* Is Preferred */}
-                    <div className="form-group">
-                        <label className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                checked={formData.isPreferred}
-                                onChange={(e) => handleChange("isPreferred", e.target.checked)}
-                            />
-                            <span>Mark as Preferred Supplier for this Item</span>
-                        </label>
-                        <p className="field-hint">Designate this supplier as the preferred source for this item</p>
                     </div>
 
                     {/* Notes */}
