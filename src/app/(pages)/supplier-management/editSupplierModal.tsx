@@ -54,6 +54,7 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
             conversionFactor: li.conversionFactor || li.conversion_factor || 1,
             unitPrice: li.unitPrice || li.unit_price || 0,
             averageDeliveryTime: li.averageDeliveryTime || li.average_delivery_time || null,
+            isPreferred: li.isPreferred ?? li.is_preferred ?? false,
             notes: li.notes || null
         }));
     });
@@ -154,8 +155,13 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
 
         switch (mode) {
             case "add-linkedItem":
+                // Get currently linked item IDs (excluding soft-deleted)
+                const currentlyLinkedItemIds = linkedItems.map(li => li.itemId).filter(Boolean);
+                
                 content = (
                     <AddLinkedItemModal
+                        supplierId={item.id}
+                        currentlyLinkedItemIds={currentlyLinkedItemIds}
                         onSave={handleAddLinkedItem}
                         onClose={closeModal}
                     />
@@ -248,6 +254,34 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
             await showDeleteLinkedItemSuccess();
         }
         closeModal();
+    };
+
+    // Handle toggle preferred status
+    const handleTogglePreferred = async (supplierItemId: number) => {
+        try {
+            const response = await fetch('/api/supplier/toggle-preferred', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ supplierItemId })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update the local state to reflect the change
+                setLinkedItems(prevItems =>
+                    prevItems.map(item =>
+                        item.id === supplierItemId
+                            ? { ...item, isPreferred: data.isPreferred }
+                            : item
+                    )
+                );
+            } else {
+                console.error('Failed to toggle preferred status:', data.error);
+            }
+        } catch (error) {
+            console.error('Error toggling preferred status:', error);
+        }
     };
 
     return (
@@ -434,6 +468,8 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                             <td>{item.notes || '—'}</td>
                             <td>
                                 <ActionButtons
+                                    onToggleStar={() => handleTogglePreferred(item.id)}
+                                    isStarred={item.isPreferred}
                                     onEdit={() => openModal("edit-linkedItem", item)}
                                     onDelete={() => openModal("delete-linkedItem", item)}
                                 />

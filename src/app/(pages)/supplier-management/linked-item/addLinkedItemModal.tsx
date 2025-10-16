@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 import {
     showItemSaveConfirmation, showItemSavedSuccess,
@@ -27,11 +27,13 @@ interface FormError {
 }
 
 interface AddLinkedItemModalProps {
+    supplierId?: number; // Current supplier ID for filtering (0 or undefined when adding new supplier)
+    currentlyLinkedItemIds?: string[]; // Array of itemIds already linked (excluding soft-deleted)
     onClose: () => void;
     onSave: (linkedItemForm: LinkedItemForm) => void;
 }
 
-export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemModalProps) {
+export default function AddLinkedItemModal({ supplierId, currentlyLinkedItemIds, onClose, onSave }: AddLinkedItemModalProps) {
     const [linkedItemForm, setLinkedItemForm] = useState<LinkedItemForm>({
         itemId: "",
         itemName: "",
@@ -49,11 +51,18 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
     const [items, setItems] = useState<any[]>([]);
+    const [availableItems, setAvailableItems] = useState<any[]>([]); // Items available for linking
     const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
     const [loadingItems, setLoadingItems] = useState(true);
     const [loadingUnits, setLoadingUnits] = useState(true);
+    
+    // State for searchable dropdown
+    const [searchTerm, setSearchTerm] = useState("");
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [filteredItems, setFilteredItems] = useState<any[]>([]);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Fetch items from API
+    // Fetch items from API and filter available ones
     useEffect(() => {
         const fetchItems = async () => {
             try {
@@ -70,6 +79,17 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
         };
         fetchItems();
     }, []);
+
+    // Filter items to show only those not currently linked (excluding soft-deleted)
+    useEffect(() => {
+        // Handle case when currentlyLinkedItemIds is undefined or empty
+        const linkedIds = currentlyLinkedItemIds || [];
+        
+        const filtered = items.filter(item => 
+            !linkedIds.includes(item.itemId)
+        );
+        setAvailableItems(filtered);
+    }, [items, currentlyLinkedItemIds]);
 
     // Fetch unit measures from API
     useEffect(() => {
@@ -94,6 +114,93 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
     useEffect(() => {
         setIsDirty(true);
     }, [linkedItemForm]);
+
+    // Filter available items based on search term
+    useEffect(() => {
+        let result = [];
+        if (searchTerm.trim() === "") {
+            result = [...availableItems];
+        } else {
+            result = availableItems.filter(item =>
+                item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        
+        // Sort results in ascending order by item name
+        result.sort((a, b) => {
+            const nameA = a.itemName.toLowerCase();
+            const nameB = b.itemName.toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+        
+        setFilteredItems(result);
+    }, [searchTerm, availableItems]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const handleSearchChange = (value: string) => {
+        setSearchTerm(value);
+        setShowDropdown(true);
+        
+        // Clear form fields when user starts typing
+        if (linkedItemForm.itemName !== "") {
+            setLinkedItemForm(prev => ({
+                ...prev,
+                itemId: "",
+                itemName: "",
+                itemCategory: "",
+                canonicalUnit: "",
+                canonicalUnitId: 0,
+                supplierUnitMeasureId: 0,
+                supplierUnitName: "",
+                conversionFactor: 1
+            }));
+        }
+    };
+
+    const handleItemSelect = (item: any) => {
+        // Extract unit measure information properly
+        const unitMeasureName = item.unitMeasure?.abbreviation || item.unitMeasure?.unitName || "";
+        const unitMeasureId = item.unitMeasure?.id || item.unitMeasureId || 0;
+        
+        // Extract category information properly
+        const categoryName = item.category?.categoryName || "";
+        
+        setLinkedItemForm(prev => ({
+            ...prev,
+            itemId: item.itemId,
+            itemName: item.itemName,
+            itemCategory: categoryName,
+            canonicalUnit: unitMeasureName,
+            canonicalUnitId: unitMeasureId,
+            // Default supplier unit to canonical unit
+            supplierUnitMeasureId: unitMeasureId,
+            supplierUnitName: unitMeasureName,
+            conversionFactor: 1
+        }));
+        
+        setSearchTerm(item.itemName);
+        setShowDropdown(false);
+        
+        // Clear error if exists
+        if (formErrors.itemName) {
+            const newErrors = { ...formErrors };
+            delete newErrors.itemName;
+            setFormErrors(newErrors);
+        }
+    };
 
     const handleChange = (field: string, value: any) => {
         setLinkedItemForm((prev) => ({ ...prev, [field]: value }));
@@ -192,25 +299,78 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
 
             <div className="modal-content add">
                 <form className="add-form">
-                    {/* Item Name */}
-                    <div className="form-group">
+                    {/* Item Name - Searchable Dropdown */}
+                    <div className="form-group" style={{ position: 'relative' }} ref={dropdownRef}>
                         <label>Item Name <span className="required">*</span></label>
-                        <select
+                        <input
+                            type="text"
                             className={formErrors?.itemName ? "invalid-input" : ""}
-                            value={linkedItemForm.itemName}
-                            onChange={(e) => handleChange("itemName", e.target.value)}
+                            value={searchTerm}
+                            onChange={(e) => handleSearchChange(e.target.value)}
+                            onFocus={() => setShowDropdown(true)}
+                            placeholder={loadingItems ? "Loading items..." : "Search item name..."}
                             disabled={loadingItems}
-                        >
-                            <option value="" disabled>
-                                {loadingItems ? "Loading items..." : "Select item name..."}
-                            </option>
-                            {items.map((item, index) => (
-                                <option key={item.id || `item-${index}`} value={item.itemName}>
-                                    {item.itemName}
-                                </option>
-                            ))}
-                        </select>
+                            autoComplete="off"
+                        />
                         <p className="add-error-message">{formErrors?.itemName}</p>
+                        
+                        {/* Dropdown List */}
+                        {showDropdown && !loadingItems && filteredItems.length > 0 && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                maxHeight: '200px',
+                                overflowY: 'auto',
+                                backgroundColor: 'white',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                zIndex: 1000,
+                                marginTop: '4px'
+                            }}>
+                                {filteredItems.map((item, index) => (
+                                    <div
+                                        key={item.id || `item-${index}`}
+                                        onClick={() => handleItemSelect(item)}
+                                        style={{
+                                            padding: '10px 12px',
+                                            cursor: 'pointer',
+                                            borderBottom: index < filteredItems.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                    >
+                                        <div style={{ fontWeight: 500 }}>{item.itemName}</div>
+                                        <div style={{ fontSize: '0.85em', color: '#666', marginTop: '2px' }}>
+                                            {item.category?.categoryName || 'No category'} • {item.unitMeasure?.abbreviation || item.unitMeasure?.unitName || 'N/A'}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {/* No results message */}
+                        {showDropdown && !loadingItems && searchTerm && filteredItems.length === 0 && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                backgroundColor: 'white',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                padding: '12px',
+                                color: '#666',
+                                textAlign: 'center',
+                                zIndex: 1000,
+                                marginTop: '4px'
+                            }}>
+                                No items found matching "{searchTerm}"
+                            </div>
+                        )}
                     </div>
 
                     <div className="form-row">

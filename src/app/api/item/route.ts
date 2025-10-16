@@ -109,25 +109,38 @@ export async function GET() {
             expirationDate: true,
             createdAt: true,
           }
+        },
+        supplierItems: {
+          select: {
+            id: true,
+            supplierId: true,
+            supplier: {
+              select: {
+                supplierId: true,
+                supplierName: true,
+                status: true
+              }
+            }
+          }
         }
       },
     });
 
     // Process each item to calculate current_stock and status
-    const processedItems = await Promise.all(items.map(async (item) => {
-      const { batches, ...itemData } = item;
+    const processedItems = await Promise.all(items.map(async (item: any) => {
+      const { batches, supplierItems, category, unitMeasure, ...itemData } = item;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       // Calculate current stock: use DB value for ITEM-00001, else sum usable quantities
       let current_stock: number;
-      if (item.category && item.category.categoryId === 'CAT-00002') {
+      if (category && category.categoryId === 'CAT-00002') {
         current_stock = item.currentStock;
       } else {
-        current_stock = batches.reduce((sum, batch) => sum + batch.usableQuantity, 0);
+        current_stock = batches.reduce((sum: number, batch: any) => sum + batch.usableQuantity, 0);
       }
 
-      const hasExpiredBatch = batches.some(batch => {
+      const hasExpiredBatch = batches.some((batch: any) => {
         if (!batch.expirationDate) return false;
         const expirationDate = new Date(batch.expirationDate as Date);
         expirationDate.setHours(0, 0, 0, 0);
@@ -137,11 +150,11 @@ export async function GET() {
   let status: 'EXPIRED' | 'OUT_OF_STOCK' | 'LOW_STOCK' | 'AVAILABLE' | 'UNDER_MAINTENANCE' | 'IN_USE' | string;
       if (hasExpiredBatch) {
         status = 'EXPIRED';
-      } else if (item.category.categoryName === "Consumable" && current_stock === 0) {
+      } else if (category.categoryName === "Consumable" && current_stock === 0) {
         status = 'OUT_OF_STOCK';
-      } else if (item.category.categoryName === "Consumable" && current_stock <= item.reorderLevel) {
+      } else if (category.categoryName === "Consumable" && current_stock <= item.reorderLevel) {
         status = 'LOW_STOCK';
-      } else if (["Machine", "Tool", "Equipment"].includes(item.category.categoryName) && current_stock === 0) {
+      } else if (["Machine", "Tool", "Equipment"].includes(category.categoryName) && current_stock === 0) {
         status = 'IN_USE';
       } else {
         status = item.status as typeof status;
@@ -151,9 +164,12 @@ export async function GET() {
 
       return {
         ...itemData,
+        category,
+        unitMeasure,
         current_stock,
         status,
-        batches
+        batches,
+        supplierItems
       };
     }));
 

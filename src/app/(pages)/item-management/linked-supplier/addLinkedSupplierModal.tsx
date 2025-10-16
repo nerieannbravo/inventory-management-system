@@ -11,8 +11,12 @@ import "@/styles/forms.css";
 export interface LinkedSupplierForm {
     supplierId?: string;
     linkedSupplierName: string;
+    supplierUnitMeasureId: number;
+    supplierUnitName?: string;
+    conversionFactor: number;
     unitPrice: number;
-    deliveryTime: string;
+    averageDeliveryTime: string;
+    isPreferred: boolean;
     notes: string;
 }
 
@@ -29,8 +33,12 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
     const [linkedSupplierForm, setLinkedSupplierForm] = useState<LinkedSupplierForm>({
         supplierId: "",
         linkedSupplierName: "",
+        supplierUnitMeasureId: 0,
+        supplierUnitName: "",
+        conversionFactor: 1,
         unitPrice: 0,
-        deliveryTime: "",
+        averageDeliveryTime: "",
+        isPreferred: false,
         notes: "",
     });
 
@@ -38,6 +46,8 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
     const [isDirty, setIsDirty] = useState(false);
     const [suppliers, setSuppliers] = useState<any[]>([]);
     const [loadingSuppliers, setLoadingSuppliers] = useState(true);
+    const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
+    const [loadingUnits, setLoadingUnits] = useState(true);
 
     // Fetch suppliers from API
     useEffect(() => {
@@ -57,6 +67,25 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
         fetchSuppliers();
     }, []);
 
+    // Fetch unit measures
+    useEffect(() => {
+        const fetchUnitMeasures = async () => {
+            try {
+                setLoadingUnits(true);
+                const response = await fetch('/api/unit-measure');
+                const data = await response.json();
+                if (data.success) {
+                    setUnitMeasures(data.unitMeasures || []);
+                }
+            } catch (err) {
+                console.error('Error fetching unit measures:', err);
+            } finally {
+                setLoadingUnits(false);
+            }
+        };
+        fetchUnitMeasures();
+    }, []);
+
     // Track if form has been modified
     useEffect(() => {
         setIsDirty(true);
@@ -73,6 +102,17 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
             }
         }
 
+        // When supplier unit is selected, update the supplier unit name
+        if (field === "supplierUnitMeasureId") {
+            const selected = unitMeasures.find(u => u.id === parseInt(value));
+            if (selected) {
+                setLinkedSupplierForm((prev) => ({
+                    ...prev,
+                    supplierUnitName: selected.abbreviation || selected.unitName || ""
+                }));
+            }
+        }
+
         // Clear the error for that field
         if (formErrors[field]) {
             const newErrors = { ...formErrors };
@@ -85,8 +125,13 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
         const errors: FormError = {};
 
         if (!linkedSupplierForm.linkedSupplierName) errors.linkedSupplierName = "Supplier name is required";
+        if (!linkedSupplierForm.supplierUnitMeasureId || linkedSupplierForm.supplierUnitMeasureId === 0) {
+            errors.supplierUnitMeasureId = "Supplier unit measure is required";
+        }
+        if (linkedSupplierForm.conversionFactor <= 0) {
+            errors.conversionFactor = "Conversion factor must be greater than zero";
+        }
         if (linkedSupplierForm.unitPrice <= 0) errors.unitPrice = "Unit price must be greater than 0";
-        if (!linkedSupplierForm.deliveryTime) errors.deliveryTime = "Delivery time is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -147,31 +192,89 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
                     </div>
 
                     <div className="form-row">
+                        {/* Supplier Unit Measure */}
+                        <div className="form-group">
+                            <label>Supplier Unit Measure <span className="required">*</span></label>
+                            <select
+                                className={formErrors?.supplierUnitMeasureId ? "invalid-input" : ""}
+                                value={linkedSupplierForm.supplierUnitMeasureId || ""}
+                                onChange={(e) => handleChange("supplierUnitMeasureId", parseInt(e.target.value))}
+                                disabled={loadingUnits}
+                            >
+                                <option value="" disabled>
+                                    {loadingUnits ? "Loading units..." : "Select unit measure..."}
+                                </option>
+                                {unitMeasures.map((unit) => (
+                                    <option key={unit.id} value={unit.id}>
+                                        {unit.abbreviation || unit.unitName}
+                                    </option>
+                                ))}
+                            </select>
+                            <p className="add-error-message">{formErrors?.supplierUnitMeasureId}</p>
+                            <p className="field-hint">The unit measure used by this supplier</p>
+                        </div>
+
+                        {/* Conversion Factor */}
+                        <div className="form-group">
+                            <label>Conversion Factor <span className="required">*</span></label>
+                            <input
+                                className={formErrors?.conversionFactor ? "invalid-input" : ""}
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                value={linkedSupplierForm.conversionFactor || ""}
+                                onChange={(e) => handleChange("conversionFactor", parseFloat(e.target.value) || 1)}
+                                placeholder="e.g., 1"
+                            />
+                            <p className="add-error-message">{formErrors?.conversionFactor}</p>
+                            <p className="field-hint">
+                                How many canonical units equal 1 supplier unit
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="form-row">
                         {/* Unit Price */}
                         <div className="form-group">
-                            <label>Unit Price</label>
+                            <label>Unit Price (per supplier unit) <span className="required">*</span></label>
                             <input
                                 className={formErrors?.unitPrice ? "invalid-input" : ""}
                                 type="number"
+                                step="0.01"
+                                min="0.01"
                                 value={linkedSupplierForm.unitPrice || ""}
-                                onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
-                                placeholder="Enter unit price here..."
+                                onChange={(e) => handleChange("unitPrice", parseFloat(e.target.value) || 0)}
+                                placeholder="Enter unit price..."
                             />
                             <p className="add-error-message">{formErrors?.unitPrice}</p>
+                            {linkedSupplierForm.unitPrice > 0 && (
+                                <p className="field-hint">₱{linkedSupplierForm.unitPrice.toFixed(2)} per {linkedSupplierForm.supplierUnitName}</p>
+                            )}
                         </div>
 
-                        {/* Delivery Time */}
+                        {/* Average Delivery Time */}
                         <div className="form-group">
-                            <label>Delivery Time</label>
+                            <label>Average Delivery Time</label>
                             <input
-                                className={formErrors?.deliveryTime ? "invalid-input" : ""}
                                 type="text"
-                                value={linkedSupplierForm.deliveryTime}
-                                onChange={(e) => handleChange("deliveryTime", e.target.value)}
-                                placeholder="e.g. 1 week"
+                                value={linkedSupplierForm.averageDeliveryTime}
+                                onChange={(e) => handleChange("averageDeliveryTime", e.target.value)}
+                                placeholder="e.g., 3-5 days"
                             />
-                            <p className="add-error-message">{formErrors?.deliveryTime}</p>
                         </div>
+                    </div>
+
+                    {/* Is Preferred */}
+                    <div className="form-group">
+                        <label className="checkbox-label">
+                            <input
+                                type="checkbox"
+                                checked={linkedSupplierForm.isPreferred}
+                                onChange={(e) => handleChange("isPreferred", e.target.checked)}
+                            />
+                            <span>Mark as Preferred Supplier for this Item</span>
+                        </label>
+                        <p className="field-hint">Designate this supplier as the preferred source for this item</p>
                     </div>
 
                     {/* Notes */}
@@ -180,9 +283,9 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
                         <textarea
                             value={linkedSupplierForm.notes}
                             onChange={(e) => handleChange("notes", e.target.value)}
-                            placeholder="Enter additional notes here..."
+                            placeholder="Additional notes..."
+                            rows={3}
                         />
-                        <p className="add-error-message"></p>
                     </div>
 
 

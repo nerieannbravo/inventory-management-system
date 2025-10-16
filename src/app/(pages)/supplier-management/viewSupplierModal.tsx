@@ -1,4 +1,6 @@
+import { useState } from "react";
 import "@/styles/forms.css";
+import ActionButtons from "@/components/actionButtons";
 
 interface ViewSupplierModalProps {
     item: {
@@ -36,6 +38,38 @@ interface ViewSupplierModalProps {
 }
 
 export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewSupplierModalProps) {
+    // State to manage linked items with star preferences
+    const [linkedItems, setLinkedItems] = useState<any[]>(() => {
+        return (item.linkedItems || []).map((li: any) => ({
+            ...li,
+            isPreferred: li.isPreferred ?? false
+        }));
+    });
+
+    // Handle toggle preferred status
+    const handleTogglePreferred = async (supplierItemId: number) => {
+        try {
+            const response = await fetch('/api/supplier/toggle-preferred', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ supplierItemId })
+            });
+
+            if (!response.ok) throw new Error('Failed to toggle preferred status');
+
+            const { isPreferred } = await response.json();
+
+            // Update local state
+            setLinkedItems(prev => prev.map(linkedItem =>
+                linkedItem.id === supplierItemId
+                    ? { ...linkedItem, isPreferred }
+                    : linkedItem
+            ));
+        } catch (error) {
+            console.error('Error toggling preferred status:', error);
+            alert('Failed to update preferred status');
+        }
+    };
     return (
         <>
             <button className="close-modal-btn view" onClick={onClose}>
@@ -110,8 +144,8 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                 </div>
             </div >
 
-            <p className="details-title">Linked Item/s ({item.linkedItems?.length || 0})</p>
-            {item.linkedItems && item.linkedItems.length > 0 ? (
+            <p className="details-title">Linked Item/s ({linkedItems.length || 0})</p>
+            {linkedItems && linkedItems.length > 0 ? (
                 <table className="modal-table">
                     <thead className="modal-table-heading">
                         <tr>
@@ -122,10 +156,11 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                             <th>Unit Price</th>
                             <th>Delivery Time</th>
                             <th>Notes</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody className="modal-table-body">
-                        {item.linkedItems.map((linkedItem: any, index) => (
+                        {linkedItems.map((linkedItem: any, index) => (
                             <tr key={linkedItem.id || index}>
                                 <td>{linkedItem.itemName || 'N/A'}</td>
                                 <td>{linkedItem.itemCategory || linkedItem.category || 'N/A'}</td>
@@ -134,6 +169,12 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                                 <td>₱{linkedItem.unitPrice?.toFixed(2) || '0.00'}</td>
                                 <td>{linkedItem.averageDeliveryTime || 'N/A'}</td>
                                 <td>{linkedItem.notes || '—'}</td>
+                                <td>
+                                    <ActionButtons
+                                        onToggleStar={() => handleTogglePreferred(linkedItem.id)}
+                                        isStarred={linkedItem.isPreferred}
+                                    />
+                                </td>
                             </tr>
                         ))}
                     </tbody>

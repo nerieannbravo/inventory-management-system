@@ -26,6 +26,15 @@
     background-color: var(--error-color);
 }
 
+.action-btn.star {
+    background-color: var(--warning-color);
+}
+
+.action-btn.star.starred {
+    background-color: #fbbf24;
+    color: #ffffff;
+}
+
 /* ----- ACTION BUTTONS: HOVER STYLING ----- */
 .action-btn.view:hover:not(.disabled) {
     background-color: var(--success-hover-color);
@@ -37,6 +46,14 @@
 
 .action-btn.delete:hover:not(.disabled) {
     background-color: var(--error-hover-color);
+}
+
+.action-btn.star:hover:not(.disabled) {
+    background-color: #f59e0b;
+}
+
+.action-btn.star.starred:hover:not(.disabled) {
+    background-color: #f59e0b;
 }
 
 /* ----- DISABLED STATE STYLING ----- */
@@ -61,6 +78,14 @@
     color: var(--error-color);
 }
 
+.modal-table-body td .action-btn.star {
+    color: #d97706;
+}
+
+.modal-table-body td .action-btn.star.starred {
+    color: #fbbf24;
+}
+
 .modal-table-body td .action-btn:hover:not(.disabled) {
     background: none;
 }
@@ -73,4 +98,9 @@
 .modal-table-body td .action-btn.delete:hover:not(.disabled) {
     background: none;
     color: var(--error-hover-color);
+}
+
+.modal-table-body td .action-btn.star:hover:not(.disabled) {
+    background: none;
+    color: #f59e0b;
 }

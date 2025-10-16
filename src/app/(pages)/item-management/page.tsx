@@ -55,7 +55,7 @@ export default function ItemManagement() {
         setCurrentPage(1); // Reset to first page when changing page size
     };
 
-    // Filter sections
+    // Filter sections - ensure unique IDs for options
     const filterSections: FilterSection[] = [
         {
             id: "dateRange",
@@ -68,8 +68,8 @@ export default function ItemManagement() {
             title: "Status",
             type: "checkbox",
             options: [
-                { id: "active", label: "Active" },
-                { id: "inactive", label: "Inactive" }
+                { id: "item-status-active", label: "Active" },
+                { id: "item-status-inactive", label: "Inactive" }
             ]
         },
         {
@@ -77,20 +77,20 @@ export default function ItemManagement() {
             title: "Sort By",
             type: "radio",
             options: [
-                { id: "itemName", label: "Item Name" },
-                { id: "linkedSupplier", label: "Linked Supplier" }
+                { id: "item-sort-name", label: "Item Name" },
+                { id: "item-sort-supplier", label: "Linked Supplier" }
             ],
-            defaultValue: "itemName"
+            defaultValue: "item-sort-name"
         },
         {
             id: "order",
             title: "Order",
             type: "radio",
             options: [
-                { id: "asc", label: "Ascending" },
-                { id: "desc", label: "Descending" }
+                { id: "item-order-asc", label: "Ascending" },
+                { id: "item-order-desc", label: "Descending" }
             ],
-            defaultValue: "asc"
+            defaultValue: "item-order-asc"
         }
     ];
 
@@ -105,19 +105,28 @@ export default function ItemManagement() {
         if (filterValues.itemStatus && filterValues.itemStatus.length > 0) {
             newData = newData.filter(item => {
                 const status = (item.status || '').toLowerCase();
-                return filterValues.itemStatus.some((s: string) => status.includes(s.toLowerCase()));
+                // Map the filter IDs back to status values
+                const hasActive = filterValues.itemStatus.includes("item-status-active");
+                const hasInactive = filterValues.itemStatus.includes("item-status-inactive");
+                
+                if (hasActive && status.includes("active")) return true;
+                if (hasInactive && status.includes("inactive")) return true;
+                return false;
             });
         }
 
         // Sort by itemName or linkedSupplier
-        if (filterValues.sortBy === "itemName") {
+        const sortBy = filterValues.sortBy || "item-sort-name";
+        const order = filterValues.order || "item-order-asc";
+        
+        if (sortBy === "item-sort-name") {
             newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                const sortOrder = order === "item-order-asc" ? 1 : -1;
                 return (a.itemName ?? "").localeCompare(b.itemName ?? "") * sortOrder;
             });
-        } else if (filterValues.sortBy === "linkedSupplier") {
+        } else if (sortBy === "item-sort-supplier") {
             newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
+                const sortOrder = order === "item-order-asc" ? 1 : -1;
                 const aCount = a.supplierItems?.length || 0;
                 const bCount = b.supplierItems?.length || 0;
                 return (aCount - bCount) * sortOrder;
@@ -329,11 +338,11 @@ export default function ItemManagement() {
                             <tbody className="table-body">
                                 {paginatedData.map(item => (
                                     <tr
-                                        key={item.id}
+                                        key={item.itemId}
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.itemName}</td>
-                                        <td>{item.unitMeasure}</td>
+                                        <td>{item.unitMeasure?.abbreviation || item.unitMeasure?.unitName || 'N/A'}</td>
                                         <td>{item.category?.categoryName || 'N/A'}</td>
                                         <td className="table-status">
                                             <span className={`chip ${(item.status || '').toLowerCase()}`}>

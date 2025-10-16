@@ -10,13 +10,17 @@ import { generateId } from '../../lib/idGenerator';
   - PATCH: soft-delete supplier
 */
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const suppliers = await prisma.supplier.findMany({
+    // Check if we need to include soft-deleted items (for dropdown filtering)
+    const url = new URL(request.url);
+    const includeSoftDeleted = url.searchParams.get('includeSoftDeleted') === 'true';
+    
+    const suppliers = await (prisma as any).supplier.findMany({
       where: { isDeleted: false },
       include: {
         supplierItems: {
-          where: { isDeleted: false }, // Exclude soft-deleted supplier items
+          where: includeSoftDeleted ? undefined : { isDeleted: false }, // Include or exclude soft-deleted items
           include: { 
             item: { 
               include: {
@@ -81,6 +85,7 @@ export async function GET() {
         averageDeliveryTime: si.averageDeliveryTime,
         notes: si.notes,
         isPreferred: si.isPreferred || false,
+        isDeleted: si.isDeleted || false, // Include soft-delete status
         lastPurchaseDate: si.lastPurchaseDate
       }))
     }));
@@ -211,8 +216,17 @@ export async function PUT(request: NextRequest) {
           const inv = await tx.inventoryItem.findFirst({ where: { itemId: String(li.item_id) } });
           if (!inv) continue;
           
-          // Check if this supplier-item combination already exists
+          // Check if this supplier-item combination already exists (including soft-deleted)
           const existing = existingItems.find((e: any) => e.itemId === inv.id);
+          
+          // Also check for soft-deleted items for this supplier-item combination
+          const softDeleted = await tx.supplierItem.findFirst({
+            where: {
+              supplierId: s.id,
+              itemId: inv.id,
+              isDeleted: true
+            }
+          });
           
           const supplierUnitMeasureId = li.supplierUnitMeasureId || inv.unitMeasureId;
           const conversionFactor = li.conversionFactor || 1;
@@ -224,17 +238,23 @@ export async function PUT(request: NextRequest) {
             averageDeliveryTime: li.averageDeliveryTime || null,
             notes: li.notes || null,
             isPreferred: li.isPreferred || false,
-            isDeleted: false,
+            isDeleted: false, // Restore if soft-deleted
           };
 
           if (existing) {
-            // Update existing item
+            // Update existing active item
             await tx.supplierItem.update({
               where: { id: existing.id },
               data: itemData
             });
+          } else if (softDeleted) {
+            // Restore soft-deleted item instead of creating new
+            await tx.supplierItem.update({
+              where: { id: softDeleted.id },
+              data: itemData
+            });
           } else {
-            // Create new item
+            // Create new item (first time linking)
             await tx.supplierItem.create({ 
               data: {
                 supplierId: s.id,

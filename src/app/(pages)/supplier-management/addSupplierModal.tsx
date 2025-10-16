@@ -108,8 +108,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                 conversionFactor: li.conversionFactor,
                 unitPrice: Number(li.unitPrice) || 0,
                 averageDeliveryTime: li.averageDeliveryTime ?? null,
-                notes: li.notes ?? null,
-                isPreferred: li.isPreferred ?? false,
+                notes: li.notes ?? null
             })).filter((x: any) => x.item_id != null);
 
             onSave({ ...supplierForm, linkedItems: normalizedLinked });
@@ -135,8 +134,13 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
 
         switch (mode) {
             case "add-linkedItem":
+                // Get currently added item IDs from local state (not from database)
+                const currentlyLinkedItemIds = linkedItems.map(li => li.itemId).filter(Boolean);
+                
                 content = (
                     <AddLinkedItemModal
+                        supplierId={0} // No supplier ID yet when adding new supplier
+                        currentlyLinkedItemIds={currentlyLinkedItemIds}
                         onSave={handleAddLinkedItem}
                         onClose={closeModal}
                     />
