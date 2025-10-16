@@ -17,6 +17,15 @@ export interface CategoryForm {
     categoryDescription: string;
 }
 
+interface Category {
+    id: number;
+    categoryId: string;
+    categoryName: string;
+    description: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 interface FormError {
     [key: string]: string;
 }
@@ -26,20 +35,6 @@ interface AddCategoryModalProps {
     onClose: () => void;
 }
 
-// Sample category data - replace with your actual data source
-const sampleCategoryList = [
-    {
-        id: 1,
-        categoryName: "Category 1",
-        categoryDescription: "Description for Category 1"
-    },
-    {
-        id: 2,
-        categoryName: "Category 2",
-        categoryDescription: "Description for Category 2"
-    }
-];
-
 export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,7 +42,8 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
     const [activeRow, setActiveRow] = useState<any>(null);
 
     // State for category list
-    const [categoryList, setCategoryList] = useState(sampleCategoryList);
+    const [categoryList, setCategoryList] = useState<Category[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Initial category form state
     const [categoryForm, setCategoryForm] = useState<CategoryForm>({
@@ -57,6 +53,28 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+
+    // Fetch categories from database on mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await fetch('/api/category');
+                const data = await response.json();
+                
+                if (data.success) {
+                    setCategoryList(data.categories);
+                } else {
+                    console.error('Failed to fetch categories:', data.error);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     // Track if form has been modified
     useEffect(() => {
@@ -91,8 +109,41 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
 
         const result = await showCategorySaveConfirmation();
         if (result.isConfirmed) {
-            onSave(categoryForm);
-            await showCategorySavedSuccess();
+            try {
+                const response = await fetch('/api/category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(categoryForm),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Add the new category to the list
+                    setCategoryList(prev => [...prev, data.category]);
+                    
+                    // Reset form
+                    setCategoryForm({
+                        categoryName: "",
+                        categoryDescription: ""
+                    });
+                    setIsDirty(false);
+
+                    // Call parent onSave callback
+                    onSave(categoryForm);
+                    
+                    await showCategorySavedSuccess();
+                } else {
+                    // Show error using sweetAlert if available, or console.error
+                    console.error('Error saving category:', data.error);
+                    alert(data.error || 'Failed to save category');
+                }
+            } catch (error: any) {
+                console.error('Error saving category:', error);
+                alert(error.message || 'An error occurred while saving the category');
+            }
         }
     };
 
@@ -138,7 +189,7 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
     };
 
     // Handle edit category
-    const handleEditCategory = (updatedCategory: any) => {
+    const handleEditCategory = (updatedCategory: Category) => {
         const updatedList = categoryList.map(category =>
             category.id === updatedCategory.id ? updatedCategory : category
         );
@@ -191,39 +242,63 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                 </form>
             </div>
 
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit}>
+                    <i className="ri-save-3-line" /> Save
+                </button>
+            </div>
+
             {/* Category List */}
             <div className="details-header">
                 <p className="details-title">Existing Categories</p>
             </div>
 
-            {/* Table */}
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Category Name</th>
-                        <th>Description</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    {categoryList.map(category => (
-                        <tr key={category.id}>
-                            <td>{category.categoryName}</td>
-                            <td>{category.categoryDescription}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-category", category)}
-                                />
-                            </td>
+            {/* Table with Scrollable Container */}
+            <div style={{ 
+                maxHeight: '300px', 
+                overflowY: 'auto', 
+                overflowX: 'hidden',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                marginBottom: '20px'
+            }}>
+                <table className="modal-table" style={{ marginBottom: '0' }}>
+                    <thead className="modal-table-heading" style={{ 
+                        position: 'sticky', 
+                        top: '0', 
+                        backgroundColor: '#fff',
+                        zIndex: 1
+                    }}>
+                        <tr>
+                            <th>Category Name</th>
+                            <th>Description</th>
+                            <th>Action</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
-                </button>
+                    </thead>
+                    <tbody className="modal-table-body">
+                        {isLoading ? (
+                            <tr>
+                                <td colSpan={3} style={{ textAlign: 'center' }}>Loading categories...</td>
+                            </tr>
+                        ) : categoryList.length === 0 ? (
+                            <tr>
+                                <td colSpan={3} style={{ textAlign: 'center' }}>No categories found</td>
+                            </tr>
+                        ) : (
+                            categoryList.map(category => (
+                                <tr key={category.id}>
+                                    <td>{category.categoryName}</td>
+                                    <td>{category.description}</td>
+                                    <td>
+                                        <ActionButtons
+                                            onEdit={() => openModal("edit-category", category)}
+                                        />
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {/* Dynamic Modal Manager */}

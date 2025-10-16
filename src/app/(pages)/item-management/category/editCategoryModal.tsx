@@ -10,8 +10,10 @@ import "@/styles/forms.css";
 interface EditCategoryModalProps {
     item: {
         id: number;
+        categoryId?: string;
         categoryName: string;
-        categoryDescription: string;
+        description?: string;
+        categoryDescription?: string;
     };
     onSave: (updatedItem: any) => void;
     onClose: () => void;
@@ -21,7 +23,7 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
     const [formData, setFormData] = useState({
         id: item.id,
         categoryName: item.categoryName,
-        categoryDescription: item.categoryDescription
+        categoryDescription: item.description || item.categoryDescription || ""
     });
 
     // State to track if form is dirty (has changes)
@@ -62,8 +64,30 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
 
         const result = await showCategoryUpdateConfirmation(formData.categoryName);
         if (result.isConfirmed) {
-            onSave(formData);
-            await showCategoryUpdatedSuccess();
+            try {
+                const response = await fetch('/api/category', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Call parent onSave callback with updated data
+                    onSave(data.category);
+                    await showCategoryUpdatedSuccess();
+                    onClose();
+                } else {
+                    console.error('Error updating category:', data.error);
+                    alert(data.error || 'Failed to update category');
+                }
+            } catch (error: any) {
+                console.error('Error updating category:', error);
+                alert(error.message || 'An error occurred while updating the category');
+            }
         }
     };
 

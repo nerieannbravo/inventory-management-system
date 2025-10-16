@@ -180,18 +180,15 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { stockItems } = await request.json();
-    console.log(`🔄 Starting to process ${stockItems.length} items`);
 
-    // Process each stock item sequentially with detailed logging
+    // Process each stock item sequentially
     const results: any[] = [];
     
     for (let i = 0; i < stockItems.length; i++) {
       const item = stockItems[i];
-      console.log(`📦 Processing item ${i + 1}/${stockItems.length}: ${item.itemName}`);
       
       try {
         // Check if the inventory item already exists
-        console.log(`🔍 Checking if item exists: ${item.itemName}`);
         const existingItem = await prisma.inventoryItem.findFirst({
           where: { itemName: item.itemName, isDeleted: false },
         });
@@ -209,12 +206,9 @@ export async function POST(request: NextRequest) {
         const itemStatus = 'ACTIVE';
 
         // Generate new batch ID
-        console.log(`🆔 Generating batch ID for item ${i + 1}`);
         const batch_id = await generateId('batch', 'BAT');
-        console.log(`✅ Generated batch ID: ${batch_id}`);
       
         if (existingItem) {
-          console.log(`🔄 Updating existing item: ${existingItem.itemId}`);
           // Update existing inventory item
           // Use the numeric DB id for batch relation
           const numericItemId = existingItem.id;
@@ -237,26 +231,20 @@ export async function POST(request: NextRequest) {
               },
             },
           });
-          console.log(`✅ Successfully updated item ${i + 1}`);
           results.push({ success: true, action: 'updated', item: updatedItem });
           await calculateAndUpdateStatus(existingItem.itemId);
         } else {
-          console.log(`🆔 Generating item ID for new item ${i + 1}`);
           const itemId = await generateId('inventoryItem', 'ITEM');
-          console.log(`✅ Generated item ID: ${itemId}`);
           
           // Get category information
-          console.log(`🏷️ Finding category for: ${item.category}`);
           const category = await prisma.category.findFirst({
             where: { categoryName: item.category === 'Consumable' ? 'Consumable' : item.category },
           });
           if (!category) {
             throw new Error(`Category not found for ${item.category}`);
           }
-          console.log(`✅ Found category: ${category.categoryId}`);
 
           // Get unit measure information
-          console.log(`📏 Finding unit measure for: ${item.unit || item.unitMeasure}`);
           const unitMeasure = await prisma.unitMeasure.findFirst({
             where: { 
               OR: [
@@ -269,22 +257,18 @@ export async function POST(request: NextRequest) {
           
           if (!unitMeasure) {
             // Default to pieces if unit measure not found
-            console.warn(`⚠️ Unit measure not found for: ${item.unit || item.unitMeasure}, defaulting to pieces`);
             const defaultUnit = await prisma.unitMeasure.findFirst({
               where: { abbreviation: 'pcs' }
             });
             if (!defaultUnit) {
               throw new Error('Default unit measure (pieces) not found in database');
             }
-            console.log(`✅ Using default unit: ${defaultUnit.unitName}`);
             item.unitMeasureId = defaultUnit.id;
           } else {
-            console.log(`✅ Found unit measure: ${unitMeasure.unitName}`);
             item.unitMeasureId = unitMeasure.id;
           }
 
           // Create new inventory item
-          console.log(`➕ Creating new inventory item ${i + 1}`);
           const newItem = await prisma.inventoryItem.create({
             data: {
               itemId,
@@ -307,11 +291,9 @@ export async function POST(request: NextRequest) {
             },
           });
           await calculateAndUpdateStatus(itemId);
-          console.log(`✅ Successfully created item ${i + 1}: ${newItem.itemId}`);
 
           // Create linked suppliers if provided
           if (item.linkedSuppliers && Array.isArray(item.linkedSuppliers) && item.linkedSuppliers.length > 0) {
-            console.log(`🔗 Creating ${item.linkedSuppliers.length} linked suppliers for item ${i + 1}`);
             
             for (const linkedSupplier of item.linkedSuppliers) {
               try {
@@ -343,9 +325,8 @@ export async function POST(request: NextRequest) {
                   } as any
                 });
 
-                console.log(`✅ Linked supplier ${supplier.supplierName} to item ${newItem.itemId}`);
               } catch (supplierError: any) {
-                console.error(`❌ Error linking supplier:`, supplierError.message);
+                console.error(`Error linking supplier:`, supplierError.message);
                 // Continue with next supplier even if one fails
               }
             }
@@ -355,8 +336,7 @@ export async function POST(request: NextRequest) {
         }
         
       } catch (itemError: any) {
-        console.error(`❌ Error processing item ${i + 1} (${item.name}):`, itemError.message);
-        console.error('Full error:', itemError);
+        console.error(`Error processing item ${i + 1} (${item.name}):`, itemError.message);
         results.push({ 
           success: false, 
           action: 'failed', 
@@ -368,12 +348,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`🏁 Finished processing. Results:`, results.map(r => r.action));
-
     return NextResponse.json({ success: true, results });
     
   } catch (error: any) {
-    console.error('❌ Fatal error processing stock items:', error);
+    console.error('Fatal error processing stock items:', error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

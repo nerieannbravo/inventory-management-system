@@ -31,6 +31,7 @@ export default function ItemManagement() {
     const [unitMeasures, setUnitMeasures] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [categoriesRefreshKey, setCategoriesRefreshKey] = useState(0);
     
     // Search state
     const [searchQuery, setSearchQuery] = useState("");
@@ -200,6 +201,7 @@ export default function ItemManagement() {
         switch (mode) {
             case "add-item":
                 content = <AddItemModal
+                    key={`add-item-${categoriesRefreshKey}`}
                     onSave={handleAddItem}
                     onClose={closeModal}
                 />;
@@ -263,6 +265,7 @@ export default function ItemManagement() {
                     }
                 ]
             };
+            
             await createItem(payload);
             const data = await getItems();
             setAllItems(data.items || []);
@@ -348,11 +351,19 @@ export default function ItemManagement() {
 
 
     // Handle add category
-    const handleAddCategory = (categoryForm: CategoryForm) => {
-        console.log("Saving form:", categoryForm);
-        // Logic to add category to the data
-        // In a real app, this would likely be an API call
-        closeModal();
+    const handleAddCategory = async (categoryForm: CategoryForm) => {
+        try {
+            // The category has already been saved in the addCategoryModal
+            // Refresh the categories list so the new category is available for item creation
+            const categoriesData = await getCategories();
+            setCategories(categoriesData.categories || []);
+            // Increment the refresh key to force AddItemModal to remount and fetch fresh categories
+            setCategoriesRefreshKey(prev => prev + 1);
+            closeModal();
+        } catch (error) {
+            console.error('Error refreshing categories:', error);
+            closeModal();
+        }
     };
 
     return (
