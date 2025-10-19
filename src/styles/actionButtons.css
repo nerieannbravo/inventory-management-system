@@ -74,3 +74,10 @@
     background: none;
     color: var(--error-hover-color);
 }
+
+/* -----  MODAL TABLE ACTION BUTTONS: DISABLED STATE STYLING ----- */
+.modal-table-body td .action-btn.disabled {
+    color: var(--secondary-text-color);
+    opacity: 0.5;
+    cursor: pointer;
+}

@@ -190,7 +190,18 @@ export const showDeleteExpiredSuccess = () => {
     });
 };
 
-
+export const showDeleteExpiredError = (errorMessage?: string) => {
+    return Swal.fire({
+        title: 'Error',
+        html: errorMessage || 'Deleting this batch is not allowed.',
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
 
 //-------------------- REQUEST MANAGEMENT SPECIFIC -------------------//
 
