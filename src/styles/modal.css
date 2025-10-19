@@ -254,7 +254,7 @@
 }
 
 /* cancel button */
-.modal-actions.delete .cancel-btn {
+.modal-actions .cancel-btn {
     width: 120px;
     height: 35px;
     border-radius: 8px;
@@ -265,7 +265,7 @@
     cursor: pointer;
 }
 
-.modal-actions.delete .cancel-btn:hover {
+.modal-actions .cancel-btn:hover {
     background-color: var(--table-row-hover-color);
 }
 

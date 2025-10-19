@@ -17,12 +17,14 @@
   /* Text Colors */
   --primary-text-color: #000000;
   --secondary-text-color: #404040;
+  --tertiary-text-color: #707070;
 
   /* Semantic COlors */
   --success-color: #13CE66;
   --error-color: #FF4949;
   --info-color: #2D8EFF;
   --warning-color: #FFCC3D;
+  --highlight-color: #A855F7;
 
   /* Table Colors */
   --border-color: #B3B3B3;
@@ -47,7 +49,8 @@
   --success-hover-color: #12B75C;
   --error-hover-color: #DE3939;
   --info-hover-color: #267BDB;
-  --warning-hover-color: #fcc42a;
+  --warning-hover-color: #FCC42A;
+  --highlight-hover-color: #9333EA;
   --table-row-hover-color: #DDDDDD;
 
   /* Shadow */
@@ -58,30 +61,3 @@ body {
   background: var(--background-color);
   color: var(--primary-text-color);
 }
-
-/* TEMPORARY LANGGGGG */
-/* .login-wrapper {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-}
-
-.login-btn {
-  width: 180px;
-  height: 35px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  border-radius: 8px;
-  background: var(--primary-color);
-  color: var(--foreground-color);
-  font-size: 14px;
-  transition: all 0.3s ease-in-out;
-}
-
-.login-btn:hover {
-  background: var(--primary-hover-color);
-} */

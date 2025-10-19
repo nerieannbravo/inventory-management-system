@@ -44,5 +44,33 @@
     background-color: var(--expired-chip-bg-color);
     color: var(--secondary-text-color);
     opacity: 0.5;
-    cursor: not-allowed;
+    cursor: pointer;
+}
+
+
+/* ----- MODAL TABLE ACTION BUTTONS STYLING ----- */
+.modal-table-body td .action-btn {
+    background: none;
+}
+
+.modal-table-body td .action-btn.edit {
+    color: var(--info-color);
+}
+
+.modal-table-body td .action-btn.delete {
+    color: var(--error-color);
+}
+
+.modal-table-body td .action-btn:hover:not(.disabled) {
+    background: none;
+}
+
+.modal-table-body td .action-btn.edit:hover:not(.disabled) {
+    background: none;
+    color: var(--info-hover-color);
+}
+
+.modal-table-body td .action-btn.delete:hover:not(.disabled) {
+    background: none;
+    color: var(--error-hover-color);
 }

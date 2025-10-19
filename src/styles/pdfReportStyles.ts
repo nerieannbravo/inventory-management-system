@@ -11,7 +11,7 @@ export const reportStyles = StyleSheet.create({
     header: {
         flexDirection: 'column',
         justifyContent: 'center',
-        marginBottom: 20,
+        marginBottom: 10,
         marginTop: 10,
     },
     companyName: {
@@ -91,7 +91,7 @@ export const reportStyles = StyleSheet.create({
         fontSize: 9,
         backgroundColor: 'white',
         alignItems: 'center',
-        minHeight: 40,
+        minHeight: 30,
     },
     alternateRow: {
         backgroundColor: '#F3F2F9',
@@ -169,6 +169,10 @@ export const statusColors = {
     expired: {
         backgroundColor: '#D9D9D9',
         color: 'black',
+    },
+    inUse: {
+        backgroundColor: '#FFF5C2',
+        color: '#85643B',
     },
 
     // Request Status Colors
