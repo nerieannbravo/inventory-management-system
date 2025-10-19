@@ -69,7 +69,7 @@ export const formatStockStatus = (status: string): string => {
         'LOW_STOCK': 'Low Stock',
         'UNDER_MAINTENANCE': 'Under Maintenance',
         'EXPIRED': 'Expired',
-        'IN_USED': 'In Use',
+        'IN_USE': 'In Use',
         // Temporary
         'available': 'Available',
         'out-of-stock': 'Out of Stock',
@@ -159,7 +159,7 @@ export const getStockStatusStyle = (status: string) => {
         'LOW_STOCK': [reportStyles.statusChip, statusColors.lowStock],
         'UNDER_MAINTENANCE': [reportStyles.statusChip, statusColors.maintenance],
         'EXPIRED': [reportStyles.statusChip, statusColors.expired],
-        'IN_USED': [reportStyles.statusChip, statusColors.inUse],
+        'IN_USE': [reportStyles.statusChip, statusColors.inUse],
         // Temporary
         'available': [reportStyles.statusChip, statusColors.available],
         'out-of-stock': [reportStyles.statusChip, statusColors.outOfStock],
