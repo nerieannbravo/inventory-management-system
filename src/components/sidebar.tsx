@@ -19,18 +19,21 @@ const Sidebar: React.FC = () => {
         '/': 'dashboard',
         '/stock-management': 'stock-management',
         '/request-management': 'request-management',
-        '/order-management': 'order-management',
         '/bus-management': 'bus-management',
+        '/item-management': 'item-management',
+        '/supplier-management': 'supplier-management',
+        '/budget-request': 'budget-request',
+        '/order-management': 'order-management',
         '/bus-maintenance': 'bus-maintenance',
         '/machine-equipment-maintenance': 'machine-equipment-maintenance',
         '/bus-disposal': 'bus-disposal',
         '/stock-disposal': 'stock-disposal',
         '/notification': 'notification',
-        '/history': 'history',
-        '/reports': 'reports'
+        '/history': 'history'
     };
 
-    const activitySubItems = ['/notification', '/history', '/reports'];
+    // const stockSubItems = ['/stock-management', '/request-management'];
+    // const activitySubItems = ['/notification', '/history', '/reports'];
     const maintenanceSubItems = ['/bus-maintenance', '/machine-equipment-maintenance'];
     const disposalSubItems = ['/bus-disposal', '/stock-disposal'];
 
@@ -40,9 +43,12 @@ const Sidebar: React.FC = () => {
         setActiveItem(current);
 
         // Auto-open submenu if current route is a sub-item
-        if (activitySubItems.includes(pathname)) {
-            setOpenSubMenu('activity-submenu');
-        } else if (maintenanceSubItems.includes(pathname)) {
+        // if (stockSubItems.includes(pathname)) {
+        //     setOpenSubMenu('stock-submenu');
+        // } else if (activitySubItems.includes(pathname)) {
+        //     setOpenSubMenu('activity-submenu');
+        // } else
+        if (maintenanceSubItems.includes(pathname)) {
             setOpenSubMenu('maintenance-submenu');
         } else if (disposalSubItems.includes(pathname)) {
             setOpenSubMenu('disposal-submenu');
@@ -58,17 +64,18 @@ const Sidebar: React.FC = () => {
     // };
 
     // Determine if any subitem in each category is active
-    const isActivityItemActive = activitySubItems.includes(pathname);
+    // const isStockItemActive = stockSubItems.includes(pathname);
+    // const isActivityItemActive = activitySubItems.includes(pathname);
     const isMaintenanceItemActive = maintenanceSubItems.includes(pathname);
     const isDisposalItemActive = disposalSubItems.includes(pathname);
 
     return (
         <div className="sidebar shadow-lg" id="sidebar">
-            <div className="sidebar-content">
-                <div className="logo-img">
-                    <img src="/logo.png" alt="logo" />
-                </div>
+            <div className="logo-img">
+                <img src="/logo.png" alt="logo" />
+            </div>
 
+            <div className="sidebar-content">
                 <div className="nav-links">
                     <Link
                         href="/"
@@ -84,7 +91,7 @@ const Sidebar: React.FC = () => {
                         className={`nav-item ${activeItem === 'stock-management' ? 'active' : ''}`}
                         onClick={() => setActiveItem('stock-management')}
                     >
-                        <i className="ri-box-3-line" />
+                        <i className="ri-archive-line" />
                         <span>Stock Management</span>
                     </Link>
 
@@ -98,15 +105,6 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     <Link
-                        href="/order-management"
-                        className={`nav-item ${activeItem === 'order-management' ? 'active' : ''}`}
-                        onClick={() => setActiveItem('order-management')}
-                    >
-                        <i className="ri-shopping-cart-2-line" />
-                        <span>Order Management</span>
-                    </Link>
-
-                    <Link
                         href="/bus-management"
                         className={`nav-item ${activeItem === 'bus-management' ? 'active' : ''}`}
                         onClick={() => setActiveItem('bus-management')}
@@ -115,8 +113,44 @@ const Sidebar: React.FC = () => {
                         <span>Bus Management</span>
                     </Link>
 
+                    <Link
+                        href="/item-management"
+                        className={`nav-item ${activeItem === 'item-management' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('item-management')}
+                    >
+                        <i className="ri-box-3-line" />
+                        <span>Item Management</span>
+                    </Link>
+
+                    <Link
+                        href="/supplier-management"
+                        className={`nav-item ${activeItem === 'supplier-management' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('supplier-management')}
+                    >
+                        <i className="ri-shopping-basket-line" />
+                        <span>Supplier Management</span>
+                    </Link>
+
+                    <Link
+                        href="/budget-request"
+                        className={`nav-item ${activeItem === 'budget-request' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('budget-request')}
+                    >
+                        <i className="ri-hand-coin-line" />
+                        <span> Budget Request</span>
+                    </Link>
+
+                    <Link
+                        href="/order-management"
+                        className={`nav-item ${activeItem === 'order-management' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('order-management')}
+                    >
+                        <i className="ri-shopping-cart-2-line" />
+                        <span>Order Management</span>
+                    </Link>
+
                     {/* Sidebar Maintenance Sub-item */}
-                    <div
+                    {/* <div
                         className={`nav-item module ${isMaintenanceItemActive ? 'active' : ''}`}
                         onClick={() => toggleSubMenu('maintenance-submenu')}
                     >
@@ -143,7 +177,7 @@ const Sidebar: React.FC = () => {
                                 Machine & Equipment Maintenance
                             </Link>
                         </div>
-                    )}
+                    )} */}
 
                     {/* Sidebar Disposal Sub-item */}
                     <div
@@ -176,7 +210,7 @@ const Sidebar: React.FC = () => {
                     )}
 
                     {/* Sidebar Activities Sub-item */}
-                    <div
+                    {/* <div
                         className={`nav-item module ${isActivityItemActive ? 'active' : ''}`}
                         onClick={() => toggleSubMenu('activity-submenu')}
                     >
@@ -202,15 +236,8 @@ const Sidebar: React.FC = () => {
                             >
                                 History
                             </Link>
-                            <Link
-                                href="/reports"
-                                className={`sub-item ${activeItem === 'reports' ? 'active' : ''}`}
-                                onClick={() => setActiveItem('reports')}
-                            >
-                                Reports
-                            </Link>
                         </div>
-                    )}
+                    )} */}
 
                 </div>
 
