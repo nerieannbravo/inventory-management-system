@@ -148,6 +148,12 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
         });
 
         // Mechanic details validation
+        if (!formData.employeeDepartment) {
+            errors.employeeDepartment = "Employee department is required";
+        }
+        if (!formData.employeeName) {
+            errors.employeeName = "Employee name is required";
+        }
         if (!formData.workDescription) {
             errors.workDescription = "Work description is required";
         }
@@ -195,7 +201,7 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
             </div>
 
             <div className="modal-content edit">
-                <form className="edit-bus-maintenance-form">
+                <form className="edit-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -218,9 +224,9 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content edit">
-                <form className="edit-bus-maintenance-form">
+                <form className="edit-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -351,9 +357,9 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
             </div>
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">II. Maintenance Details</p>
+            <p className="details-title">II. Maintenance Details</p>
             <div className="modal-content edit">
-                <form className="edit-bus-maintenance-form">
+                <form className="edit-form">
                     {/* Maintenance date and type */}
                     <div className="form-row">
                         {/* Maintenance Date */}
@@ -404,10 +410,7 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                         {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
-                            <select
-                                value={formData.busMaintenanceStatus}
-                                onChange={(e) => handleChange("busMaintenanceStatus", e.target.value)}
-                            >
+                            <select value={formData.busMaintenanceStatus}>
                                 <option value="pending">Pending</option>
                                 <option value="completed">Completed</option>
                             </select>
@@ -434,9 +437,9 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
             </div >
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">III. Used Items</p>
+            <p className="details-title">III. Used Items</p>
             <div className="modal-content edit">
-                <form className="edit-bus-maintenance-form">
+                <form className="edit-form">
                     {/* Used Stocks */}
                     {formData.items?.map((item, idx) => (
                         <div className="form-row" key={idx}>
@@ -489,7 +492,7 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                             </div>
 
                             {/* Button: add (last row only) / Remove (others) */}
-                            <div className="modal-actions edit">
+                            <div className="modal-actions">
                                 {idx === formData.items.length - 1 ? (
                                     <div className="add-maintenance-btn-wrapper">
                                         <button
@@ -519,9 +522,9 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
             </div >
 
             {/* For mechanic detais */}
-            <p className="bus-details-title">IV. Mechanic Details</p>
+            <p className="details-title">IV. Mechanic Details</p>
             <div className="modal-content edit">
-                <form className="edit-bus-maintenance-form">
+                <form className="edit-form">
                     {/* Employee name and department */}
                     <div className="form-row">
                         {/* Employee Department */}
@@ -532,13 +535,13 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                                 value={formData.employeeDepartment}
                                 onChange={(e) => handleChange("employeeDepartment", e.target.value)}
                             >
-                                {/* <option value="">--Select Department--</option> */}
+                                <option value="">--Select Department--</option>
                                 <option value="maintenance">Maintenance</option>
                                 <option value="operations">Operations</option>
                                 <option value="engineering">Engineering</option>
                                 <option value="other">Other</option>
                             </select>
-                            {/* <p className="edit-error-message">{formErrors?.employeeDepartment}</p> */}
+                            <p className="edit-error-message">{formErrors?.employeeDepartment}</p>
                         </div>
 
                         {/* Employee Name */}
@@ -549,13 +552,13 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                                 onChange={(e) => handleChange("employeeName", e.target.value)}
                                 className={formErrors?.employeeName ? "invalid-input" : ""}
                             >
-                                {/* <option value="" disabled>--Select Employee Name--</option> */}
+                                <option value="" disabled>--Select Employee Name--</option>
                                 <option value="John Doe">John Doe</option>
                                 <option value="Jane Smith">Jane Smith</option>
                                 <option value="Alex Johnson">Alex Johnson</option>
                                 {/* edit more employee options as needed */}
                             </select>
-                            {/* <p className="edit-error-message">{formErrors?.employeeName}</p> */}
+                            <p className="edit-error-message">{formErrors?.employeeName}</p>
                         </div>
                     </div>
 
@@ -578,7 +581,7 @@ export default function EditBusMaintenanceModal({ item, onSave, onClose }: EditB
                 </form >
             </div >
 
-            <div className="modal-actions edit">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Update
                 </button>

@@ -190,7 +190,7 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
             </div>
 
             <div className="modal-content edit">
-                <form className="edit-stock-maintenance-form">
+                <form className="edit-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
@@ -213,9 +213,9 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content edit">
-                <form className="edit-stock-maintenance-form">
+                <form className="edit-form">
                     {/* Item name and category */}
                     <div className="form-row">
                         {/* Item Name */}
@@ -290,9 +290,9 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
             </div>
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">II. Maintenance Details</p>
+            <p className="details-title">II. Maintenance Details</p>
             <div className="modal-content edit">
-                <form className="edit-stock-maintenance-form">
+                <form className="edit-form">
                     {/* Maintenance date and type */}
                     <div className="form-row">
                         {/* Maintenance Date */}
@@ -391,9 +391,9 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
             </div >
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">III. Used Items</p>
+            <p className="details-title">III. Used Items</p>
             <div className="modal-content edit">
-                <form className="edit-stock-maintenance-form">
+                <form className="edit-form">
                     {/* Used Stocks */}
                     {formData.items?.map((item, idx) => (
                         <div className="form-row" key={idx}>
@@ -446,7 +446,7 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
                             </div>
 
                             {/* Button: add (last row only) / Remove (others) */}
-                            <div className="modal-actions edit">
+                            <div className="modal-actions">
                                 {idx === formData.items.length - 1 ? (
                                     <div className="add-maintenance-btn-wrapper">
                                         <button
@@ -476,9 +476,9 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
             </div >
 
             {/* For mechanic detais */}
-            <p className="bus-details-title">IV. Mechanic Details</p>
+            <p className="details-title">IV. Mechanic Details</p>
             <div className="modal-content edit">
-                <form className="edit-stock-maintenance-form">
+                <form className="edit-form">
                     {/* Employee name and department */}
                     <div className="form-row">
                         {/* Employee Department */}
@@ -535,7 +535,7 @@ export default function EditStockMaintenanceModal({ item, onSave, onClose }: Edi
                 </form >
             </div >
 
-            <div className="modal-actions edit">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Update
                 </button>

@@ -231,7 +231,7 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
             </div>
 
             <div className="modal-content add">
-                <form className="add-stock-maintenance-form">
+                <form className="add-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
@@ -254,9 +254,9 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Stock Details</p>
+            <p className="details-title">I. Stock Details</p>
             <div className="modal-content add">
-                <form className="add-stock-maintenance-form">
+                <form className="add-form">
                     {/* Item Name and category */}
                     <div className="form-row">
                         {/* Item Name */}
@@ -330,9 +330,9 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
             </div>
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">II. Maintenance Details</p>
+            <p className="details-title">II. Maintenance Details</p>
             <div className="modal-content add">
-                <form className="add-stock-maintenance-form">
+                <form className="add-form">
                     {/* Maintenance date and type */}
                     <div className="form-row">
                         {/* Maintenance Date */}
@@ -427,9 +427,9 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
             </div >
 
             {/* For maintenance detais */}
-            <p className="bus-details-title">III. Used Items</p>
+            <p className="details-title">III. Used Items</p>
             <div className="modal-content add">
-                <form className="add-stock-maintenance-form">
+                <form className="add-form">
                     {/* Used Stocks */}
                     {stockMaintenanceForm.items?.map((item, idx) => (
                         <div className="form-row" key={idx}>
@@ -482,7 +482,7 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
                             </div>
 
                             {/* Button: Add (last row only) / Remove (others) */}
-                            <div className="modal-actions add">
+                            <div className="modal-actions">
                                 {idx === stockMaintenanceForm.items.length - 1 ? (
                                     <div className="add-maintenance-btn-wrapper">
                                         <button
@@ -513,9 +513,9 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
             </div >
 
             {/* For mechanic detais */}
-            <p className="bus-details-title">IV. Mechanic Details</p>
+            <p className="details-title">IV. Mechanic Details</p>
             <div className="modal-content add">
-                <form className="add-stock-maintenance-form">
+                <form className="add-form">
                     {/* Employee name and department */}
                     <div className="form-row">
                         {/* Employee Department */}
@@ -572,7 +572,7 @@ export default function AddStockMaintenanceModal({ onSave, onClose }: AddStockMa
                 </form >
             </div >
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>
