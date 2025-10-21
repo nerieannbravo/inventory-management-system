@@ -18,22 +18,22 @@ const Sidebar: React.FC = () => {
     const routeToItem: { [key: string]: string } = {
         '/': 'dashboard',
         '/stock-management': 'stock-management',
-        '/request-management': 'request-management',
         '/bus-management': 'bus-management',
         '/item-management': 'item-management',
         '/supplier-management': 'supplier-management',
+        '/request-management': 'request-management',
         '/budget-request': 'budget-request',
         '/order-management': 'order-management',
-        '/bus-maintenance': 'bus-maintenance',
-        '/machine-equipment-maintenance': 'machine-equipment-maintenance',
-        '/bus-disposal': 'bus-disposal',
         '/stock-disposal': 'stock-disposal',
+        '/bus-disposal': 'bus-disposal',
         '/notification': 'notification',
-        '/history': 'history'
+        '/history': 'history',
+        // '/bus-maintenance': 'bus-maintenance',
+        // '/machine-equipment-maintenance': 'machine-equipment-maintenance'
     };
 
     // const stockSubItems = ['/stock-management', '/request-management'];
-    // const activitySubItems = ['/notification', '/history', '/reports'];
+    // const activitySubItems = ['/notification', '/history'];
     const maintenanceSubItems = ['/bus-maintenance', '/machine-equipment-maintenance'];
     const disposalSubItems = ['/bus-disposal', '/stock-disposal'];
 
@@ -96,15 +96,6 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     <Link
-                        href="/request-management"
-                        className={`nav-item ${activeItem === 'request-management' ? 'active' : ''}`}
-                        onClick={() => setActiveItem('request-management')}
-                    >
-                        <i className="ri-swap-2-line" />
-                        <span>Request Management</span>
-                    </Link>
-
-                    <Link
                         href="/bus-management"
                         className={`nav-item ${activeItem === 'bus-management' ? 'active' : ''}`}
                         onClick={() => setActiveItem('bus-management')}
@@ -132,6 +123,15 @@ const Sidebar: React.FC = () => {
                     </Link>
 
                     <Link
+                        href="/request-management"
+                        className={`nav-item ${activeItem === 'request-management' ? 'active' : ''}`}
+                        onClick={() => setActiveItem('request-management')}
+                    >
+                        <i className="ri-swap-2-line" />
+                        <span>Request Management</span>
+                    </Link>
+
+                    <Link
                         href="/budget-request"
                         className={`nav-item ${activeItem === 'budget-request' ? 'active' : ''}`}
                         onClick={() => setActiveItem('budget-request')}
@@ -148,6 +148,36 @@ const Sidebar: React.FC = () => {
                         <i className="ri-shopping-cart-2-line" />
                         <span>Order Management</span>
                     </Link>
+
+                    {/* Sidebar Disposal Sub-item */}
+                    <div
+                        className={`nav-item module ${isDisposalItemActive ? 'active' : ''}`}
+                        onClick={() => toggleSubMenu('disposal-submenu')}
+                    >
+                        <i className="ri-recycle-line" />
+                        <span>Disposal</span>
+                        <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'disposal-submenu' ? 'rotate' : ''}`} />
+                    </div>
+
+                    {openSubMenu === 'disposal-submenu' && (
+                        <div className="sub-menu active">
+                            <Link
+                                href="/stock-disposal"
+                                className={`sub-item ${activeItem === 'stock-disposal' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('stock-disposal')}
+                            >
+                                Stock Disposal
+                            </Link>
+
+                            <Link
+                                href="/bus-disposal"
+                                className={`sub-item ${activeItem === 'bus-disposal' ? 'active' : ''}`}
+                                onClick={() => setActiveItem('bus-disposal')}
+                            >
+                                Bus Disposal
+                            </Link>
+                        </div>
+                    )}
 
                     {/* Sidebar Maintenance Sub-item */}
                     {/* <div
@@ -178,36 +208,6 @@ const Sidebar: React.FC = () => {
                             </Link>
                         </div>
                     )} */}
-
-                    {/* Sidebar Disposal Sub-item */}
-                    <div
-                        className={`nav-item module ${isDisposalItemActive ? 'active' : ''}`}
-                        onClick={() => toggleSubMenu('disposal-submenu')}
-                    >
-                        <i className="ri-recycle-line" />
-                        <span>Disposal</span>
-                        <i className={`dropdown-arrow ri-arrow-down-s-line ${openSubMenu === 'disposal-submenu' ? 'rotate' : ''}`} />
-                    </div>
-
-                    {openSubMenu === 'disposal-submenu' && (
-                        <div className="sub-menu active">
-                            <Link
-                                href="/bus-disposal"
-                                className={`sub-item ${activeItem === 'bus-disposal' ? 'active' : ''}`}
-                                onClick={() => setActiveItem('bus-disposal')}
-                            >
-                                Bus Disposal
-                            </Link>
-
-                            <Link
-                                href="/stock-disposal"
-                                className={`sub-item ${activeItem === 'stock-disposal' ? 'active' : ''}`}
-                                onClick={() => setActiveItem('stock-disposal')}
-                            >
-                                Stock Disposal
-                            </Link>
-                        </div>
-                    )}
 
                     {/* Sidebar Activities Sub-item */}
                     {/* <div

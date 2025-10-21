@@ -23,6 +23,8 @@ export default function Dashboard() {
             </div>
 
             {/* Summary Cards */}
+            {/* Feel free to remove the dash-card-subtexts if hard to do */}
+            {/* Feel free to change the dash-card-message, but don't remove */}
             <div className="summary-cards">
                 {/* Low Stock Card */}
                 <div className="dash-card low-stock">
@@ -112,7 +114,7 @@ export default function Dashboard() {
                     <h2 className="dash-card-title">Unreturned Items</h2>
                     <span className="dash-card-count">0</span>
                     <Link className="dash-card-button" href="/request-management">
-                        Track Item Request
+                        Track Stock Request
                     </Link>
                 </div>
             </div>
