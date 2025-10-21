@@ -135,10 +135,10 @@ export const formatBodyBuilder = (builder?: string): string => {
 export const formatBusCondition = (condition: string): string => {
     switch (condition) {
         case "BRAND_NEW":
-        case "brand_new":
+        case "brandNew":
             return "Brand New";
         case "SECOND_HAND":
-        case "second_hand":
+        case "secondHand":
             return "Second Hand";
         default:
             return condition;
