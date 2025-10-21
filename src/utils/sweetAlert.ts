@@ -462,16 +462,26 @@ export const showBusUpdatedSuccess = () => {
 };
 
 // ----- Edit Bus File Confirmation ----- //
-export function showRemoveFileConfirmation(fileName: string) {
+export function showRemoveFileConfirmation(fileName?: string) {
+    const text = fileName
+        ? `Are you sure you want to remove "${fileName}"?`
+        : `Are you sure you want to remove this file?`;
+
     return Swal.fire({
         title: "Remove File?",
-        text: `Are you sure you want to remove "${fileName}"?`,
+        text,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "Yes, remove it",
         cancelButtonText: "Cancel",
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
     });
 }
+
 
 //-------------------- BUS MAINTENANCE SPECIFIC -------------------//
 
