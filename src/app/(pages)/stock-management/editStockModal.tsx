@@ -10,12 +10,12 @@ import "@/styles/forms.css";
 interface EditStockModalProps {
 	item: {
 		id: number;
-		name: string;
-		quantity: number;
-		unit: string;
+		itemName: string;
+		currentStock: number;
+		unitMeasure: string;
 		category: string;
 		status: string;
-		reorder: number;
+		reorderLevel: number;
 		// Additional fields would be included in a real application
 	};
 	onSave: (updatedItem: any) => void;
@@ -25,10 +25,10 @@ interface EditStockModalProps {
 export default function EditStockModal({ item, onSave, onClose }: EditStockModalProps) {
 	const [formData, setFormData] = useState({
 		id: item.id,
-		name: item.name,
-		quantity: item.quantity,
-		unit: item.unit,
-		reorder: item.reorder,
+		itemName: item.itemName,
+		currentStock: item.currentStock,
+		unitMeasure: item.unitMeasure,
+		reorderLevel: item.reorderLevel,
 		category: item.category,
 		status: item.status,
 		expiration: "" // Default value, would be populated from item in a real app
@@ -57,9 +57,9 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 	const validateForm = (): boolean => {
 		const errors: Record<string, string> = {};
 
-		// Validate reorder level
-		if (formData.reorder < 0) errors.reorder = "Reorder level must be 0 or more";
-		if (formData.reorder > formData.quantity) errors.reorder = "Reorder level cannot exceed total quantity";
+		// Validate reorderLevel
+		if (formData.reorderLevel < 0) errors.reorderLevel = "Reorder level must be 0 or more";
+		if (formData.reorderLevel >= formData.currentStock) errors.reorderLevel = "Reorder level cannot exceed total quantity";
 
 		setFormErrors(errors);
 		return Object.keys(errors).length === 0;
@@ -70,7 +70,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 
 		if (!validateForm()) return;
 
-		const result = await showStockUpdateConfirmation(formData.name);
+		const result = await showStockUpdateConfirmation(formData.itemName);
 		if (result.isConfirmed) {
 			onSave(formData);
 			await showStockUpdatedSuccess();
@@ -89,6 +89,26 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 		}
 	};
 
+	// for items status formatting
+    const formatStatus = (status: string) => {
+        switch (status) {
+            case "available":
+                return "Available";
+            case "out-of-stock":
+                return "Out of Stock";
+            case "low-stock":
+                return "Low Stock";
+            case "maintenance":
+                return "Under Maintenance";
+            case "expired":
+                return "Expired";
+            case "in-use":
+                return "In Use";
+            default:
+                return status;
+        }
+    };
+
 	return (
 		<>
 			<div className="modal-heading">
@@ -105,60 +125,54 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 
 			{/* Edit Stock Form */}
 			<div className="modal-content edit">
-				<form className="edit-stock-form" id="edit-stock-form" onSubmit={handleSubmit}>
+				<form className="edit-form">
 					{/* Item Name */}
 					<div className="form-group">
 						<label>Item Name</label>
 						<input disabled
-							className={formErrors?.name ? "invalid-input" : ""}
+							className={formErrors?.itemName ? "invalid-input" : ""}
 							type="text"
-							value={formData.name}
-							onChange={(e) => handleChange("name", e.target.value)}
+							value={formData.itemName}
+							onChange={(e) => handleChange("itemName", e.target.value)}
 						/>
 						<p className="edit-error-message"></p>
 					</div>
 
 					<div className="form-row">
-						{/* Quantity */}
+						{/* Quantity / Current Stock */}
 						<div className="form-group">
 							<label>Quantity</label>
 							<input disabled
 								type="number"
 								min="0"
-								value={formData.quantity}
-								onChange={(e) => handleChange("quantity", Number(e.target.value))}
+								value={formData.currentStock}
+								onChange={(e) => handleChange("currentStock", Number(e.target.value))}
 							/>
 						</div>
 
 						{/* Unit Measure */}
 						<div className="form-group">
 							<label>Unit Measure</label>
-							<select disabled
-								value={formData.unit}
-								onChange={(e) => handleChange("unit", e.target.value)}
-							>
-								<option value="pcs">pcs (pieces)</option>
-								<option value="kg">kg (kilograms)</option>
-								<option value="l">L (liters)</option>
-								<option value="m">m (meters)</option>
-								<option value="box">box/es</option>
-								<option value="pack">pack/s</option>
-								<option value="roll">roll/s</option>
-							</select>
+							<input disabled
+								type="text"
+								value={formData.unitMeasure}
+								onChange={(e) => handleChange("unitMeasure", Number(e.target.value))}
+							/>
 						</div>
 
 						{/* Reorder Level */}
 						<div className="form-group">
-							<label>Reorder Level</label>
+							<label className="required">Reorder Level</label>
 							<input
-								className={formErrors?.reorder ? "invalid-input" : ""}
+								className={formErrors?.reorderLevel ? "invalid-input" : ""}
 								type="number"
 								step="0.1"
 								min="0"
-								value={formData.reorder}
-								onChange={(e) => handleChange("reorder", Number(e.target.value))}
+								value={formData.reorderLevel || ""}
+								onChange={(e) => handleChange("reorderLevel", Number(e.target.value))}
+								placeholder="Enter reorder level here..."
 							/>
-							<p className="edit-error-message">{formErrors?.reorder}</p>
+							<p className="edit-error-message">{formErrors?.reorderLevel}</p>
 						</div>
 					</div>
 
@@ -177,33 +191,20 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 						{/* Status */}
 						<div className="form-group">
 							<label>Status</label>
-							<select
-								value={formData.status}
-								onChange={(e) => handleChange("status", e.target.value)}
-							>
-								<option value="available">Available</option>
-								<option value="maintenance">Under Maintenance</option>
-							</select>
-						</div>
-					</div>
-
-					{/* Expiration Date */}
-					{formData.category === "Consumables" && (
-						<div className="form-group expiration">
-							<label>Expiration Date</label>
 							<input disabled
-								type="date"
-								value={formData.expiration}
-								onChange={(e) => handleChange("expiration", e.target.value)}
+								className={formErrors?.status ? "invalid-input" : ""}
+								type="text"
+								value={formatStatus(formData.status)}
+								onChange={(e) => handleChange("status", e.target.value)}
 							/>
 						</div>
-					)}
+					</div>
 
 				</form>
 			</div>
 
 			<div className="modal-actions">
-				<button type="submit" className="submit-btn" form="edit-stock-form">
+				<button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
 					<i className="ri-save-3-line" /> Update
 				</button>
 			</div>

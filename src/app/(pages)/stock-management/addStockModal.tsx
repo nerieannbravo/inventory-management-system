@@ -90,8 +90,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			const errorObj: FormError = {};
 
 			if (!form.name) errorObj.name = "Item name is required";
-			if (form.reorder < 0) errorObj.reorder = "Reorder level must be 0 or more";
-			if (form.reorder > form.quantity) errorObj.reorder = "Reorder level cannot exceed total quantity";
+			if (form.reorder < 0) errorObj.reorder = "Reorder level must be at least 0";
+			if (form.reorder >= form.quantity) errorObj.reorder = "Reorder level must be lower than total quantity";
 			if (!form.category) errorObj.category = "Item category is required";
 
 			const sum = form.usable + form.defective + form.missing;
@@ -157,10 +157,10 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 			{/* Add Stock Form - allows adding multiple stocks */}
 			{stockForms.map((form, index) => (
 				<div className="modal-content add" key={index}>
-					<form className="add-stock-form" id={`add-stock-form-${index}`}>
+					<form className="add-form" id={`add-form-${index}`}>
 						{/* Item Name */}
 						<div className="form-group">
-							<label>Item Name</label>
+							<label className="required">Item Name</label>
 							<select
 								className={formErrors[index]?.name ? "invalid-input" : ""}
 								value={form.name}
@@ -204,13 +204,14 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 							{/* Reorder Level */}
 							<div className="form-group">
-								<label>Reorder Level</label>
+								<label className="required">Reorder Level</label>
 								<input
 									className={formErrors[index]?.reorder ? "invalid-input" : ""}
 									type="number"
 									step="0.1"
 									min="0"
-									value={form.reorder}
+									value={form.reorder || ""}
+									placeholder="Enter reorder level here..."
 									onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
 								/>
 								<p className="add-error-message">{formErrors[index]?.reorder}</p>
@@ -226,7 +227,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="0.1"
 									min="0"
-									value={form.usable}
+									value={form.usable || ""}
+									placeholder="0"
 									onChange={(e) => handleFormChange(index, "usable", Number(e.target.value))}
 								/>
 							</div>
@@ -239,7 +241,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="0.1"
 									min="0"
-									value={form.defective}
+									value={form.defective || ""}
+									placeholder="0"
 									onChange={(e) => handleFormChange(index, "defective", Number(e.target.value))}
 								/>
 							</div>
@@ -252,7 +255,8 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 									type="number"
 									step="0.1"
 									min="0"
-									value={form.missing}
+									value={form.missing || ""}
+									placeholder="0"
 									onChange={(e) => handleFormChange(index, "missing", Number(e.target.value))}
 								/>
 							</div>
@@ -266,7 +270,7 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 						<div className="form-row">
 							{/* Category */}
 							<div className="form-group">
-								<label>Category</label>
+								<label className="required">Category</label>
 								<select
 									className={formErrors[index]?.category ? "invalid-input" : ""}
 									value={form.category}
@@ -274,7 +278,9 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 								>
 									<option value="" disabled>Select category...</option>
 									<option value="consumable">Consumable</option>
-									<option value="mach-equip">Machine/Equipment</option>
+									<option value="tool">Tool</option>
+									<option value="machine">Machine</option>
+									<option value="equipment">Equipment</option>
 								</select>
 								<p className="add-error-message">{formErrors[index]?.category}</p>
 							</div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     Document,
     Page,
@@ -13,7 +13,7 @@ import {
     formatDate,
     formatTime,
     generateFileName,
-    formatStockStatus,
+    formatStockStatusWithExpiredCount,
     getStockStatusStyle
 } from '@/utils/pdfReportUtils';
 import "@/styles/pdfModal.css";
@@ -21,11 +21,11 @@ import "@/styles/pdfModal.css";
 // Interface definitions
 interface StockItem {
     id: number;
-    name: string;
-    quantity: number;
-    unit: string;
+    itemName: string;
+    currentStock: number;
+    unitMeasure: string;
     category: string;
-    reorder: number;
+    reorderLevel: number;
     status: string;
 }
 
@@ -46,11 +46,12 @@ const StockReportDocument: React.FC<{
 
     // Calculate summary statistics
     const totalItems = stockData.length;
-    const availableItems = stockData.filter(item => item.status === 'available').length;
-    const outOfStockItems = stockData.filter(item => item.status === 'out-of-stock').length;
-    const lowStockItems = stockData.filter(item => item.status === 'low-stock').length;
-    const maintenanceItems = stockData.filter(item => item.status === 'maintenance').length;
-    const expiredItems = stockData.filter(item => item.status === 'expired').length;
+    const availableItems = stockData.filter(item => item.status === 'AVAILABLE' || item.status === 'available').length;
+    const outOfStockItems = stockData.filter(item => item.status === 'OUT_OF_STOCK' || item.status === 'out-of-stock').length;
+    const lowStockItems = stockData.filter(item => item.status === 'LOW_STOCK' || item.status === 'low-stock').length;
+    const maintenanceItems = stockData.filter(item => item.status === 'UNDER_MAINTENANCE' || item.status === 'maintenance').length;
+    const expiredItems = stockData.filter(item => item.status === 'EXPIRED' || item.status === 'expired').length;
+    const inUseItems = stockData.filter(item => item.status === 'IN_USE' || item.status === 'in-use').length;
 
     return (
         <Document>
@@ -115,20 +116,20 @@ const StockReportDocument: React.FC<{
                             ]}
                         >
                             <Text style={reportStyles.columnLarge}>
-                                {item.name}
+                                {item.itemName}
                             </Text>
                             <Text style={reportStyles.columnSmall}>
-                                {item.quantity} {item.unit}
+                                {item.currentStock} {item.unitMeasure}
                             </Text>
                             <Text style={reportStyles.columnMedium}>
                                 {item.category}
                             </Text>
                             <Text style={reportStyles.columnMedium}>
-                                {item.reorder}
+                                {item.reorderLevel}
                             </Text>
                             <View style={reportStyles.statusContainer}>
                                 <Text style={getStockStatusStyle(item.status)}>
-                                    {formatStockStatus(item.status)}
+                                    {formatStockStatusWithExpiredCount(item.status)}
                                 </Text>
                             </View>
                         </View>
@@ -180,7 +181,7 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
                                     reportTitle={reportTitle}
                                 />
                             }
-                            fileName={generateFileName('stock')}
+                            fileName={generateFileName('Stock')}
                             className="download-btn"
                         >
                             {({ blob, url, loading, error }) =>
@@ -194,26 +195,4 @@ export const StockReportPreviewModal: React.FC<StockReportPDFProps> = ({
             </div>
         </div>
     );
-};
-
-// Custom hook for stock report PDF functionality
-export const useStockReportPDF = (stockData: StockItem[]) => {
-    const [showReportPreview, setShowReportPreview] = useState(false);
-    const [reportTitle, setReportTitle] = useState("Stock Management Report");
-
-    const handlePreviewReport = () => {
-        setShowReportPreview(true);
-    };
-
-    const handleCloseReportPreview = () => {
-        setShowReportPreview(false);
-    };
-
-    return {
-        showReportPreview,
-        handlePreviewReport,
-        handleCloseReportPreview,
-        reportTitle,
-        setReportTitle
-    };
 };

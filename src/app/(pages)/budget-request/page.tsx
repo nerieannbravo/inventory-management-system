@@ -12,6 +12,7 @@ export default function BudgetRequest() {
     return (
         <div className="card">
             <h1 className="title">Budget Request</h1>
+            <p className="italic text-blue-500">Placeholder page for Budget Request Microservice</p>
         </div>
     );
 }

@@ -5,134 +5,106 @@ import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
-import { showStockDeleteConfirmation, showStockDeletedSuccess } from "@/utils/sweetAlert";
+import { showEditError } from "@/utils/sweetAlert";
+// import Loading from "@/components/loading";
 
-import AddStockModal from "./addStockModal";
+import AddStockModal, { StockForm } from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
 import EditStockModal from "./editStockModal";
-import { StockForm } from "./addStockModal";
-import { StockReportPreviewModal, useStockReportPDF } from "./stockReportPDF";
+import { StockReportPreviewModal } from "./stockReportPDF";
 
-import "@/styles/filters.css"
-import "@/styles/tables.css"
-import "@/styles/chips.css"
+import "@/styles/filters.css";
+import "@/styles/tables.css";
+import "@/styles/chips.css";
+import "@/styles/loading.css";
 
 const hardcodedData = [
     {
         id: 1,
-        name: "Example Item A",
-        quantity: 50,
-        unit: "kg",
-        category: "Consumables",
+        itemName: "Bus Unit",
+        currentStock: 50,
+        unitMeasure: "unit",
+        category: "Bus",
         status: "available",
-        reorder: 10,
+        reorderLevel: 0,
     },
     {
         id: 2,
-        name: "Example Item B",
-        quantity: 0,
-        unit: "pcs",
-        category: "Consumables",
+        itemName: "Example Item B",
+        currentStock: 0,
+        unitMeasure: "pcs",
+        category: "Consumable",
         status: "out-of-stock",
-        reorder: 5,
+        reorderLevel: 5,
     },
     {
         id: 3,
-        name: "Example Item C",
-        quantity: 20,
-        unit: "pcs",
-        category: "Consumables",
+        itemName: "Example Item C",
+        currentStock: 6,
+        unitMeasure: "pcs",
+        category: "Consumable",
         status: "low-stock",
-        reorder: 8,
+        reorderLevel: 8,
     },
     {
         id: 4,
-        name: "Example Item D",
-        quantity: 20,
-        unit: "pcs",
+        itemName: "Example Item D",
+        currentStock: 20,
+        unitMeasure: "pcs",
         category: "Equipment",
         status: "maintenance",
-        reorder: 8,
+        reorderLevel: 8,
     },
     {
         id: 5,
-        name: "Example Item E",
-        quantity: 16,
-        unit: "pcs",
+        itemName: "Example Item E",
+        currentStock: 16,
+        unitMeasure: "pcs",
         category: "Tool",
         status: "available",
-        reorder: 3,
+        reorderLevel: 3,
     },
-    // Add more dummy data to test pagination
     {
         id: 6,
-        name: "Example Item F",
-        quantity: 30,
-        unit: "kg",
-        category: "Consumables",
+        itemName: "Example Item F",
+        currentStock: 30,
+        unitMeasure: "kg",
+        category: "Consumable",
         status: "expired",
-        reorder: 12,
+        reorderLevel: 12,
     },
     {
         id: 7,
-        name: "Example Item G",
-        quantity: 5,
-        unit: "pcs",
-        category: "Consumables",
-        status: "low-stock",
-        reorder: 15,
-    },
-    {
-        id: 8,
-        name: "Example Item H",
-        quantity: 3,
-        unit: "pcs",
+        itemName: "Example Item G",
+        currentStock: 5,
+        unitMeasure: "pcs",
         category: "Machine",
-        status: "maintenance",
-        reorder: 20,
-    },
-    {
-        id: 9,
-        name: "Example Item I",
-        quantity: 3,
-        unit: "pcs",
-        category: "Machine",
-        status: "available",
-        reorder: 8,
-    },
-    {
-        id: 10,
-        name: "Example Item J",
-        quantity: 16,
-        unit: "pcs",
-        category: "Consumables",
-        status: "expired",
-        reorder: 3,
+        status: "in-use",
+        reorderLevel: 15,
     },
 ];
 
 export default function StocksManagement() {
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
 
-    // Add the stock report PDF hook
-    const {
-        showReportPreview,
-        handlePreviewReport,
-        handleCloseReportPreview,
-        reportTitle,
-        setReportTitle
-    } = useStockReportPDF(filteredData);
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Stock Management Report");
+
+    // Temporary filter state, remove if not being used anymore
+    const [filteredData, setFilteredData] = useState(hardcodedData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -164,15 +136,6 @@ export default function StocksManagement() {
             defaultValue: { from: "", to: "" }
         },
         {
-            id: "categories",
-            title: "Categories",
-            type: "checkbox",
-            options: [
-                { id: "consumables", label: "Consumables" },
-                { id: "mach-equip", label: "Machine & Equipments" }
-            ]
-        },
-        {
             id: "status",
             title: "Status",
             type: "checkbox",
@@ -184,15 +147,27 @@ export default function StocksManagement() {
                 { id: "expired", label: "Expired" }
             ]
         },
+        // {
+        //     id: "categories",
+        //     title: "Categories",
+        //     type: "checkbox",
+        //     options: [
+        //         { id: "consumable", label: "Consumable" },
+        //         { id: "tool", label: "Tool" },
+        //         { id: "machine", label: "Machine" },
+        //         { id: "equipment", label: "Equipment" }
+        //     ]
+        // },
         {
             id: "sortBy",
             title: "Sort By",
             type: "radio",
             options: [
-                { id: "name", label: "Item Name" },
-                { id: "quantity", label: "Item Quantity" }
+                { id: "itemName", label: "Item Name" },
+                { id: "currentStock", label: "Current Stock" },
+                { id: "reorderLevel", label: "Reorder Level" }
             ],
-            defaultValue: "name"
+            defaultValue: "itemName"
         },
         {
             id: "order",
@@ -210,28 +185,35 @@ export default function StocksManagement() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Keep a copy of the raw filters in state for other usages (report title check, etc.)
+        setFilterValues(filterValues);
 
-        // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
+
+        // normalizes a value to a simple comparable token (lowercase, remove non-alphanumerics)
+        const normalize = (value: any) =>
+            (value === null || value === undefined) ? "" : String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
 
         // Filter by status if selected
         if (filterValues.status && filterValues.status.length > 0) {
-            newData = newData.filter(item => filterValues.status.includes(item.status));
+            const normalizedFilters = filterValues.status.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.status)));
         }
 
-        // Sort by name or quantity
-        if (filterValues.sortBy === "name") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.name.localeCompare(b.name) * sortOrder;
-            });
-        } else if (filterValues.sortBy === "quantity") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.quantity - b.quantity) * sortOrder;
-            });
+        // Filter by categories if selected
+        // if (filterValues.categories && filterValues.categories.length > 0) {
+        //     const normalizedFilters = filterValues.categories.map((filter: string) => normalize(filter));
+        //     newData = newData.filter(item => normalizedFilters.includes(normalize(item.category)));
+        // }
+
+        // Sorting
+        const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
+        if (filterValues.sortBy === "itemName") {
+            newData.sort((a, b) => a.itemName.localeCompare(b.itemName) * orderMultiplier);
+        } else if (filterValues.sortBy === "currentStock") {
+            newData.sort((a, b) => (a.currentStock - b.currentStock) * orderMultiplier);
+        } else if (filterValues.sortBy === "reorderLevel") {
+            newData.sort((a, b) => (a.reorderLevel - b.reorderLevel) * orderMultiplier);
         }
 
         setFilteredData(newData);
@@ -251,13 +233,15 @@ export default function StocksManagement() {
                 return "Under Maintenance";
             case "expired":
                 return "Expired";
+            case "in-use":
+                return "In Use";
             default:
                 return status;
         }
     };
 
     // for the modals of add, view, edit, and delete
-    const openModal = (mode: "add-stock" | "view-stock" | "edit-stock" | "delete-stock", rowData?: any) => {
+    const openModal = (mode: "add-stock" | "view-stock" | "edit-stock", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -275,15 +259,17 @@ export default function StocksManagement() {
                 />;
                 break;
             case "edit-stock":
+                if (rowData && (rowData.category === "Bus")) {
+                    showEditError(rowData.item_name, "Editing stock for Bus items is not allowed.");
+
+                    return;
+                }
                 content = <EditStockModal
                     item={rowData}
                     onSave={handleEditStock}
                     onClose={closeModal}
                 />;
                 break;
-            case "delete-stock":
-                handleDeleteStock(rowData);
-                return;
             default:
                 content = null;
         }
@@ -315,31 +301,21 @@ export default function StocksManagement() {
         closeModal();
     };
 
-    // Handle delete stocks
-    const handleDeleteStock = async (rowData: any) => {
-        const result = await showStockDeleteConfirmation(rowData.name);
-
-        if (result.isConfirmed) {
-            await showStockDeletedSuccess(rowData.name);
-            console.log("Deleted row with id:", rowData.id);
-            // Logic to delete the item from the data
-            // In a real app, this would likely be an API call
-        }
-    };
-
     // Handle generate report
     const handleGenerateReport = () => {
-        // You can customize the report title based on current filters
-        let title = "Stock Management Report";
-        
-        // Add filter information to title if any filters are applied
+        // Check if any filters are applied. 
+        // Modify this logic based on actual searching or filtering implementation.
         const hasFilters = filteredData.length !== hardcodedData.length;
-        if (hasFilters) {
-            title += " (Filtered Results)";
-        }
-        
+
+        const title = hasFilters ? "Stock Management Report - Filtered" : "Stock Management Report";
+
         setReportTitle(title);
-        handlePreviewReport();
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
     };
 
     return (
@@ -368,11 +344,12 @@ export default function StocksManagement() {
                     </button>
 
                     {/* Add Stocks Button */}
-                    <button className="main-btn" onClick={() => openModal("add-stock")}>
+                    {/* <button className="main-btn" onClick={() => openModal("add-stock")}>
                         <i className="ri-add-line" /> Add Stocks
-                    </button>
+                    </button> */}
                 </div>
 
+                {/* Use when filtering with date range */}
                 {/* <div className="filter-results">
                     Items from January 12, 2023 to December 12, 2024
                 </div> */}
@@ -405,21 +382,21 @@ export default function StocksManagement() {
                                             key={item.id}
                                             className={selectedIds.includes(item.id) ? "selected" : ""}
                                         >
-                                            <td>{item.name}</td>
-                                            <td>{item.quantity}</td>
-                                            <td>{item.unit}</td>
+                                            <td>{item.itemName}</td>
+                                            <td>{item.currentStock}</td>
+                                            <td>{item.unitMeasure}</td>
                                             <td>{item.category}</td>
                                             <td className="table-status">
                                                 <span className={`chip ${item.status}`}>
                                                     {formatStatus(item.status)}
                                                 </span>
                                             </td>
-                                            <td>{item.reorder}</td>
+                                            <td>{item.reorderLevel}</td>
                                             <td>
                                                 <ActionButtons
                                                     onView={() => openModal("view-stock", item)}
                                                     onEdit={() => openModal("edit-stock", item)}
-                                                    onDelete={() => openModal("delete-stock", item)}
+                                                    disableEdit={item.category === "Bus"}
                                                 />
                                             </td>
                                         </tr>
@@ -447,7 +424,7 @@ export default function StocksManagement() {
                 modalContent={modalContent}
             />
 
-            {/* Stock Report Preview Modal */}
+            {/* PDF Report Modal */}
             <StockReportPreviewModal
                 isOpen={showReportPreview}
                 onClose={handleCloseReportPreview}

@@ -1,87 +1,96 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+// import Loading from "@/components/loading";
 
-import AddBusModal from "./addBusModal";
+import AddBusModal, { BusForm } from "./addBusModal";
 import ViewBusModal from "./viewBusModal";
 import EditBusModal from "./editBusModal";
-import { BusForm } from "./addBusModal";
-import { BusReportPreviewModal, useBusReportPDF } from "./busReportPDF";
+import { BusReportPreviewModal } from "./busReportPDF";
 
-import "@/styles/filters.css"
-import "@/styles/tables.css"
-import "@/styles/chips.css"
+import "@/styles/filters.css";
+import "@/styles/tables.css";
+import "@/styles/chips.css";
+import "@/styles/loading.css";
 
 const hardcodedData = [
     {
         id: 1,
         bodyNumber: "1001A",
+        plateNumber: "XYZ-1201",
         bodyBuilder: "Agila",
         condition: "Brand New",
+        status: "active",
         busType: "Airconditioned",
-        busStatus: "active",
+        seatCapacity: 45,
     },
     {
         id: 2,
         bodyNumber: "1002B",
-        bodyBuilder: "DARJ",
+        plateNumber: "XYZ-1202",
+        bodyBuilder: "RBM",
         condition: "Second Hand",
+        status: "decommissioned",
         busType: "Ordinary",
-        busStatus: "decommissioned",
+        seatCapacity: 45,
     },
     {
         id: 3,
         bodyNumber: "1003C",
+        plateNumber: "XYZ-1203",
         bodyBuilder: "Hilltop",
         condition: "Second Hand",
+        status: "under-maintenance",
         busType: "Airconditioned",
-        busStatus: "under-maintenance",
+        seatCapacity: 60,
     },
     {
         id: 4,
         bodyNumber: "1002A",
-        bodyBuilder: "Agila",
+        plateNumber: "XYZ-1204",
+        bodyBuilder: "RBM",
         condition: "Brand New",
+        status: "active",
         busType: "Airconditioned",
-        busStatus: "active",
-
+        seatCapacity: 50,
     },
     {
         id: 5,
-        bodyNumber: "1005D",
-        bodyBuilder: "RBM",
+        bodyNumber: "1001B",
+        plateNumber: "XYZ-1205",
+        bodyBuilder: "Agila",
         condition: "Brand New",
+        status: "active",
         busType: "Ordinary",
-        busStatus: "active",
+        seatCapacity: 45,
     },
 ];
 
 export default function BusManagement() {
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
-
-    // Add the bus report PDF hook
-    const {
-        showReportPreview,
-        handlePreviewReport,
-        handleCloseReportPreview,
-        reportTitle,
-        setReportTitle
-    } = useBusReportPDF(filteredData);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Bus Management Report");
+
+    // Temporary filter state, remove if not being used anymore
+    const [filteredData, setFilteredData] = useState(hardcodedData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -124,7 +133,7 @@ export default function BusManagement() {
             ]
         },
         {
-            id: "busStatus",
+            id: "status",
             title: "Status",
             type: "checkbox",
             options: [
@@ -140,6 +149,15 @@ export default function BusManagement() {
             options: [
                 { id: "airconditioned", label: "Airconditioned" },
                 { id: "ordinary", label: "Ordinary" }
+            ]
+        },
+        {
+            id: "condition",
+            title: "Condition",
+            type: "checkbox",
+            options: [
+                { id: "brandNew", label: "Brand New" },
+                { id: "secondHand", label: "Second Hand" }
             ]
         },
         {
@@ -168,49 +186,54 @@ export default function BusManagement() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Keep a copy of the raw filters in state for other usages (report title check, etc.)
+        setFilterValues(filterValues);
 
-        // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
+
+        // normalizes a value to a simple comparable token (lowercase, remove non-alphanumerics)
+        const normalize = (value: any) =>
+            (value === null || value === undefined) ? "" : String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
 
         // Filter by bodyBuilder if selected
         if (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) {
-            newData = newData.filter(item => filterValues.bodyBuilder.includes(item.bodyBuilder.toLowerCase())
-            );
+            const normalizedFilters = filterValues.bodyBuilder.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.bodyBuilder)));
         }
 
-        // Filter by busStatus if selected
-        if (filterValues.busStatus && filterValues.busStatus.length > 0) {
-            newData = newData.filter(item => filterValues.busStatus.includes(item.busStatus));
+        // Filter by status if selected
+        if (filterValues.status && filterValues.status.length > 0) {
+            const normalizedFilters = filterValues.status.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.status)));
         }
 
         // Filter by busType if selected
         if (filterValues.busType && filterValues.busType.length > 0) {
-            newData = newData.filter(item => filterValues.busType.includes(item.busType.toLowerCase())
-            );
+            const normalizedFilters = filterValues.busType.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.busType)));
         }
 
-        // Sort by bodyNumber or bodyBuilder
+        // Filter by condition if selected
+        if (filterValues.condition && filterValues.condition.length > 0) {
+            const normalizedFilters = filterValues.condition.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.condition)));
+        }
+
+        // Sorting
+        const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
         if (filterValues.sortBy === "bodyNumber") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyNumber.localeCompare(b.bodyNumber) * sortOrder;
-            });
+            newData.sort((a, b) => a.bodyNumber.localeCompare(b.bodyNumber) * orderMultiplier);
         } else if (filterValues.sortBy === "bodyBuilder") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyBuilder.localeCompare(b.bodyBuilder) * sortOrder;
-            });
+            newData.sort((a, b) => a.bodyBuilder.localeCompare(b.bodyBuilder) * orderMultiplier);
         }
 
         setFilteredData(newData);
         setCurrentPage(1); // Reset to first page when filters change
     };
 
-    // for items busStatus formatting
-    const formatStatus = (busStatus: string) => {
-        switch (busStatus) {
+    // for items status formatting
+    const formatStatus = (status: string) => {
+        switch (status) {
             case "active":
                 return "Active";
             case "decommissioned":
@@ -218,7 +241,7 @@ export default function BusManagement() {
             case "under-maintenance":
                 return "Under Maintenance";
             default:
-                return busStatus;
+                return status;
         }
     };
 
@@ -280,17 +303,19 @@ export default function BusManagement() {
 
     // Handle generate report
     const handleGenerateReport = () => {
-        // You can customize the report title based on current filters
-        let title = "Bus Management Report";
-
-        // Add filter information to title if any filters are applied
+        // Check if any filters are applied. 
+        // Modify this logic based on actual searching or filtering implementation.
         const hasFilters = filteredData.length !== hardcodedData.length;
-        if (hasFilters) {
-            title += " (Filtered Results)";
-        }
+
+        const title = hasFilters ? "Bus Management Report - Filtered" : "Bus Management Report";
 
         setReportTitle(title);
-        handlePreviewReport();
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
     };
 
     return (
@@ -324,6 +349,11 @@ export default function BusManagement() {
                     </button>
                 </div>
 
+                {/* Use when filtering with date range */}
+                {/* <div className="filter-results">
+                    Items from January 12, 2023 to December 12, 2024
+                </div> */}
+
                 {/* Table */}
                 <div className="table-wrapper">
                     <div className="table-container">
@@ -331,10 +361,12 @@ export default function BusManagement() {
                             <thead className="table-heading">
                                 <tr>
                                     <th>Body Number</th>
+                                    <th>Plate Number</th>
                                     <th>Body Builder</th>
                                     <th>Condition</th>
                                     <th>Status</th>
                                     <th>Bus Type</th>
+                                    <th>Seat Capacity</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -345,14 +377,16 @@ export default function BusManagement() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.bodyNumber}</td>
+                                        <td>{item.plateNumber}</td>
                                         <td>{item.bodyBuilder}</td>
                                         <td>{item.condition}</td>
                                         <td className="table-status">
-                                            <span className={`chip ${item.busStatus}`}>
-                                                {formatStatus(item.busStatus)}
+                                            <span className={`chip ${item.status}`}>
+                                                {formatStatus(item.status)}
                                             </span>
                                         </td>
                                         <td>{item.busType}</td>
+                                        <td>{item.seatCapacity}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-bus", item)}

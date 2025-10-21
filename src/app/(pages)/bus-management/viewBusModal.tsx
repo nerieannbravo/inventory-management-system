@@ -1,4 +1,5 @@
 import "@/styles/forms.css";
+import { FileList } from "@/components/fileList";
 
 interface ViewBusModalProps {
     item: {
@@ -6,7 +7,7 @@ interface ViewBusModalProps {
         bodyNumber: string,
         bodyBuilder: string,
         busType: string,
-        busStatus: string,
+        status: string,
         condition: string,
         // Additional fields would be included in a real application
     };
@@ -25,9 +26,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                 <h1 className="modal-title">View Bus</h1>
             </div>
 
-            <p className="bus-details-title">I. Basic Identification</p>
+            <p className="details-title">I. Basic Identification</p>
             <div className="modal-content view">
-                <div className="view-order-form">
+                <div className="view-form">
 
                     {/* Plate number and Body number */}
                     <div className="form-row">
@@ -72,7 +73,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                             <p>2016</p>
                         </div>
 
-                        
+
                     </div>
 
                     {/* Chasis Number and Engine Number */}
@@ -102,7 +103,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
                         <div className="form-group">
                             <label>Status</label>
-                            <p>{formatStatus(item.busStatus)}</p>
+                            <p>{formatStatus(item.status)}</p>
                         </div>
                     </div>
                 </div>
@@ -110,9 +111,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
             {item.condition === "Second Hand" && (
                 <>
-                    <p className="bus-details-title">II. Second Hand Details</p>
+                    <p className="details-title">II. Second Hand Details</p>
                     <div className="modal-content view">
-                        <div className="view-order-form">
+                        <div className="view-form">
 
                             {/* Acquisition Date and Aquisition Method */}
                             <div className="form-row">
@@ -193,9 +194,9 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
             {item.condition === "Brand New" && (
                 <>
-                    <p className="bus-details-title">II. Brand New Details</p>
+                    <p className="details-title">II. Brand New Details</p>
                     <div className="modal-content view">
-                        <div className="view-order-form">
+                        <div className="view-form">
 
                             {/* Acquisition Date and Aquisition Method */}
                             <div className="form-row">
@@ -240,23 +241,39 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                 </>
             )}
 
-            <p className="bus-details-title">III. Document Attachments</p>
+            <p className="details-title">III. Document Attachments</p>
             <div className="modal-content view">
-                <div className="view-order-form">
+                <div className="view-form">
 
-                    {/* OR/CR Attachments */}
+                    {/* OR Attachment */}
                     <div className="form-row">
                         <div className="form-group">
-                            <label>OR/CR Attachments</label>
-                            <div className="uploaded-document-item">
-                                {/* Example: Replace with dynamic document list */}
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    OR-2020.pdf
-                                </a>
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    CR-2020.pdf
-                                </a>
-                            </div>
+                            <label>Official Receipt (OR) Attachment</label>
+                            <FileList
+                                files={[
+                                    { name: 'OR-2020.pdf' }
+                                ]}
+                                onFileClick={(file) => {
+                                    // Temporary opening of file
+                                    window.open(file.url, '_blank');
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* CR Attachment */}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Certificate of Registration (CR) Attachment</label>
+                            <FileList
+                                files={[
+                                    { name: 'CR-2020.pdf' }
+                                ]}
+                                onFileClick={(file) => {
+                                    // Temporary opening of file
+                                    window.open(file.url, '_blank');
+                                }}
+                            />
                         </div>
                     </div>
 
@@ -264,15 +281,16 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                     <div className="form-row">
                         <div className="form-group">
                             <label>Other Documents</label>
-                            <div className="uploaded-document-item">
-                                {/* Example: Replace with dynamic document list */}
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Warranty.pdf
-                                </a>
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Insurance.pdf
-                                </a>
-                            </div>
+                            <FileList
+                                files={[
+                                    { name: 'Warranty.pdf' },
+                                    { name: 'Insurance.png' }
+                                ]}
+                                onFileClick={(file) => {
+                                    // Temporary opening of file
+                                    window.open(file.url, '_blank');
+                                }}
+                            />
                         </div>
                     </div>
 

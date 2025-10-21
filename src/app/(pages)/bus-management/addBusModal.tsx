@@ -1,53 +1,52 @@
 import React, { useState, useEffect } from "react";
+import { getFileType, formatFileSize, getFileIcon } from '@/utils/fileHelpers';
+import { FileList } from "@/components/fileList";
 
 import {
     showBusSaveConfirmation, showBusSavedSuccess,
-    showCloseWithoutSavingConfirmation
+    showCloseWithoutSavingConfirmation, showBusSaveError,
+    showRemoveFileConfirmation
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
 export interface BusForm {
-    plateNumber: string,
+    // Basic Identification
     bodyNumber: string,
+    plateNumber: string,
     bodyBuilder: string,
     busType: string,
-    busStatus: string,
+    status: string,
     manufacturer: string,
     seatCapacity: number,
-    chasisNumber: string,
+    chassisNumber: string,
     engineNumber: string,
-
-    //New basic fields
     model: string,
     yearModel: string,
     condition: string,
-
-    //Second hand details
-    secHandAcquiDate?: string,
-    secHandAcquiMethod?: string,
-    prevOwner?: string,
-    prevOwnerContact?: string,
-    source?: string,
-    secHandWarrantyExpiryDate: string,
-    odometerReading?: number,
+    acquisitionDate?: string,
+    acquisitionMethod?: string,
+    warrantyExpirationDate?: string,
     registrationStatus?: string,
+
+    // Second Hand Details
+    previousOwner?: string,
+    previousOwnerContact?: string,
+    source?: string,
+    odometerReading?: number,
     lastRegistrationDate?: string,
     lastMaintenanceDate?: string,
-    initialBusCondition?: string,
+    conditionNotes?: string,
 
-    //Brand new details
-    newAcquiDate?: string,
-    newAcquiMethod?: string,
+    // Brand New Details
     dealerName?: string,
-    dealerContact?: number,
-    newWarrantyExpiryDate?: string,
-    initialRegistrationStatus?: string,
+    dealerContact?: string,
 
-    // Document Attachments
-    orcr: string,
-    otherDocuments: string[],
+    // Documents
+    orFile?: string,
+    crFile?: string,
+    otherDocuments?: string[],
 }
 interface FormError {
     [key: string]: string;
@@ -65,46 +64,56 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         bodyNumber: "",
         bodyBuilder: "",
         busType: "",
-        busStatus: "active",
+        status: "active",
         manufacturer: "",
         seatCapacity: 0,
-        chasisNumber: "",
+        chassisNumber: "",
         engineNumber: "",
 
         // New basic fields
         model: "",
         yearModel: "",
         condition: "",
+        acquisitionDate: "",
+        acquisitionMethod: "",
+        registrationStatus: "",
+        warrantyExpirationDate: "",
 
         // Second hand details
-        secHandAcquiDate: "",
-        secHandAcquiMethod: "",
-        prevOwner: "",
-        prevOwnerContact: "",
+        previousOwner: "",
+        previousOwnerContact: "",
         source: "",
-        secHandWarrantyExpiryDate: "",
         odometerReading: 0,
-        registrationStatus: "",
         lastRegistrationDate: "",
         lastMaintenanceDate: "",
-        initialBusCondition: "",
+        conditionNotes: "",
 
         // Brand new details
-        newAcquiDate: "",
-        newAcquiMethod: "",
         dealerName: "",
-        dealerContact: 0,
-        newWarrantyExpiryDate: "",
-        initialRegistrationStatus: "",
+        dealerContact: "",
 
         // Document Attachments
-        orcr: "",
+        orFile: "",
+        crFile: "",
         otherDocuments: [],
 
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // NOTE: backend file meta state removed
+    //    const [orFileMeta, setOrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
+    //    const [crFileMeta, setCrFileMeta] = useState<{ file_name: string, file_url: string } | null>(null);
+    //    const [otherFilesMeta, setOtherFilesMeta] = useState<{ file_name: string, file_url: string, file_type: string }[]>([]);
+    // client-side pending file state is kept for UI only
+
+    // New: Store selected files before upload
+    const [pendingOrFile, setPendingOrFile] = useState<File | null>(null);
+    const [pendingCrFile, setPendingCrFile] = useState<File | null>(null);
+    const [pendingOtherFiles, setPendingOtherFiles] = useState<File[]>([]);
 
     // Track if any form has been modified
     useEffect(() => {
@@ -137,8 +146,45 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         if (!busForm.busType) errors.busType = "Bus type is required";
         if (!busForm.manufacturer) errors.manufacturer = "Manufacturer is required";
         if (busForm.seatCapacity <= 0) errors.seatCapacity = "Seat capacity must be more than 0";
-        if (!busForm.chasisNumber) errors.chasisNumber = "Chasis number is required";
+        if (!busForm.chassisNumber) errors.chassisNumber = "Chassis number is required";
         if (!busForm.engineNumber) errors.engineNumber = "Engine number is required";
+
+        // Ensure unique values among identifiers
+        const plateNumber = busForm.plateNumber.trim();
+        const bodyNumber = busForm.bodyNumber.trim();
+        const chassisNumber = busForm.chassisNumber.trim();
+        const engineNumber = busForm.engineNumber.trim();
+
+        if (plateNumber && plateNumber === bodyNumber) {
+            const msg = "Plate/Body number must not be the same";
+            errors.plateNumber = msg;
+            errors.bodyNumber = msg;
+        }
+        if (plateNumber && plateNumber === chassisNumber) {
+            const msg = "Plate/Chassis number must not be the same";
+            errors.plateNumber = msg;
+            errors.chassisNumber = msg;
+        }
+        if (plateNumber && plateNumber === engineNumber) {
+            const msg = "Plate/Engine number must not be the same";
+            errors.plateNumber = msg;
+            errors.engineNumber = msg;
+        }
+        if (bodyNumber && bodyNumber === chassisNumber) {
+            const msg = "Body/Chassis number must not be the same";
+            errors.bodyNumber = msg;
+            errors.chassisNumber = msg;
+        }
+        if (bodyNumber && bodyNumber === engineNumber) {
+            const msg = "Body/Engine number must not be the same";
+            errors.bodyNumber = msg;
+            errors.engineNumber = msg;
+        }
+        if (chassisNumber && chassisNumber === engineNumber) {
+            const msg = "Chassis/Engine number must not be the same";
+            errors.chassisNumber = msg;
+            errors.engineNumber = msg;
+        }
 
         // New basic fields validation 
         if (!busForm.model) errors.model = "Model is required";
@@ -148,109 +194,170 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             errors.yearModel = "Year model must be a 4-digit year";
         }
         if (!busForm.condition) errors.condition = "Condition is required";
+        if (!busForm.acquisitionDate) {
+            errors.acquisitionDate = "Acquisition date is required";
+        } else {
+            const today = new Date();
+            const selectedDate = new Date(busForm.acquisitionDate);
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+            if (selectedDate > today) {
+                errors.acquisitionDate = "Acquisition date cannot be set to a future date";
+            }
+        }
+        if (!busForm.acquisitionMethod) errors.acquisitionMethod = "Acquisition method is required";
+
 
         // Second hand details validation
-        if (!busForm.secHandAcquiDate) {
-            errors.secHandAcquiDate = "Second hand acquisition date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.secHandAcquiDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.secHandAcquiDate = "Acquisition date cannot be set to a future date";
+        if (busForm.condition === "second-hand") {
+            if (!busForm.previousOwner) errors.previousOwner = "Dealer Name is required";
+            if (!busForm.previousOwnerContact) errors.previousOwnerContact = "Dealer contact is required";
+            if (busForm.previousOwnerContact && !/^\d{11}$/.test(busForm.previousOwnerContact?.toString() || "")) {
+                errors.previousOwnerContact = "Dealer contact must be exactly 11 digits";
             }
-        }
-        if (busForm.prevOwnerContact && !/^[0-9\s\-]+$/.test(busForm.prevOwnerContact?.toString() || "")) {
-            errors.prevOwnerContact = "Previous owner contact must only contain numbers, spaces, and hyphens";
-        }
-        if (!busForm.secHandAcquiMethod) errors.secHandAcquiMethod = "Acquisition method is required";
-        if (!busForm.source) errors.source = "Source is required";
-
-        if (busForm.odometerReading !== undefined && busForm.odometerReading <= 0) errors.odometerReading = "Odometer reading must be more than 0";
-
-        if (!busForm.registrationStatus) errors.registrationStatus = "Registration status is required";
-        if (!busForm.lastRegistrationDate) {
-            errors.lastRegistrationDate = "Last registration date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.lastRegistrationDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.lastRegistrationDate = "Last registration date cannot be set to a future date";
+            if (!busForm.source) errors.source = "Source is required";
+            if (busForm.odometerReading !== undefined && busForm.odometerReading <= 0) errors.odometerReading = "Odometer reading must be more than 0";
+            if (!busForm.lastRegistrationDate) {
+                errors.lastRegistrationDate = "Last registration date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(busForm.lastRegistrationDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.lastRegistrationDate = "Last registration date cannot be set to a future date";
+                }
             }
-        }
-        if (!busForm.lastMaintenanceDate) {
-            errors.lastMaintenanceDate = "Last maintenance date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.lastMaintenanceDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.lastMaintenanceDate = "Last maintenance date cannot be set to a future date";
+            if (!busForm.lastMaintenanceDate) {
+                errors.lastMaintenanceDate = "Last maintenance date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(busForm.lastMaintenanceDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.lastMaintenanceDate = "Last maintenance date cannot be set to a future date";
+                }
             }
         }
 
         // Brandnew details validation
-        if (!busForm.newAcquiDate) {
-            errors.newAcquiDate = "New acquisition date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.newAcquiDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.newAcquiDate = "Acquisition date cannot be set to a future date";
-            }
-        }
-        if (!busForm.newAcquiMethod) errors.newAcquiMethod = "Acquisition method is required";
-        if (!busForm.dealerName) errors.dealerName = "Dealer name is required";
-        if (!busForm.dealerContact) {
-            errors.dealerContact = "Dealer contact is required";
-        } else if (!/^[A-Za-z\s\-]+$/.test(busForm.dealerContact.toString())) {
-            errors.dealerContact = "Dealer contact must only contain letters, spaces, and hyphens";
-        }
-
-        if (!busForm.newWarrantyExpiryDate) {
-            errors.newWarrantyExpiryDate = "New warranty expiry date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(busForm.newWarrantyExpiryDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate < today) {
-                errors.newWarrantyExpiryDate = "Warranty expiry date cannot be set to a past date";
-            }
-        }
-        if (!busForm.initialRegistrationStatus) errors.initialRegistrationStatus = "Initial registration status is required";
-
-        // Document Attachments validation
-        if (!busForm.orcr) errors.orcr = "OR/CR is required";
-        if (busForm.otherDocuments.length === 0) {
-            errors.otherDocuments = "At least one other document is required";
-        } else {
-            busForm.otherDocuments.forEach((doc, index) => {
-                if (!doc) {
-                    errors[`otherDocument${index}`] = `Document ${index + 1} is required`;
+        else if (busForm.condition === "brand-new") {
+            if (!busForm.warrantyExpirationDate) {
+                errors.warrantyExpirationDate = "Warranty expiry date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(busForm.warrantyExpirationDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate < today) {
+                    errors.warrantyExpirationDate = "Warranty expiry date cannot be set to a past date";
                 }
-            });
+            }
+            if (!busForm.dealerName) errors.dealerName = "Dealer name is required";
+            if (!busForm.dealerContact) {
+                errors.dealerContact = "Dealer contact is required";
+            } else if (!/^\d{11}$/.test(busForm.dealerContact.toString())) {
+                errors.dealerContact = "Dealer contact must be exactly 11 digits";
+            }
+        }
+
+        // Document Attachments validation - check for actual file selections
+        if (!pendingOrFile) errors.orFile = "Official Receipt is required";
+        if (!pendingCrFile) errors.crFile = "Certification of Registration is required";
+
+        if (pendingOtherFiles.length === 0) {
+            errors.otherDocuments = "At least one other document is required";
         }
 
         setFormErrors(errors);
+        console.log('Validation errors:', errors);
         return Object.keys(errors).length === 0;
+    };
+
+    // Utility to count total files
+    const getTotalFilesCount = () => {
+        let count = 0;
+        if (pendingOrFile) count++;
+        if (pendingCrFile) count++;
+        count += pendingOtherFiles.length;
+        return count;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        console.log('Form submission started');
+        console.log('Current form state:', busForm);
+        console.log('Pending files:', { pendingOrFile, pendingCrFile, pendingOtherFiles });
 
+        if (!validateForm()) {
+            console.log('Form validation failed');
+            return;
+        }
+
+        console.log('Form validation passed, checking file count');
+
+        if (getTotalFilesCount() > 10) {
+            await showBusSaveError("You can only attach up to 10 files per bus record.");
+            return;
+        }
+
+        console.log('About to show confirmation dialog');
         const result = await showBusSaveConfirmation();
+        console.log('Confirmation result:', result);
+
         if (result.isConfirmed) {
-            onSave(busForm);
-            await showBusSavedSuccess();
+            setIsSaving(true);
+            try {
+                // Backend upload and POST removed.
+                // Build a simple client-side summary of attached filenames (no upload)
+                const busOtherFiles = [];
+                if (pendingOrFile) {
+                    busOtherFiles.push({
+                        file_name: pendingOrFile.name,
+                        file_type: 'OR',
+                    });
+                }
+                if (pendingCrFile) {
+                    busOtherFiles.push({
+                        file_name: pendingCrFile.name,
+                        file_type: 'CR',
+                    });
+                }
+                if (pendingOtherFiles.length > 0) {
+                    pendingOtherFiles.forEach(file => {
+                        busOtherFiles.push({
+                            file_name: file.name,
+                            file_type: 'OTHER',
+                        });
+                    });
+                }
+
+                // Attach filenames to a copy of the form for the onSave callback (client-only)
+                const busFormToSave = {
+                    ...busForm,
+                    orFile: pendingOrFile ? pendingOrFile.name : busForm.orFile,
+                    crFile: pendingCrFile ? pendingCrFile.name || "" : busForm.crFile,
+                    otherDocuments: busOtherFiles.map(f => f.file_name),
+                };
+
+                // Call onSave (parent component handles persistence if needed)
+                onSave(busFormToSave as BusForm);
+
+                // Show success alert (client-side)
+                await showBusSavedSuccess();
+
+                // Do not reload page — backend removed
+            } catch (error: any) {
+                console.error('Error saving bus (client-side):', error);
+                setError(error?.message || 'Failed to save bus');
+
+                // Show error using SweetAlert (client-side)
+                await showBusSaveError(error?.message || 'Failed to save bus');
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -280,15 +387,15 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 </button>
             </div>
 
-            <p className="bus-details-title">I. Basic Identification</p>
+            <p className="details-title">I. Basic Identification</p>
             <div className="modal-content add">
                 {/* Basic Identification */}
-                <form className="add-bus-form">
+                <form className="add-form">
                     {/* Form row - plate number and body number */}
                     <div className="form-row">
                         {/* Plate Number */}
                         <div className="form-group">
-                            <label>Plate Number</label>
+                            <label className="required">Plate Number</label>
                             <input
                                 className={formErrors?.plateNumber ? "invalid-input" : ""}
                                 type="text"
@@ -301,7 +408,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Body Number */}
                         <div className="form-group">
-                            <label>Body Number</label>
+                            <label className="required">Body Number</label>
                             <input
                                 className={formErrors?.bodyNumber ? "invalid-input" : ""}
                                 type="text"
@@ -317,13 +424,13 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                     <div className="form-row">
                         {/* Body Builder */}
                         <div className="form-group">
-                            <label>Body Builder</label>
+                            <label className="required">Body Builder</label>
                             <select
                                 className={formErrors?.bodyBuilder ? "invalid-input" : ""}
                                 value={busForm.bodyBuilder}
                                 onChange={(e) => handleChange("bodyBuilder", e.target.value)}
                             >
-                                <option value="" disabled>--Select Body Builder--</option>
+                                <option value="" disabled>Select body builder...</option>
                                 <option value="agila">Agila</option>
                                 <option value="hilltop">Hilltop</option>
                                 <option value="rbm">RBM</option>
@@ -334,13 +441,13 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Bus Type */}
                         <div className="form-group">
-                            <label>Bus Type</label>
+                            <label className="required">Bus Type</label>
                             <select
                                 className={formErrors?.busType ? "invalid-input" : ""}
                                 value={busForm.busType}
                                 onChange={(e) => handleChange("busType", e.target.value)}
                             >
-                                <option value="" disabled>--Select Bus Type--</option>
+                                <option value="" disabled>Select bus type...</option>
                                 <option value="airconditioned">Airconditioned</option>
                                 <option value="ordinary">Ordinary</option>
                             </select>
@@ -352,7 +459,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                     <div className="form-row">
                         {/* Manufacturer */}
                         <div className="form-group">
-                            <label>Manufacturer</label>
+                            <label className="required">Manufacturer</label>
                             <input
                                 className={formErrors?.manufacturer ? "invalid-input" : ""}
                                 type="text"
@@ -378,13 +485,13 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Year Model */}
                         <div className="form-group">
-                            <label>Year Model</label>
+                            <label className="required">Year Model</label>
                             <select
                                 className={formErrors?.yearModel ? "invalid-input" : ""}
                                 value={busForm.yearModel}
                                 onChange={(e) => handleChange("yearModel", e.target.value)}
                             >
-                                <option value="" disabled>--Select Year Model--</option>
+                                <option value="" disabled>Select year model...</option>
                                 {yearOptions.map((year) => (
                                     <option key={year} value={year}>
                                         {year}
@@ -395,24 +502,24 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                         </div>
                     </div>
 
-                    {/* Form row - chasis number and engine number */}
+                    {/* Form row - chassis number and engine number */}
                     <div className="form-row">
-                        {/* Chasis Number */}
+                        {/* Chassis Number */}
                         <div className="form-group">
-                            <label>Chasis Number</label>
+                            <label className="required">Chassis Number</label>
                             <input
-                                className={formErrors?.chasisNumber ? "invalid-input" : ""}
+                                className={formErrors?.chassisNumber ? "invalid-input" : ""}
                                 type="text"
-                                value={busForm.chasisNumber}
-                                onChange={(e) => handleChange("chasisNumber", e.target.value)}
-                                placeholder="Enter chasis number here..."
+                                value={busForm.chassisNumber}
+                                onChange={(e) => handleChange("chassisNumber", e.target.value)}
+                                placeholder="Enter chassis number here..."
                             />
-                            <p className="add-error-message">{formErrors?.chasisNumber}</p>
+                            <p className="add-error-message">{formErrors?.chassisNumber}</p>
                         </div>
 
                         {/* Engine Number */}
                         <div className="form-group">
-                            <label>Engine Number</label>
+                            <label className="required">Engine Number</label>
                             <input
                                 className={formErrors?.engineNumber ? "invalid-input" : ""}
                                 type="text"
@@ -428,13 +535,13 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                     <div className="form-row">
                         {/* Condition */}
                         <div className="form-group">
-                            <label>Condition</label>
+                            <label className="required">Condition</label>
                             <select
                                 className={formErrors?.condition ? "invalid-input" : ""}
                                 value={busForm.condition}
                                 onChange={(e) => handleChange("condition", e.target.value)}
                             >
-                                <option value="" disabled>--Select Bus Condition--</option>
+                                <option value="" disabled>Select bus condition...</option>
                                 <option value="brand-new">Brand New</option>
                                 <option value="second-hand">Second Hand</option>
                             </select>
@@ -443,13 +550,13 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Seat Capacity */}
                         <div className="form-group">
-                            <label>Seat Capacity</label>
+                            <label className="required">Seat Capacity</label>
                             <input
                                 className={formErrors?.seatCapacity ? "invalid-input" : ""}
                                 type="number"
                                 step="1"
                                 min="0"
-                                value={busForm.seatCapacity}
+                                value={busForm.seatCapacity || ""}
                                 onChange={(e) => {
                                     // Only allow integers, ignore decimals
                                     const value = e.target.value;
@@ -457,6 +564,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         handleChange("seatCapacity", value === "" ? 0 : Number(value));
                                     }
                                 }}
+                                placeholder="0"
                                 inputMode="numeric"
                                 pattern="\d*"
                             />
@@ -466,12 +574,16 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                         {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
-                            <select disabled value={busForm.busStatus}>
+                            <select
+                                disabled
+                                value={busForm.status}
+                                onChange={(e) => handleChange("status", e.target.value)}
+                            >
                                 <option value="active">Active</option>
                                 <option value="decommissioned">Decommissioned</option>
-                                <option value="under-maintenance">Under Maintenance</option>
+                                <option value="under-maintenance">Under Maintenance(or being process)</option>
                             </select>
-                            <p className="add-error-message">{formErrors?.busStatus}</p>
+                            <p className="add-error-message">{formErrors?.status}</p>
                         </div>
                     </div>
                 </form>
@@ -480,40 +592,39 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             {/* Show details based on condition */}
             {busForm.condition === "second-hand" && (
                 <>
-                    <p className="bus-details-title">II. Second Hand Details</p>
+                    <p className="details-title">II. Second Hand Details</p>
                     <div className="modal-content add">
                         {/* Second Hand Details */}
-                        <form className="add-bus-form">
+                        <form className="add-form">
                             {/* Form row - acquisition date and acquisition method */}
                             <div className="form-row">
                                 {/* Acquisition Date */}
                                 <div className="form-group">
-                                    <label>Acquisition Date</label>
+                                    <label className="required">Acquisition Date</label>
                                     <input
-                                        className={formErrors?.secHandAcquiDate ? "invalid-input" : ""}
+                                        className={formErrors?.acquisitionDate ? "invalid-input" : ""}
                                         type="date"
-                                        value={busForm.secHandAcquiDate}
-                                        onChange={(e) => handleChange("secHandAcquiDate", e.target.value)}
-                                        placeholder="Select acquisition date..."
+                                        value={busForm.acquisitionDate}
+                                        onChange={(e) => handleChange("acquisitionDate", e.target.value)}
                                         max={new Date().toISOString().split("T")[0]}
                                     />
-                                    <p className="add-error-message">{formErrors?.secHandAcquiDate}</p>
+                                    <p className="add-error-message">{formErrors?.acquisitionDate}</p>
                                 </div>
 
                                 {/* Acquisition Method */}
                                 <div className="form-group">
-                                    <label>Acquisition Method</label>
+                                    <label className="required">Acquisition Method</label>
                                     <select
-                                        className={formErrors?.secHandAcquiMethod ? "invalid-input" : ""}
-                                        value={busForm.secHandAcquiMethod}
-                                        onChange={(e) => handleChange("secHandAcquiMethod", e.target.value)}
+                                        className={formErrors?.acquisitionMethod ? "invalid-input" : ""}
+                                        value={busForm.acquisitionMethod}
+                                        onChange={(e) => handleChange("acquisitionMethod", e.target.value)}
                                     >
-                                        <option value="" disabled>--Select Acquisition Method--</option>
+                                        <option value="" disabled>Select acquisition method...</option>
                                         <option value="purchased">Purchased</option>
                                         <option value="donated">Donated</option>
                                         <option value="leased">Leased</option>
                                     </select>
-                                    <p className="add-error-message">{formErrors?.secHandAcquiMethod}</p>
+                                    <p className="add-error-message">{formErrors?.acquisitionMethod}</p>
                                 </div>
                             </div>
 
@@ -521,34 +632,35 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                             <div className="form-row">
                                 {/* Previous Owner */}
                                 <div className="form-group">
-                                    <label>Previous Owner</label>
+                                    <label className="required">Dealer Name</label>
                                     <input
-                                        className={formErrors?.prevOwner ? "invalid-input" : ""}
+                                        className={formErrors?.previousOwner ? "invalid-input" : ""}
                                         type="text"
-                                        value={busForm.prevOwner}
-                                        onChange={(e) => handleChange("prevOwner", e.target.value)}
+                                        value={busForm.previousOwner}
+                                        onChange={(e) => handleChange("previousOwner", e.target.value)}
                                         placeholder="Enter previous owner name here..."
                                     />
-                                    <p className="add-error-message">{formErrors?.prevOwner}</p>
+                                    <p className="add-error-message">{formErrors?.previousOwner}</p>
                                 </div>
 
                                 {/* Previous Owner Contact */}
                                 <div className="form-group">
-                                    <label>Previous Owner Contact</label>
+                                    <label className="required">Dealer Contact</label>
                                     <input
-                                        className={formErrors?.prevOwnerContact ? "invalid-input" : ""}
+                                        className={formErrors?.previousOwnerContact ? "invalid-input" : ""}
                                         type="text"
-                                        value={busForm.prevOwnerContact}
+                                        value={busForm.previousOwnerContact}
                                         onChange={(e) => {
                                             // Only allow numbers, hyphens, and spaces
-                                            const value = e.target.value.replace(/[^0-9\- ]/g, "");
-                                            handleChange("prevOwnerContact", value);
+                                            const value = e.target.value.replace(/[^0-9]/g, "");
+                                            handleChange("previousOwnerContact", value);
                                         }}
                                         placeholder="Enter previous owner contact here..."
                                         inputMode="tel"
-                                        pattern="[0-9\- ]*"
+                                        pattern="[0-9]*"
+                                        maxLength={11}
                                     />
-                                    <p className="add-error-message">{formErrors?.prevOwnerContact}</p>
+                                    <p className="add-error-message">{formErrors?.previousOwnerContact}</p>
                                 </div>
                             </div>
 
@@ -556,23 +668,23 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                             <div className="form-row">
                                 {/* Source */}
                                 <div className="form-group">
-                                    <label>Source</label>
+                                    <label className="required">Source</label>
                                     <select
                                         className={formErrors?.source ? "invalid-input" : ""}
                                         value={busForm.source}
                                         onChange={(e) => handleChange("source", e.target.value)}
                                     >
-                                        <option value="" disabled>--Select source--</option>
+                                        <option value="" disabled>Select source...</option>
                                         <option value="dealership">Dealership</option>
-                                        <option value="action">Action</option>
-                                        <option value="private individual">Private Individual</option>
+                                        <option value="auction">Auction</option>
+                                        <option value="private-individual">Private Individual</option>
                                     </select>
                                     <p className="add-error-message">{formErrors?.source}</p>
                                 </div>
 
                                 {/* Odometer Reading */}
                                 <div className="form-group">
-                                    <label>Odometer Reading</label>
+                                    <label className="required">Odometer Reading</label>
                                     <input
                                         className={formErrors?.odometerReading ? "invalid-input" : ""}
                                         type="number"
@@ -601,44 +713,41 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 <div className="form-group">
                                     <label>Warranty Expiration Date</label>
                                     <input
-                                        className={formErrors?.secHandWarrantyExpiryDate ? "invalid-input" : ""}
                                         type="date"
-                                        value={busForm.secHandWarrantyExpiryDate}
-                                        onChange={(e) => handleChange("secHandWarrantyExpiryDate", e.target.value)}
-                                        placeholder="Select warranty expiration date..."
+                                        value={busForm.warrantyExpirationDate}
+                                        onChange={(e) => handleChange("warrantyExpirationDate", e.target.value)}
                                         min={new Date().toISOString().split("T")[0]}
                                     />
-                                    <p className="add-error-message">{formErrors?.secHandWarrantyExpiryDate}</p>
+                                    <p className="add-error-message"></p>
                                 </div>
 
                                 {/* Registration Status */}
-                                <div className="form-group">
+                                {/* <div className="form-group">
                                     <label>Registration Status</label>
                                     <select
                                         className={formErrors?.registrationStatus ? "invalid-input" : ""}
                                         value={busForm.registrationStatus}
                                         onChange={(e) => handleChange("registrationStatus", e.target.value)}
                                     >
-                                        <option value="" disabled>--Select Registration Status--</option>
+                                        <option value="" disabled>Select registration status...</option>
                                         <option value="registered">Registered</option>
                                         <option value="needs renewal">Needs Renewal</option>
                                         <option value="expired">Expired</option>
                                     </select>
                                     <p className="add-error-message">{formErrors?.registrationStatus}</p>
-                                </div>
+                                </div> */}
                             </div>
 
                             {/* Form row - last registration date and last maintenance date */}
                             <div className="form-row">
                                 {/* Last Registration Date */}
                                 <div className="form-group">
-                                    <label>Last Registration Date</label>
+                                    <label className="required">Last Registration Date</label>
                                     <input
                                         className={formErrors?.lastRegistrationDate ? "invalid-input" : ""}
                                         type="date"
                                         value={busForm.lastRegistrationDate}
                                         onChange={(e) => handleChange("lastRegistrationDate", e.target.value)}
-                                        placeholder="Select last registration date..."
                                         max={new Date().toISOString().split("T")[0]}
                                     />
                                     <p className="add-error-message">{formErrors?.lastRegistrationDate}</p>
@@ -646,13 +755,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                                 {/* Last Maintenance Date */}
                                 <div className="form-group">
-                                    <label>Last Maintenance Date</label>
+                                    <label className="required">Last Maintenance Date</label>
                                     <input
                                         className={formErrors?.lastMaintenanceDate ? "invalid-input" : ""}
                                         type="date"
                                         value={busForm.lastMaintenanceDate}
                                         onChange={(e) => handleChange("lastMaintenanceDate", e.target.value)}
-                                        placeholder="Select last maintenance date..."
                                         max={new Date().toISOString().split("T")[0]}
                                     />
                                     <p className="add-error-message">{formErrors?.lastMaintenanceDate}</p>
@@ -665,13 +773,13 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 <div className="form-group">
                                     <label>Initial Bus Condition/Notes</label>
                                     <textarea
-                                        className={formErrors?.initialBusCondition ? "invalid-input" : ""}
-                                        value={busForm.initialBusCondition}
-                                        onChange={(e) => handleChange("initialBusCondition", e.target.value)}
+                                        className={formErrors?.conditionNotes ? "invalid-input" : ""}
+                                        value={busForm.conditionNotes}
+                                        onChange={(e) => handleChange("conditionNotes", e.target.value)}
                                         placeholder="Enter initial bus condition or notes here..."
                                         rows={3}
                                     />
-                                    <p className="add-error-message">{formErrors?.initialBusCondition}</p>
+                                    <p className="add-error-message">{formErrors?.conditionNotes}</p>
                                 </div>
                             </div>
                         </form>
@@ -681,40 +789,39 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
             {busForm.condition === "brand-new" && (
                 <>
-                    <p className="bus-details-title">II. Brand New Details</p>
+                    <p className="details-title">II. Brand New Details</p>
                     <div className="modal-content add">
                         {/* Brand New Details */}
-                        <form className="add-bus-form">
+                        <form className="add-form">
                             {/* Form row - acquisition date and acquisition method */}
                             <div className="form-row">
                                 {/* Acquisition Date */}
                                 <div className="form-group">
-                                    <label>Acquisition Date</label>
+                                    <label className="required">Acquisition Date</label>
                                     <input
-                                        className={formErrors?.newAcquiDate ? "invalid-input" : ""}
+                                        className={formErrors?.acquisitionDate ? "invalid-input" : ""}
                                         type="date"
-                                        value={busForm.newAcquiDate}
-                                        onChange={(e) => handleChange("newAcquiDate", e.target.value)}
-                                        placeholder="Select acquisition date..."
+                                        value={busForm.acquisitionDate}
+                                        onChange={(e) => handleChange("acquisitionDate", e.target.value)}
                                         max={new Date().toISOString().split("T")[0]}
                                     />
-                                    <p className="add-error-message">{formErrors?.newAcquiDate}</p>
+                                    <p className="add-error-message">{formErrors?.acquisitionDate}</p>
                                 </div>
 
                                 {/* Acquisition Method */}
                                 <div className="form-group">
-                                    <label>Acquisition Method</label>
+                                    <label className="required">Acquisition Method</label>
                                     <select
-                                        className={formErrors?.newAcquiMethod ? "invalid-input" : ""}
-                                        value={busForm.newAcquiMethod}
-                                        onChange={(e) => handleChange("newAcquiMethod", e.target.value)}
+                                        className={formErrors?.acquisitionMethod ? "invalid-input" : ""}
+                                        value={busForm.acquisitionMethod}
+                                        onChange={(e) => handleChange("acquisitionMethod", e.target.value)}
                                     >
-                                        <option value="" disabled>--Select Acquisition Method--</option>
+                                        <option value="" disabled>Select acquisition method...</option>
                                         <option value="purchased">Purchased</option>
                                         <option value="donated">Donated</option>
                                         <option value="leased">Leased</option>
                                     </select>
-                                    <p className="add-error-message">{formErrors?.newAcquiMethod}</p>
+                                    <p className="add-error-message">{formErrors?.acquisitionMethod}</p>
                                 </div>
                             </div>
 
@@ -722,7 +829,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                             <div className="form-row">
                                 {/* Dealer Name */}
                                 <div className="form-group">
-                                    <label>Dealer Name</label>
+                                    <label className="required">Dealer Name</label>
                                     <input
                                         className={formErrors?.dealerName ? "invalid-input" : ""}
                                         type="text"
@@ -735,7 +842,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                                 {/* Dealer Contact */}
                                 <div className="form-group">
-                                    <label>Dealer Contact</label>
+                                    <label className="required">Dealer Contact</label>
                                     <input
                                         className={formErrors?.dealerContact ? "invalid-input" : ""}
                                         type="text"
@@ -747,7 +854,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                         }}
                                         placeholder="Enter dealer owner contact here..."
                                         inputMode="tel"
-                                        pattern="[0-9\- ]*"
+                                        pattern="[0-9]*"
+                                        maxLength={11}
                                     />
                                     <p className="add-error-message">{formErrors?.dealerContact}</p>
                                 </div>
@@ -757,32 +865,32 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                             <div className="form-row">
                                 {/* Warranty Expiration Date */}
                                 <div className="form-group">
-                                    <label>Warranty Expiration Date</label>
+                                    <label className="required">Warranty Expiration Date</label>
                                     <input
-                                        className={formErrors?.newWarrantyExpiryDate ? "invalid-input" : ""}
+                                        className={formErrors?.warrantyExpirationDate ? "invalid-input" : ""}
                                         type="date"
-                                        value={busForm.newWarrantyExpiryDate}
-                                        onChange={(e) => handleChange("newWarrantyExpiryDate", e.target.value)}
-                                        placeholder="Select warranty expiration date..."
+                                        value={busForm.warrantyExpirationDate}
+                                        onChange={(e) => handleChange("warrantyExpirationDate", e.target.value)}
                                         min={new Date().toISOString().split("T")[0]}
                                     />
-                                    <p className="add-error-message">{formErrors?.newWarrantyExpiryDate}</p>
+                                    <p className="add-error-message">{formErrors?.warrantyExpirationDate}</p>
                                 </div>
 
                                 {/* Registration Status */}
-                                <div className="form-group">
+                                {/* <div className="form-group">
                                     <label>Registration Status</label>
                                     <select
-                                        className={formErrors?.initialRegistrationStatus ? "invalid-input" : ""}
-                                        value={busForm.initialRegistrationStatus}
-                                        onChange={(e) => handleChange("initialRegistrationStatus", e.target.value)}
+                                        className={formErrors?.registrationStatus ? "invalid-input" : ""}
+                                        value={busForm.registrationStatus}
+                                        onChange={(e) => handleChange("registrationStatus", e.target.value)}
                                     >
-                                        <option value="" disabled>--Select Registration Status--</option>
+                                        <option value="" disabled>Select registration status...</option>
                                         <option value="registered">Registered</option>
-                                        <option value="not-registered">Not Registered</option>
+                                        <option value="needs renewal">Needs Renewal</option>
+                                        <option value="expired">Expired</option>
                                     </select>
-                                    <p className="add-error-message">{formErrors?.initialRegistrationStatus}</p>
-                                </div>
+                                    <p className="add-error-message">{formErrors?.registrationStatus}</p>
+                                </div> */}
                             </div>
                         </form>
                     </div>
@@ -792,65 +900,143 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
             {/* Only show Document Attachments if a condition is selected */}
             {(busForm.condition === "brand-new" || busForm.condition === "second-hand") && (
                 <>
-                    <p className="bus-details-title">III. Document Attachments</p>
+                    <p className="details-title">III. Document Attachments</p>
                     <div className="modal-content add">
                         {/* Attached Documents */}
-                        <form className="add-bus-form">
-                            {/* Form row - OR/CR */}
+                        <form className="add-form">
+                            {/* Official Receipt (OR) */}
                             <div className="form-row">
-                                {/* OR/CR */}
                                 <div className="form-group">
-                                    <label>OR/CR Attachment</label>
-                                    <input
-                                        className={formErrors?.orcr ? "invalid-input" : ""}
-                                        type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            handleChange("orcr", file ? file.name : "");
-                                        }}
-                                    />
-                                    <p className="add-error-message">{formErrors?.orcr}</p>
+                                    <label className="required">Official Receipt (OR) Attachment</label>
+                                    <label htmlFor="file-input-or" className="upload-zone">
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={async (e) => {
+                                                if (getTotalFilesCount() >= 10) {
+                                                    await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                                    return;
+                                                }
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    setPendingOrFile(file);
+                                                    handleChange("orFile", file.name);
+                                                } else {
+                                                    setPendingOrFile(null);
+                                                    handleChange("orFile", "");
+                                                }
+                                            }}
+                                            className="upload-input"
+                                            id="file-input-or"
+                                        />
+                                        <div className="upload-icon"><i className="ri-file-text-line" /></div>
+                                        <div>
+                                            <p className="upload-text">Click to browse files</p>
+                                            <p className="upload-subtext">PDF, JPG, PNG</p>
+                                        </div>
+                                    </label>
+
+                                    {/* Display uploaded document */}
+                                    {pendingOrFile && (
+                                        <FileList
+                                            files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]}
+                                            showRemove={true}
+                                            onRemove={() => {
+                                                setPendingOrFile(null);
+                                                handleChange("crFile", "");
+                                            }}
+                                        />
+                                    )}
+                                    <p className="add-error-message">{formErrors?.orFile}</p>
                                 </div>
                             </div>
 
-                            {/* Form row - Other Documents */}
+                            {/* Certificate of Registration (CR) */}
                             <div className="form-row">
-                                {/* Other Documents */}
                                 <div className="form-group">
-                                    <label>Other Attachments</label>
-                                    <input
-                                        className={formErrors?.otherDocuments ? "invalid-input" : ""}
-                                        type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        multiple
-                                        onChange={(e) => {
-                                            const files = Array.from(e.target.files || []);
-                                            const newFileNames = files.map(f => f.name);
-                                            const allFiles = Array.from(new Set([...busForm.otherDocuments, ...newFileNames]));
-                                            handleChange("otherDocuments", allFiles);
-                                        }}
-                                    />
-                                    {/* Show all uploaded document names and remove buttons */}
-                                    {busForm.otherDocuments.length > 0 && (
-                                        <ul className="uploaded-documents-list">
-                                            {busForm.otherDocuments.map((doc, idx) => (
-                                                <li key={idx} className="uploaded-document-item">
-                                                    <span>{doc}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const updated = busForm.otherDocuments.filter((_, i) => i !== idx);
-                                                            handleChange("otherDocuments", updated);
-                                                        }}
-                                                        className="remove-document-button"
-                                                        aria-label={`Remove document ${doc}`}
-                                                    >
-                                                        <i className="ri-close-line"></i>
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                    <label className="required">Certificate of Registration (CR) Attachment</label>
+                                    <label htmlFor="file-input-cr" className="upload-zone">
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            onChange={async (e) => {
+                                                if (getTotalFilesCount() >= 10) {
+                                                    await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                                    return;
+                                                }
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    setPendingCrFile(file);
+                                                    handleChange("crFile", file.name);
+                                                } else {
+                                                    setPendingCrFile(null);
+                                                    handleChange("crFile", "");
+                                                }
+                                            }}
+                                            className="upload-input"
+                                            id="file-input-cr"
+                                        />
+                                        <div className="upload-icon"><i className="ri-file-text-line" /></div>
+                                        <div>
+                                            <p className="upload-text">Click to browse files</p>
+                                            <p className="upload-subtext">PDF, JPG, PNG</p>
+                                        </div>
+                                    </label>
+
+                                    {/* Display uploaded document */}
+                                    {pendingCrFile && (
+                                        <FileList
+                                            files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]}
+                                            showRemove={true}
+                                            onRemove={() => {
+                                                setPendingCrFile(null);
+                                                handleChange("crFile", "");
+                                            }}
+                                        />
+                                    )}
+                                    <p className="add-error-message">{formErrors?.crFile}</p>
+                                </div>
+                            </div>
+
+                            {/* Other Documents/Attachments */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="required">Other Attachments</label>
+                                    <label htmlFor="file-input-other" className="upload-zone">
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            multiple
+                                            onChange={async (e) => {
+                                                const files = Array.from(e.target.files || []);
+                                                if (files.length === 0) return;
+                                                if (getTotalFilesCount() + files.length > 10) {
+                                                    await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                                    return;
+                                                }
+                                                setPendingOtherFiles(prev => [...prev, ...files]);
+                                            }}
+                                            className="upload-input"
+                                            id="file-input-other"
+                                        />
+                                        <div className="upload-icon"><i className="ri-file-text-line" /></div>
+                                        <div>
+                                            <p className="upload-text">Click to browse files</p>
+                                            <p className="upload-subtext">PDF, JPG, PNG • Multiple files allowed</p>
+                                        </div>
+                                    </label>
+
+                                    {/* Display uploaded documents list */}
+                                    {pendingOtherFiles.length > 0 && (
+                                        <>
+                                            <div className="uploaded-files-label">Uploaded Files ({pendingOtherFiles.length})</div>
+                                            <FileList
+                                                files={pendingOtherFiles.map(f => ({ name: f.name, size: f.size }))}
+                                                showRemove={true}
+                                                onRemove={(idx) => {
+                                                    setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
+                                                }} />
+                                        </>
                                     )}
 
                                     <p className="add-error-message">{formErrors?.otherDocuments}</p>
@@ -861,9 +1047,9 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                 </>
             )}
 
-            <div className="modal-actions add">
+            <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
+                    <i className="ri-save-3-line" /> {isSaving ? 'Saving...' : 'Save'}
                 </button>
             </div>
 

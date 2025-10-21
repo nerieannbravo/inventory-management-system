@@ -14,18 +14,23 @@ import {
     formatTime,
     generateFileName,
     formatBusStatus,
+    formatBodyBuilder,
+    formatBusCondition,
+    formatBusType,
     getBusStatusStyle
 } from '@/utils/pdfReportUtils';
 import "@/styles/pdfModal.css";
 
 // Interface definitions
 interface BusItem {
-    id: number,
-    bodyNumber: string,
-    bodyBuilder: string,
-    // route: string,
-    busType: string,
-    busStatus: string,
+    id: number;
+    bodyNumber: string;
+    plateNumber: string;
+    bodyBuilder: string;
+    condition: string;
+    status: string;
+    busType: string;
+    seatCapacity: number;
 }
 
 interface BusReportPDFProps {
@@ -45,9 +50,9 @@ const BusReportDocument: React.FC<{
 
     // Calculate summary statistics
     const totalBus = busData.length;
-    const activeBus = busData.filter(item => item.busStatus === 'active').length;
-    const decommissionedBus = busData.filter(item => item.busStatus === 'decommissioned').length;
-    const maintenanceBus = busData.filter(item => item.busStatus === 'under-maintenance').length;
+    const activeBus = busData.filter(item => item.status === 'ACTIVE' || item.status === 'active').length;
+    const decommissionedBus = busData.filter(item => item.status === 'DECOMMISSIONED' || item.status === 'decommissioned').length;
+    const maintenanceBus = busData.filter(item => item.status === 'UNDER_MAINTENANCE' || item.status === 'under-maintenance').length;
 
     return (
         <Document>
@@ -87,10 +92,12 @@ const BusReportDocument: React.FC<{
                 <View style={reportStyles.table}>
                     {/* Table Header */}
                     <View style={reportStyles.tableHeader}>
-                        <Text style={reportStyles.columnMedium}>Body Number</Text>
-                        <Text style={reportStyles.columnMedium}>Body Builder</Text>
-                        <Text style={reportStyles.columnLarge}>Route</Text>
-                        <Text style={reportStyles.columnMedium}>Bus Type</Text>
+                        <Text style={reportStyles.columnSmall}>Body No.</Text>
+                        <Text style={reportStyles.columnSmall}>Plate No.</Text>
+                        <Text style={reportStyles.columnSmall}>Body Builder</Text>
+                        <Text style={reportStyles.columnMedium}>Condition</Text>
+                        <Text style={reportStyles.columnSmall}>Type</Text>
+                        <Text style={reportStyles.columnSmall}>Seats</Text>
                         <Text style={reportStyles.columnMedium}>Status</Text>
                     </View>
 
@@ -103,21 +110,27 @@ const BusReportDocument: React.FC<{
                                 index % 2 === 1 ? reportStyles.alternateRow : {}
                             ]}
                         >
-                            <Text style={reportStyles.columnMedium}>
+                            <Text style={reportStyles.columnSmall}>
                                 {item.bodyNumber}
                             </Text>
-                            <Text style={reportStyles.columnMedium}>
-                                {item.bodyBuilder}
+                            <Text style={reportStyles.columnSmall}>
+                                {item.plateNumber}
                             </Text>
-                            {/* <Text style={reportStyles.columnLarge}>
-                                {item.route}
-                            </Text> */}
+                            <Text style={reportStyles.columnSmall}>
+                                {formatBodyBuilder(item.bodyBuilder)}
+                            </Text>
                             <Text style={reportStyles.columnMedium}>
-                                {item.busType}
+                                {formatBusCondition(item.condition)}
+                            </Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {formatBusType(item.busType)}
+                            </Text>
+                            <Text style={reportStyles.columnSmall}>
+                                {item.seatCapacity}
                             </Text>
                             <View style={reportStyles.statusContainer}>
-                                <Text style={getBusStatusStyle(item.busStatus)}>
-                                    {formatBusStatus(item.busStatus)}
+                                <Text style={getBusStatusStyle(item.status)}>
+                                    {formatBusStatus(item.status)}
                                 </Text>
                             </View>
                         </View>

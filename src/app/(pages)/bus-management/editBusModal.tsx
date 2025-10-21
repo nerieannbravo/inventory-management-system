@@ -1,21 +1,53 @@
 import React, { useState, useEffect } from "react";
+import { getFileType, formatFileSize, getFileIcon } from '@/utils/fileHelpers';
+import { FileList } from "@/components/fileList";
 
 import {
     showBusUpdateConfirmation, showBusUpdatedSuccess,
-    showCloseWithoutUpdatingConfirmation
+    showCloseWithoutUpdatingConfirmation, showBusSaveError,
+    showRemoveFileConfirmation
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
 interface EditBusModalProps {
     item: {
+        // Basic Identification
         id: number,
         bodyNumber: string,
+        plateNumber: string,
         bodyBuilder: string,
         busType: string,
-        busStatus: string,
+        status: string,
+        manufacturer: string,
+        seatCapacity: number,
+        chassisNumber: string,
+        engineNumber: string,
+        model: string,
+        yearModel: string,
         condition: string,
-        // Additional fields would be included in a real application
+        acquisitionDate?: string,
+        acquisitionMethod?: string,
+        warrantyExpirationDate?: string,
+        registrationStatus?: string,
+
+        // Second Hand Details
+        previousOwner?: string,
+        previousOwnerContact?: string,
+        source?: string,
+        odometerReading?: number,
+        lastRegistrationDate?: string,
+        lastMaintenanceDate?: string,
+        conditionNotes?: string,
+
+        // Brand New Details
+        dealerName?: string,
+        dealerContact?: string,
+
+        // Documents
+        orFile?: string,
+        crFile?: string,
+        otherDocuments?: string[],
     };
     onSave: (updatedItem: any) => void;
     onClose: () => void;
@@ -24,119 +56,133 @@ interface EditBusModalProps {
 export default function EditBusModal({ item, onSave, onClose }: EditBusModalProps) {
     const [formData, setFormData] = useState({
         id: item.id,
-        plateNumber: "",
-        bodyNumber: item.bodyNumber,
-        bodyBuilder: item.bodyBuilder,
-        busType: item.busType,
-        busStatus: item.busStatus,
-        manufacturer: "",
-        seatCapacity: 0,
-        chasisNumber: "",
-        engineNumber: "",
-
-        // New basic fields
-        model: "",
-        yearModel: "",
-        condition: item.condition,
-
-        // Second hand details
-        secHandAcquiDate: "",
-        secHandAcquiMethod: "",
-        prevOwner: "",
-        prevOwnerContact: "",
-        source: "",
-        secHandWarrantyExpiryDate: "",
-        odometerReading: 0,
-        registrationStatus: "",
-        lastRegistrationDate: "",
-        lastMaintenanceDate: "",
-        initialBusCondition: "",
-
-        // Brand new details
-        newAcquiDate: "",
-        newAcquiMethod: "",
-        dealerName: "",
-        dealerContact: 0,
-        newWarrantyExpiryDate: "",
-        initialRegistrationStatus: "",
-
-        // Document Attachments
-        orcr: "",
-        otherDocuments: [],
+        plateNumber: item.plateNumber || "",
+        bodyNumber: item.bodyNumber || "",
+        bodyBuilder: item.bodyBuilder || "",
+        busType: item.busType || "",
+        status: item.status || "active",
+        manufacturer: item.manufacturer || "",
+        seatCapacity: item.seatCapacity || 0,
+        chassisNumber: item.chassisNumber || "",
+        engineNumber: item.engineNumber || "",
+        model: item.model || "",
+        yearModel: item.yearModel || "",
+        condition: item.condition || "",
+        acquisitionDate: item.acquisitionDate || "",
+        acquisitionMethod: item.acquisitionMethod || "",
+        registrationStatus: item.registrationStatus || "",
+        warrantyExpirationDate: item.warrantyExpirationDate || "",
+        previousOwner: item.previousOwner || "",
+        previousOwnerContact: item.previousOwnerContact || "",
+        source: item.source || "",
+        odometerReading: item.odometerReading || 0,
+        lastRegistrationDate: item.lastRegistrationDate || "",
+        lastMaintenanceDate: item.lastMaintenanceDate || "",
+        conditionNotes: item.conditionNotes || "",
+        dealerName: item.dealerName || "",
+        dealerContact: item.dealerContact || "",
+        orFile: item.orFile || "",
+        crFile: item.crFile || "",
+        otherDocuments: item.otherDocuments || [],
     });
 
-    // State to track if form is dirty (has changes)
+    // Pending file state for new uploads
+    const [pendingOrFile, setPendingOrFile] = useState<File | null>(null);
+    const [pendingCrFile, setPendingCrFile] = useState<File | null>(null);
+    const [pendingOtherFiles, setPendingOtherFiles] = useState<File[]>([]);
+
     const [isFormDirty, setIsFormDirty] = useState(false);
     const [originalData] = useState({ ...formData });
-
-    // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [isSaving, setIsSaving] = useState(false);
 
-    // Check if form data has changed from original
+    // Generate year options
+    const currentYear = new Date().getFullYear();
+    const startYear = 1980;
+    const yearOptions = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
     useEffect(() => {
-        const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData);
+        const hasChanges = JSON.stringify(originalData) !== JSON.stringify(formData) ||
+            pendingOrFile !== null || pendingCrFile !== null || pendingOtherFiles.length > 0;
         setIsFormDirty(hasChanges);
-    }, [formData, originalData]);
+    }, [formData, originalData, pendingOrFile, pendingCrFile, pendingOtherFiles]);
 
     const handleChange = (field: string, value: any) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+
+        if (formErrors[field]) {
+            const newErrors = { ...formErrors };
+            delete newErrors[field];
+            setFormErrors(newErrors);
+        }
+    };
+
+    const getTotalFilesCount = () => {
+        let count = 0;
+        if (pendingOrFile || formData.orFile) count++;
+        if (pendingCrFile || formData.crFile) count++;
+        count += pendingOtherFiles.length + formData.otherDocuments.length;
+        return count;
     };
 
     const validateForm = (): boolean => {
         const errors: Record<string, string> = {};
 
         // Basic Information Validation
-        if (!formData.busStatus) errors.busStatus = "Bus status is required";
+        if (!formData.busType) errors.busType = "Bus type is required";
+        if (!formData.bodyBuilder) errors.bodyBuilder = "Body builder is required.";
 
         // Second Hand Details Validation
-        if (formData.prevOwnerContact && !/^[0-9\s\-]+$/.test(formData.prevOwnerContact?.toString() || "")) {
-            errors.prevOwnerContact = "Previous owner contact must only contain numbers, spaces, and hyphens";
-        }
-        if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
-        if (!formData.lastRegistrationDate) {
-            errors.lastRegistrationDate = "Last registration date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(formData.lastRegistrationDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.lastRegistrationDate = "Last registration date cannot be set to a future date";
+        if (formData.condition === "Second Hand") {
+            if (!formData.previousOwner) errors.previousOwner = "Dealer Name is required";
+            if (!formData.previousOwnerContact) {
+                errors.previousOwnerContact = "Dealer contact is required";
+            } else if (
+                formData.previousOwnerContact &&
+                !/^\d{11}$/.test(formData.previousOwnerContact?.toString() || "")
+            ) {
+                errors.previousOwnerContact = "Dealer contact must be exactly 11 digits";
             }
-        }
-        if (!formData.lastMaintenanceDate) {
-            errors.lastMaintenanceDate = "Last maintenance date is required";
-        } else {
-            const today = new Date();
-            const selectedDate = new Date(formData.lastMaintenanceDate);
-            today.setHours(0, 0, 0, 0);
-            selectedDate.setHours(0, 0, 0, 0);
-            if (selectedDate > today) {
-                errors.lastMaintenanceDate = "Last maintenance date cannot be set to a future date";
+            if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
+            if (!formData.lastRegistrationDate) {
+                errors.lastRegistrationDate = "Last registration date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(formData.lastRegistrationDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.lastRegistrationDate = "Last registration date cannot be set to a future date";
+                }
+            }
+            if (!formData.lastMaintenanceDate) {
+                errors.lastMaintenanceDate = "Last maintenance date is required";
+            } else {
+                const today = new Date();
+                const selectedDate = new Date(formData.lastMaintenanceDate);
+                today.setHours(0, 0, 0, 0);
+                selectedDate.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    errors.lastMaintenanceDate = "Last maintenance date cannot be set to a future date";
+                }
             }
         }
 
         // Brand New Details Validation
-        if (!formData.dealerContact) {
-            errors.dealerContact = "Dealer contact is required";
-        } else if (!/^[A-Za-z\s\-]+$/.test(formData.dealerContact.toString())) {
-            errors.dealerContact = "Dealer contact must only contain letters, spaces, and hyphens";
-        }
-        if (!formData.initialRegistrationStatus) errors.initialRegistrationStatus = "Initial registration status is required";
-
-        // Document Attachments Validation
-        if (!formData.orcr) errors.orcr = "OR/CR is required";
-        if (formData.otherDocuments.length === 0) {
-            errors.otherDocuments = "At least one other document is required";
-        } else {
-            formData.otherDocuments.forEach((doc, index) => {
-                if (!doc) {
-                    errors[`otherDocument${index}`] = `Document ${index + 1} is required`;
-                }
-            });
+        if (formData.condition === "Brand New") {
+            if (!formData.dealerName) errors.dealerName = "Dealer name is required";
+            if (!formData.dealerContact) {
+                errors.dealerContact = "Dealer contact is required";
+            } else if (
+                formData.dealerContact &&
+                !/^\d{11}$/.test(formData.dealerContact?.toString() || "")
+            ) {
+                errors.dealerContact = "Dealer contact must be exactly 11 digits";
+            }
+            if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
         }
 
         setFormErrors(errors);
@@ -146,12 +192,37 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            return;
+        }
+
+        if (getTotalFilesCount() > 10) {
+            await showBusSaveError("You can only attach up to 10 files per bus record.");
+            return;
+        }
 
         const result = await showBusUpdateConfirmation(formData.bodyNumber);
         if (result.isConfirmed) {
-            onSave(formData);
-            await showBusUpdatedSuccess();
+            setIsSaving(true);
+            try {
+                const updatedData = {
+                    ...formData,
+                    orFile: pendingOrFile ? pendingOrFile.name : formData.orFile,
+                    crFile: pendingCrFile ? pendingCrFile.name : formData.crFile,
+                    otherDocuments: [
+                        ...formData.otherDocuments,
+                        ...pendingOtherFiles.map(f => f.name)
+                    ],
+                };
+
+                onSave(updatedData);
+                await showBusUpdatedSuccess();
+            } catch (error: any) {
+                console.error('Error updating bus:', error);
+                await showBusSaveError(error?.message || 'Failed to update bus');
+            } finally {
+                setIsSaving(false);
+            }
         }
     };
 
@@ -164,6 +235,20 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         const result = await showCloseWithoutUpdatingConfirmation();
         if (result.isConfirmed) {
             onClose();
+        }
+    };
+
+    // for bus status formatting
+    const formatStatus = (status: string) => {
+        switch (status) {
+            case "active":
+                return "Active";
+            case "decommissioned":
+                return "Decommissioned";
+            case "under-maintenance":
+                return "Under Maintenance";
+            default:
+                return status;
         }
     };
 
@@ -181,34 +266,31 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                 </button>
             </div>
 
-            <p className="bus-details-title">I. Basic Identification</p>
-            {/* Edit Bus Form */}
+            <p className="details-title">I. Basic Identification</p>
             <div className="modal-content edit">
-                <form className="edit-bus-form" id="edit-bus-form" onSubmit={handleSubmit}>
+                <form className="edit-form">
                     {/* Plate Number and Body Number */}
                     <div className="form-row">
-                        {/* Plate Number */}
                         <div className="form-group">
                             <label>Plate Number</label>
                             <input disabled
                                 className={formErrors?.plateNumber ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.plateNumber}
-                                onChange={(e) => handleChange("plateNumber", e.target.value)}
                                 placeholder="Enter plate number here..."
+                                onChange={(e) => handleChange("plateNumber", e.target.value)}
                             />
                             <p className="edit-error-message">{formErrors?.plateNumber}</p>
                         </div>
 
-                        {/* Body Number */}
                         <div className="form-group">
                             <label>Body Number</label>
                             <input disabled
                                 className={formErrors?.bodyNumber ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.bodyNumber}
-                                onChange={(e) => handleChange("bodyNumber", e.target.value)}
                                 placeholder="Enter body number here..."
+                                onChange={(e) => handleChange("bodyNumber", e.target.value)}
                             />
                             <p className="edit-error-message">{formErrors?.bodyNumber}</p>
                         </div>
@@ -216,15 +298,14 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                     {/* Body Builder and Bus Type */}
                     <div className="form-row">
-                        {/* Body Builder */}
                         <div className="form-group">
-                            <label>Body Builder</label>
+                            <label className="required">Body Builder</label>
                             <select
                                 className={formErrors?.bodyBuilder ? "invalid-input" : ""}
                                 value={formData.bodyBuilder}
                                 onChange={(e) => handleChange("bodyBuilder", e.target.value)}
                             >
-                                <option value="" disabled>--Select Body Builder--</option>
+                                <option value="" disabled>Select body builder...</option>
                                 <option value="agila">Agila</option>
                                 <option value="hilltop">Hilltop</option>
                                 <option value="rbm">RBM</option>
@@ -233,15 +314,14 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                             <p className="edit-error-message">{formErrors?.bodyBuilder}</p>
                         </div>
 
-                        {/* Bus Type */}
                         <div className="form-group">
-                            <label>Bus Type</label>
+                            <label className="required">Bus Type</label>
                             <select
                                 className={formErrors?.busType ? "invalid-input" : ""}
                                 value={formData.busType}
                                 onChange={(e) => handleChange("busType", e.target.value)}
                             >
-                                <option value="" disabled>--Select Bus Type--</option>
+                                <option value="" disabled>Select bus type...</option>
                                 <option value="airconditioned">Airconditioned</option>
                                 <option value="ordinary">Ordinary</option>
                             </select>
@@ -249,43 +329,40 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                         </div>
                     </div>
 
-                    {/* Manufacturer, Model, and Year Model   */}
+                    {/* Manufacturer, Model, Year Model */}
                     <div className="form-row">
-                        {/* Manufacturer */}
                         <div className="form-group">
                             <label>Manufacturer</label>
                             <input disabled
                                 className={formErrors?.manufacturer ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.manufacturer}
-                                onChange={(e) => handleChange("manufacturer", e.target.value)}
                                 placeholder="Enter manufacturer here..."
+                                onChange={(e) => handleChange("manufacturer", e.target.value)}
                             />
                             <p className="edit-error-message">{formErrors?.manufacturer}</p>
                         </div>
 
-                        {/* Model */}
                         <div className="form-group">
                             <label>Model</label>
                             <input disabled
                                 className={formErrors?.model ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.model}
-                                onChange={(e) => handleChange("model", e.target.value)}
                                 placeholder="Enter model here..."
+                                onChange={(e) => handleChange("model", e.target.value)}
                             />
                             <p className="edit-error-message">{formErrors?.model}</p>
                         </div>
 
-                        {/* Year Model */}
                         <div className="form-group">
                             <label>Year Model</label>
                             <input disabled
                                 className={formErrors?.yearModel ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.yearModel}
+                                placeholder="Enter year model here..."
                                 onChange={(e) => handleChange("yearModel", e.target.value)}
-                                placeholder="Enter yearModel here..."
                             />
                             <p className="edit-error-message">{formErrors?.yearModel}</p>
                         </div>
@@ -293,451 +370,471 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                     {/* Chassis Number and Engine Number */}
                     <div className="form-row">
-                        {/* Chasis Number */}
                         <div className="form-group">
-                            <label>Chasis Number</label>
-                            <input
-                                className={formErrors?.chasisNumber ? "invalid-input" : ""}
+                            <label>Chassis Number</label>
+                            <input disabled
+                                className={formErrors?.chassisNumber ? "invalid-input" : ""}
                                 type="text"
-                                value={formData.chasisNumber}
-                                onChange={(e) => handleChange("chasisNumber", e.target.value)}
-                                placeholder="Enter chasis number here..."
+                                value={formData.chassisNumber}
+                                placeholder="Enter chassis number here..."
+                                onChange={(e) => handleChange("chassisNumber", e.target.value)}
                             />
-                            <p className="edit-error-message">{formErrors?.chasisNumber}</p>
+                            <p className="edit-error-message">{formErrors?.chassisNumber}</p>
                         </div>
 
-                        {/* Engine Number */}
                         <div className="form-group">
                             <label>Engine Number</label>
-                            <input
+                            <input disabled
                                 className={formErrors?.engineNumber ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.engineNumber}
-                                onChange={(e) => handleChange("engineNumber", e.target.value)}
                                 placeholder="Enter engine number here..."
+                                onChange={(e) => handleChange("engineNumber", e.target.value)}
                             />
                             <p className="edit-error-message">{formErrors?.engineNumber}</p>
                         </div>
                     </div>
 
-                    {/* Condition, Seat Capacity, and Status */}
+                    {/* Condition, Seat Capacity, Status */}
                     <div className="form-row">
-                        {/* Condition */}
                         <div className="form-group">
                             <label>Condition</label>
-                            <select disabled
+                            <input disabled
                                 className={formErrors?.condition ? "invalid-input" : ""}
+                                type="text"
                                 value={formData.condition}
                                 onChange={(e) => handleChange("condition", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Condition--</option>
-                                <option value="brand-new">Brand New</option>
-                                <option value="second-hand">Second Hand</option>
-                            </select>
+                            />
                             <p className="edit-error-message">{formErrors?.condition}</p>
                         </div>
 
-
-                        {/* Seat Capacity */}
                         <div className="form-group">
                             <label>Seat Capacity</label>
                             <input disabled
                                 className={formErrors?.seatCapacity ? "invalid-input" : ""}
                                 type="number"
-                                step="1"
-                                min="0"
                                 value={formData.seatCapacity}
                                 onChange={(e) => handleChange("seatCapacity", Number(e.target.value))}
                             />
                             <p className="edit-error-message">{formErrors?.seatCapacity}</p>
                         </div>
 
-                        {/* Status */}
                         <div className="form-group">
                             <label>Status</label>
-                            <select disabled
-                                className={formErrors?.busStatus ? "invalid-input" : ""}
-                                value={formData.busStatus}
-                                onChange={(e) => handleChange("busStatus", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Status--</option>
-                                <option value="active">Active</option>
-                                <option value="decommissioned">Decommissioned</option>
-                                <option value="under-maintenance">Under Maintenance</option>
-                            </select>
-                            <p className="edit-error-message">{formErrors?.busStatus}</p>
+                            <input disabled
+								className={formErrors?.status ? "invalid-input" : ""}
+								type="text"
+								value={formatStatus(formData.status)}
+								onChange={(e) => handleChange("status", e.target.value)}
+							/>
+                            <p className="edit-error-message">{formErrors?.status}</p>
                         </div>
                     </div>
                 </form>
             </div>
 
+            {/* Second Hand Details */}
+            {item.condition === "Second Hand" && (
+                <>
+                    <p className="details-title">II. Second Hand Details</p>
+                    <div className="modal-content edit">
+                        <form className="edit-form">
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Acquisition Date</label>
+                                    <input disabled
+                                        className={formErrors?.acquisitionDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.acquisitionDate}
+                                        max={new Date().toISOString().split("T")[0]}
+                                        onChange={(e) => handleChange("acquisitionDate", e.target.value)}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.acquisitionDate}</p>
+                                </div>
 
-            <p className="bus-details-title">II. Second Hand Details</p>
-            <div className="modal-content add">
-                {/* Second Hand Details */}
-                <form className="add-bus-form">
-                    {/* Form row - acquisition date and acquisition method */}
-                    <div className="form-row">
-                        {/* Acquisition Date */}
-                        <div className="form-group">
-                            <label>Acquisition Date</label>
-                            <input disabled
-                                className={formErrors?.secHandAcquiDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.secHandAcquiDate}
-                                onChange={(e) => handleChange("secHandAcquiDate", e.target.value)}
-                                placeholder="Select acquisition date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.secHandAcquiDate}</p>
-                        </div>
+                                <div className="form-group">
+                                    <label>Acquisition Method</label>
+                                    <select disabled
+                                        className={formErrors?.acquisitionMethod ? "invalid-input" : ""}
+                                        value={formData.acquisitionMethod}
+                                        onChange={(e) => handleChange("acquisitionMethod", e.target.value)}
+                                    >
+                                        <option value="" disabled>Select acquisition method...</option>
+                                        <option value="purchased">Purchased</option>
+                                        <option value="donated">Donated</option>
+                                        <option value="leased">Leased</option>
+                                    </select>
+                                    <p className="edit-error-message">{formErrors?.acquisitionMethod}</p>
+                                </div>
+                            </div>
 
-                        {/* Acquisition Method */}
-                        <div className="form-group">
-                            <label>Acquisition Method</label>
-                            <select disabled
-                                className={formErrors?.secHandAcquiMethod ? "invalid-input" : ""}
-                                value={formData.secHandAcquiMethod}
-                                onChange={(e) => handleChange("secHandAcquiMethod", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Acquisition Method--</option>
-                                <option value="purchased">Purchased</option>
-                                <option value="donated">Donated</option>
-                                <option value="leased">Leased</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.secHandAcquiMethod}</p>
-                        </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="required">Previous Owner</label>
+                                    <input
+                                        className={formErrors?.previousOwner ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.previousOwner}
+                                        onChange={(e) => handleChange("previousOwner", e.target.value)}
+                                        placeholder="Enter previous owner name here..."
+                                    />
+                                    <p className="edit-error-message">{formErrors?.previousOwner}</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="required">Previous Owner Contact</label>
+                                    <input
+                                        className={formErrors?.previousOwnerContact ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.previousOwnerContact}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/[^0-9]/g, "");
+                                            handleChange("previousOwnerContact", value);
+                                        }}
+                                        placeholder="Enter previous owner contact here..."
+                                        inputMode="tel"
+                                        maxLength={11}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.previousOwnerContact}</p>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Source</label>
+                                    <select disabled
+                                        className={formErrors?.source ? "invalid-input" : ""}
+                                        value={formData.source}
+                                        onChange={(e) => handleChange("source", e.target.value)}
+                                    >
+                                        <option value="" disabled>Select source...</option>
+                                        <option value="dealership">Dealership</option>
+                                        <option value="auction">Auction</option>
+                                        <option value="private-individual">Private Individual</option>
+                                    </select>
+                                    <p className="edit-error-message">{formErrors?.source}</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Odometer Reading</label>
+                                    <input disabled
+                                        className={formErrors?.odometerReading ? "invalid-input" : ""}
+                                        type="number"
+                                        value={formData.odometerReading}
+                                        placeholder="Enter odometer reading..."
+                                        onChange={(e) => handleChange("odometerReading", e.target.value)}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.odometerReading}</p>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="required">Warranty Expiration Date</label>
+                                    <input
+                                        className={formErrors?.warrantyExpirationDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.warrantyExpirationDate}
+                                        onChange={(e) => handleChange("warrantyExpirationDate", e.target.value)}
+                                        min={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.warrantyExpirationDate}</p>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Last Registration Date</label>
+                                    <input disabled
+                                        className={formErrors?.lastRegistrationDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.lastRegistrationDate}
+                                        max={new Date().toISOString().split("T")[0]}
+                                        onChange={(e) => handleChange("lastRegistrationDate", e.target.value)}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.lastRegistrationDate}</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Last Maintenance Date</label>
+                                    <input disabled
+                                        className={formErrors?.lastMaintenanceDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.lastMaintenanceDate}
+                                        max={new Date().toISOString().split("T")[0]}
+                                        onChange={(e) => handleChange("lastMaintenanceDate", e.target.value)}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.lastMaintenanceDate}</p>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Initial Bus Condition/Notes</label>
+                                    <textarea
+                                        className={formErrors?.conditionNotes ? "invalid-input" : ""}
+                                        value={formData.conditionNotes}
+                                        onChange={(e) => handleChange("conditionNotes", e.target.value)}
+                                        placeholder="Enter initial bus condition or notes here..."
+                                        rows={3}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.conditionNotes}</p>
+                                </div>
+                            </div>
+                        </form>
                     </div>
+                </>
+            )}
 
-                    {/* Form row - previous owner name and age */}
-                    <div className="form-row">
-                        {/* Previous Owner */}
-                        <div className="form-group">
-                            <label>Previous Owner</label>
-                            <input
-                                className={formErrors?.prevOwner ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.prevOwner}
-                                onChange={(e) => handleChange("prevOwner", e.target.value)}
-                                placeholder="Enter previous owner name here..."
-                            />
-                            <p className="add-error-message">{formErrors?.prevOwner}</p>
-                        </div>
+            {/* Brand New Details */}
+            {item.condition === "Brand New" && (
+                <>
+                    <p className="details-title">II. Brand New Details</p>
+                    <div className="modal-content edit">
+                        <form className="edit-form">
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Acquisition Date</label>
+                                    <input disabled
+                                        className={formErrors?.acquisitionDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.acquisitionDate}
+                                        max={new Date().toISOString().split("T")[0]}
+                                        onChange={(e) => handleChange("acquisitionDate", e.target.value)}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.acquisitionDate}</p>
+                                </div>
 
-                        {/* Previous Owner Contact */}
-                        <div className="form-group">
-                            <label>Previous Owner Contact</label>
-                            <input
-                                className={formErrors?.prevOwnerContact ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.prevOwnerContact}
-                                onChange={(e) => {
-                                    // Only allow numbers, hyphens, and spaces
-                                    const value = e.target.value.replace(/[^0-9\- ]/g, "");
-                                    handleChange("prevOwnerContact", value);
-                                }}
-                                placeholder="Enter previous owner contact here..."
-                                inputMode="tel"
-                                pattern="[0-9\- ]*"
-                            />
-                            <p className="add-error-message">{formErrors?.prevOwnerContact}</p>
-                        </div>
+                                <div className="form-group">
+                                    <label>Acquisition Method</label>
+                                    <select disabled
+                                        className={formErrors?.acquisitionMethod ? "invalid-input" : ""}
+                                        value={formData.acquisitionMethod}
+                                        onChange={(e) => handleChange("acquisitionMethod", e.target.value)}
+                                    >
+                                        <option value="" disabled>Select acquisition method...</option>
+                                        <option value="purchased">Purchased</option>
+                                        <option value="donated">Donated</option>
+                                        <option value="leased">Leased</option>
+                                    </select>
+                                    <p className="edit-error-message">{formErrors?.acquisitionMethod}</p>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="required">Dealer Name</label>
+                                    <input
+                                        className={formErrors?.dealerName ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.dealerName}
+                                        onChange={(e) => handleChange("dealerName", e.target.value)}
+                                        placeholder="Enter dealer name here..."
+                                    />
+                                    <p className="edit-error-message">{formErrors?.dealerName}</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="required">Dealer Contact</label>
+                                    <input
+                                        className={formErrors?.dealerContact ? "invalid-input" : ""}
+                                        type="text"
+                                        value={formData.dealerContact}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/[^0-9]/g, "");
+                                            handleChange("dealerContact", value);
+                                        }}
+                                        placeholder="Enter dealer contact here..."
+                                        inputMode="tel"
+                                        maxLength={11}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.dealerContact}</p>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="required">Warranty Expiration Date</label>
+                                    <input
+                                        className={formErrors?.warrantyExpirationDate ? "invalid-input" : ""}
+                                        type="date"
+                                        value={formData.warrantyExpirationDate}
+                                        onChange={(e) => handleChange("warrantyExpirationDate", e.target.value)}
+                                        min={new Date().toISOString().split("T")[0]}
+                                    />
+                                    <p className="edit-error-message">{formErrors?.warrantyExpirationDate}</p>
+                                </div>
+                            </div>
+                        </form>
                     </div>
+                </>
+            )}
 
-                    {/* Form row - source and odometer reader */}
+            {/* Document Attachments */}
+
+            <p className="details-title">III. Document Attachments</p>
+            <div className="modal-content edit">
+                <form className="edit-form">
+                    {/* Official Receipt (OR) */}
                     <div className="form-row">
-                        {/* Source */}
                         <div className="form-group">
-                            <label>Source</label>
-                            <select disabled
-                                className={formErrors?.source ? "invalid-input" : ""}
-                                value={formData.source}
-                                onChange={(e) => handleChange("source", e.target.value)}
-                            >
-                                <option value="" disabled>--Select source--</option>
-                                <option value="dealership">Dealership</option>
-                                <option value="action">Action</option>
-                                <option value="private individual">Private Individual</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.source}</p>
-                        </div>
+                            <label className="required">Official Receipt (OR) Attachment</label>
+                            <label htmlFor="file-input-or" className="upload-zone">
+                                <input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={async (e) => {
+                                        if (getTotalFilesCount() >= 10) {
+                                            await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                            return;
+                                        }
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            setPendingOrFile(file);
+                                        } else {
+                                            setPendingOrFile(null);
+                                        }
+                                    }}
+                                    className="upload-input"
+                                    id="file-input-or"
+                                />
+                                <div className="upload-icon"><i className="ri-file-text-line" /></div>
+                                <div>
+                                    <p className="upload-text">Click to browse files</p>
+                                    <p className="upload-subtext">PDF, JPG, PNG</p>
+                                </div>
+                            </label>
 
-                        {/* Odometer Reading */}
-                        <div className="form-group">
-                            <label>Odometer Reading</label>
-                            <input disabled
-                                className={formErrors?.odometerReading ? "invalid-input" : ""}
-                                type="number"
-                                min="0"
-                                step="1"
-                                value={formData.odometerReading}
-                                onChange={(e) => {
-                                    // Only allow integers, ignore decimals
-                                    const value = e.target.value;
-                                    if (/^\d*$/.test(value)) {
-                                        handleChange("odometerReading", value === "" ? 0 : Number(value));
-                                    }
-                                }}
-
-                                inputMode="numeric"
-                                pattern="\d*"
-                                placeholder="Enter odometer reading..."
-                            />
-                            <p className="add-error-message">{formErrors?.odometerReading}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - warranty expiration date and registration status*/}
-                    <div className="form-row">
-                        {/* Warranty Expiration Date */}
-                        <div className="form-group">
-                            <label>Warranty Expiration Date</label>
-                            <input
-                                className={formErrors?.secHandWarrantyExpiryDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.secHandWarrantyExpiryDate}
-                                onChange={(e) => handleChange("secHandWarrantyExpiryDate", e.target.value)}
-                                placeholder="Select warranty expiration date..."
-                                min={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.secHandWarrantyExpiryDate}</p>
-                        </div>
-
-                        {/* Registration Status */}
-                        <div className="form-group">
-                            <label>Registration Status</label>
-                            <select
-                                className={formErrors?.registrationStatus ? "invalid-input" : ""}
-                                value={formData.registrationStatus}
-                                onChange={(e) => handleChange("registrationStatus", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Registration Status--</option>
-                                <option value="registered">Registered</option>
-                                <option value="needs renewal">Needs Renewal</option>
-                                <option value="expired">Expired</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.registrationStatus}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - last registration date and last maintenance date */}
-                    <div className="form-row">
-                        {/* Last Registration Date */}
-                        <div className="form-group">
-                            <label>Last Registration Date</label>
-                            <input disabled
-                                className={formErrors?.lastRegistrationDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.lastRegistrationDate}
-                                onChange={(e) => handleChange("lastRegistrationDate", e.target.value)}
-                                placeholder="Select last registration date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.lastRegistrationDate}</p>
-                        </div>
-
-                        {/* Last Maintenance Date */}
-                        <div className="form-group">
-                            <label>Last Maintenance Date</label>
-                            <input disabled
-                                className={formErrors?.lastMaintenanceDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.lastMaintenanceDate}
-                                onChange={(e) => handleChange("lastMaintenanceDate", e.target.value)}
-                                placeholder="Select last maintenance date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.lastMaintenanceDate}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - initial bus condition/notes */}
-                    <div className="form-row">
-                        {/* Initial Bus Condition/Notes */}
-                        <div className="form-group">
-                            <label>Initial Bus Condition/Notes</label>
-                            <textarea
-                                className={formErrors?.initialBusCondition ? "invalid-input" : ""}
-                                value={formData.initialBusCondition}
-                                onChange={(e) => handleChange("initialBusCondition", e.target.value)}
-                                placeholder="Enter initial bus condition or notes here..."
-                                rows={3}
-                            />
-                            <p className="add-error-message">{formErrors?.initialBusCondition}</p>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-
-            <p className="bus-details-title">II. Brand New Details</p>
-            <div className="modal-content add">
-                {/* Brand New Details */}
-                <form className="add-bus-form">
-                    {/* Form row - acquisition date and acquisition method */}
-                    <div className="form-row">
-                        {/* Acquisition Date */}
-                        <div className="form-group">
-                            <label>Acquisition Date</label>
-                            <input disabled
-                                className={formErrors?.newAcquiDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.newAcquiDate}
-                                onChange={(e) => handleChange("newAcquiDate", e.target.value)}
-                                placeholder="Select acquisition date..."
-                                max={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.newAcquiDate}</p>
-                        </div>
-
-                        {/* Acquisition Method */}
-                        <div className="form-group">
-                            <label>Acquisition Method</label>
-                            <select disabled
-                                className={formErrors?.newAcquiMethod ? "invalid-input" : ""}
-                                value={formData.newAcquiMethod}
-                                onChange={(e) => handleChange("newAcquiMethod", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Acquisition Method--</option>
-                                <option value="purchased">Purchased</option>
-                                <option value="donated">Donated</option>
-                                <option value="leased">Leased</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.newAcquiMethod}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - dealer name and dealer contact */}
-                    <div className="form-row">
-                        {/* Dealer Name */}
-                        <div className="form-group">
-                            <label>Dealer Name</label>
-                            <input
-                                className={formErrors?.dealerName ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.dealerName}
-                                onChange={(e) => handleChange("dealerName", e.target.value)}
-                                placeholder="Enter dealer name here..."
-                            />
-                            <p className="add-error-message">{formErrors?.dealerName}</p>
-                        </div>
-
-                        {/* Dealer Contact */}
-                        <div className="form-group">
-                            <label>Dealer Contact</label>
-                            <input
-                                className={formErrors?.dealerContact ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.dealerContact}
-                                onChange={(e) => {
-                                    // Only allow numbers, hyphens, and spaces
-                                    const value = e.target.value.replace(/[^0-9\- ]/g, "");
-                                    handleChange("dealerContact", value);
-                                }}
-                                placeholder="Enter dealer owner contact here..."
-                                inputMode="tel"
-                                pattern="[0-9\- ]*"
-                            />
-                            <p className="add-error-message">{formErrors?.dealerContact}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - warranty expiration date and initial registration status */}
-                    <div className="form-row">
-                        {/* Warranty Expiration Date */}
-                        <div className="form-group">
-                            <label>Warranty Expiration Date</label>
-                            <input
-                                className={formErrors?.newWarrantyExpiryDate ? "invalid-input" : ""}
-                                type="date"
-                                value={formData.newWarrantyExpiryDate}
-                                onChange={(e) => handleChange("newWarrantyExpiryDate", e.target.value)}
-                                placeholder="Select warranty expiration date..."
-                                min={new Date().toISOString().split("T")[0]}
-                            />
-                            <p className="add-error-message">{formErrors?.newWarrantyExpiryDate}</p>
-                        </div>
-
-                        {/* Registration Status */}
-                        <div className="form-group">
-                            <label>Registration Status</label>
-                            <select
-                                className={formErrors?.initialRegistrationStatus ? "invalid-input" : ""}
-                                value={formData.initialRegistrationStatus}
-                                onChange={(e) => handleChange("initialRegistrationStatus", e.target.value)}
-                            >
-                                <option value="" disabled>--Select Registration Status--</option>
-                                <option value="registered">Registered</option>
-                                <option value="not-registered">Not Registered</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.initialRegistrationStatus}</p>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <p className="bus-details-title">III. Document Attachments</p>
-            <div className="modal-content add">
-                {/* Attached Documents */}
-                <form className="add-bus-form">
-                    {/* Form row - OR/CR */}
-                    <div className="form-row">
-                        {/* OR/CR */}
-                        <div className="form-group">
-                            <label>OR/CR Attachment</label>
-                            <input
-                                className={formErrors?.orcr ? "invalid-input" : ""}
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    handleChange("orcr", file ? file.name : "");
-                                }}
-                            />
-                            <p className="add-error-message">{formErrors?.orcr}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - Other Documents */}
-                    <div className="form-row">
-                        {/* Other Documents */}
-                        <div className="form-group">
-                            <label>Other Attachments</label>
-                            <input
-                                className={formErrors?.otherDocuments ? "invalid-input" : ""}
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                multiple
-                                onChange={(e) => {
-                                    const files = Array.from(e.target.files || []);
-                                    const newFileNames = files.map(f => f.name);
-                                    const allFiles = Array.from(new Set([...formData.otherDocuments, ...newFileNames]));
-                                    handleChange("otherDocuments", allFiles);
-                                }}
-                            />
-                            {/* Show all uploaded document names and remove buttons */}
-                            {formData.otherDocuments.length > 0 && (
-                                <ul className="uploaded-documents-list">
-                                    {formData.otherDocuments.map((doc: string, idx: number) => (
-                                        <li key={idx} className="uploaded-document-item">
-                                            <span>{doc}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = formData.otherDocuments.filter((_: string, i: number) => i !== idx);
-                                                    handleChange("otherDocuments", updated);
-                                                }}
-                                                className="remove-document-button"
-                                                aria-label={`Remove document ${doc}`}
-                                            >
-                                                <i className="ri-close-line"></i>
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
+                            {/* Show existing OR file */}
+                            {formData.orFile && !pendingOrFile && (
+                                <FileList
+                                    files={[{ name: formData.orFile }]}
+                                    showRemove={true}
+                                    onRemove={() => handleChange("orFile", "")}
+                                />
                             )}
 
-                            <p className="add-error-message">{formErrors?.otherDocuments}</p>
+                            {/* Show pending OR file */}
+                            {pendingOrFile && (
+                                <FileList
+                                    files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]}
+                                    showRemove={true}
+                                    onRemove={() => setPendingOrFile(null)}
+                                />
+                            )}
+                            <p className="edit-error-message">{formErrors?.orFile}</p>
+                        </div>
+                    </div>
+
+                    {/* Certificate of Registration (CR) */}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Certificate of Registration (CR) Attachment</label>
+                            <label htmlFor="file-input-cr" className="upload-zone">
+                                <input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={async (e) => {
+                                        if (getTotalFilesCount() >= 10) {
+                                            await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                            return;
+                                        }
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            setPendingCrFile(file);
+                                        } else {
+                                            setPendingCrFile(null);
+                                        }
+                                    }}
+                                    className="upload-input"
+                                    id="file-input-cr"
+                                />
+                                <div className="upload-icon"><i className="ri-file-text-line" /></div>
+                                <div>
+                                    <p className="upload-text">Click to browse files</p>
+                                    <p className="upload-subtext">PDF, JPG, PNG</p>
+                                </div>
+                            </label>
+
+                            {/* Show existing CR file */}
+                            {formData.crFile && !pendingCrFile && (
+                                <FileList
+                                    files={[{ name: formData.crFile }]}
+                                    showRemove={true}
+                                    onRemove={() => handleChange("crFile", "")}
+                                />
+                            )}
+
+                            {/* Show pending CR file */}
+                            {pendingCrFile && (
+                                <FileList
+                                    files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]}
+                                    showRemove={true}
+                                    onRemove={() => setPendingCrFile(null)}
+                                />
+                            )}
+                            <p className="edit-error-message">{formErrors?.crFile}</p>
+                        </div>
+                    </div>
+
+                    {/* Other Documents/Attachments */}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Other Attachments</label>
+                            <label htmlFor="file-input-other" className="upload-zone">
+                                <input
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    multiple
+                                    onChange={async (e) => {
+                                        const files = Array.from(e.target.files || []);
+                                        if (files.length === 0) return;
+                                        if (getTotalFilesCount() + files.length > 10) {
+                                            await showBusSaveError("You can only attach up to 10 files per bus record.");
+                                            return;
+                                        }
+                                        setPendingOtherFiles(prev => [...prev, ...files]);
+                                    }}
+                                    className="upload-input"
+                                    id="file-input-other"
+                                />
+                                <div className="upload-icon"><i className="ri-file-text-line" /></div>
+                                <div>
+                                    <p className="upload-text">Click to browse files</p>
+                                    <p className="upload-subtext">PDF, JPG, PNG • Multiple files allowed</p>
+                                </div>
+                            </label>
+
+                            {/* Display existing documents */}
+                            {formData.otherDocuments.length > 0 && (
+                                <>
+                                    <div className="uploaded-files-label">Existing Files ({formData.otherDocuments.length})</div>
+                                    <FileList
+                                        files={formData.otherDocuments.map(name => ({ name }))}
+                                        showRemove={true}
+                                        onRemove={(idx) => {
+                                            const updated = formData.otherDocuments.filter((_, i) => i !== idx);
+                                            handleChange("otherDocuments", updated);
+                                        }}
+                                    />
+                                </>
+                            )}
+
+                            {/* Display pending documents */}
+                            {pendingOtherFiles.length > 0 && (
+                                <>
+                                    <div className="uploaded-files-label">New Files ({pendingOtherFiles.length})</div>
+                                    <FileList
+                                        files={pendingOtherFiles.map(f => ({ name: f.name, size: f.size }))}
+                                        showRemove={true}
+                                        onRemove={(idx) => {
+                                            setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
+                                        }}
+                                    />
+                                </>
+                            )}
+
+                            <p className="edit-error-message">{formErrors?.otherDocuments}</p>
                         </div>
                     </div>
                 </form>
@@ -745,11 +842,10 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
 
             <div className="modal-actions">
-                <button type="submit" className="submit-btn" form="edit-bus-form">
-                    <i className="ri-save-3-line" /> Update
-                </button>
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
+					<i className="ri-save-3-line" /> Update
+				</button>
             </div>
-
         </>
     );
 }
