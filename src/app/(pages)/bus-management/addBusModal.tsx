@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { getFileType, formatFileSize, getFileIcon } from '@/utils/fileHelpers';
 import { FileList } from "@/components/fileList";
 
 import {
@@ -28,7 +27,6 @@ export interface BusForm {
     acquisitionDate?: string,
     acquisitionMethod?: string,
     warrantyExpirationDate?: string,
-    registrationStatus?: string,
 
     // Second Hand Details
     previousOwner?: string,
@@ -76,7 +74,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
         condition: "",
         acquisitionDate: "",
         acquisitionMethod: "",
-        registrationStatus: "",
         warrantyExpirationDate: "",
 
         // Second hand details
@@ -707,7 +704,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                 </div>
                             </div>
 
-                            {/* Form row - warranty expiration date and registration status*/}
+                            {/* Form row - warranty expiration date */}
                             <div className="form-row">
                                 {/* Warranty Expiration Date */}
                                 <div className="form-group">
@@ -720,22 +717,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     />
                                     <p className="add-error-message"></p>
                                 </div>
-
-                                {/* Registration Status */}
-                                {/* <div className="form-group">
-                                    <label>Registration Status</label>
-                                    <select
-                                        className={formErrors?.registrationStatus ? "invalid-input" : ""}
-                                        value={busForm.registrationStatus}
-                                        onChange={(e) => handleChange("registrationStatus", e.target.value)}
-                                    >
-                                        <option value="" disabled>Select registration status...</option>
-                                        <option value="registered">Registered</option>
-                                        <option value="needs renewal">Needs Renewal</option>
-                                        <option value="expired">Expired</option>
-                                    </select>
-                                    <p className="add-error-message">{formErrors?.registrationStatus}</p>
-                                </div> */}
                             </div>
 
                             {/* Form row - last registration date and last maintenance date */}
@@ -875,22 +856,6 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     />
                                     <p className="add-error-message">{formErrors?.warrantyExpirationDate}</p>
                                 </div>
-
-                                {/* Registration Status */}
-                                {/* <div className="form-group">
-                                    <label>Registration Status</label>
-                                    <select
-                                        className={formErrors?.registrationStatus ? "invalid-input" : ""}
-                                        value={busForm.registrationStatus}
-                                        onChange={(e) => handleChange("registrationStatus", e.target.value)}
-                                    >
-                                        <option value="" disabled>Select registration status...</option>
-                                        <option value="registered">Registered</option>
-                                        <option value="needs renewal">Needs Renewal</option>
-                                        <option value="expired">Expired</option>
-                                    </select>
-                                    <p className="add-error-message">{formErrors?.registrationStatus}</p>
-                                </div> */}
                             </div>
                         </form>
                     </div>
@@ -939,11 +904,15 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     {/* Display uploaded document */}
                                     {pendingOrFile && (
                                         <FileList
-                                            files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]}
+                                            files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]
+                                            }
                                             showRemove={true}
-                                            onRemove={() => {
-                                                setPendingOrFile(null);
-                                                handleChange("crFile", "");
+                                            onRemove={async () => {
+                                                const result = await showRemoveFileConfirmation();
+                                                if (result.isConfirmed) {
+                                                    setPendingOrFile(null);
+                                                    handleChange("orFile", "");
+                                                }
                                             }}
                                         />
                                     )}
@@ -986,11 +955,15 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     {/* Display uploaded document */}
                                     {pendingCrFile && (
                                         <FileList
-                                            files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]}
+                                            files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]
+                                            }
                                             showRemove={true}
-                                            onRemove={() => {
-                                                setPendingCrFile(null);
-                                                handleChange("crFile", "");
+                                            onRemove={async () => {
+                                                const result = await showRemoveFileConfirmation();
+                                                if (result.isConfirmed) {
+                                                    setPendingCrFile(null);
+                                                    handleChange("crFile", "");
+                                                }
                                             }}
                                         />
                                     )}
@@ -1033,8 +1006,11 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                             <FileList
                                                 files={pendingOtherFiles.map(f => ({ name: f.name, size: f.size }))}
                                                 showRemove={true}
-                                                onRemove={(idx) => {
-                                                    setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
+                                                onRemove={async (idx) => {
+                                                    const result = await showRemoveFileConfirmation();
+                                                    if (result.isConfirmed) {
+                                                        setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
+                                                    }
                                                 }} />
                                         </>
                                     )}

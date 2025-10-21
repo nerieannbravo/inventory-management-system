@@ -29,7 +29,6 @@ interface EditBusModalProps {
         acquisitionDate?: string,
         acquisitionMethod?: string,
         warrantyExpirationDate?: string,
-        registrationStatus?: string,
 
         // Second Hand Details
         previousOwner?: string,
@@ -70,7 +69,6 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         condition: item.condition || "",
         acquisitionDate: item.acquisitionDate || "",
         acquisitionMethod: item.acquisitionMethod || "",
-        registrationStatus: item.registrationStatus || "",
         warrantyExpirationDate: item.warrantyExpirationDate || "",
         previousOwner: item.previousOwner || "",
         previousOwnerContact: item.previousOwnerContact || "",
@@ -81,9 +79,9 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
         conditionNotes: item.conditionNotes || "",
         dealerName: item.dealerName || "",
         dealerContact: item.dealerContact || "",
-        orFile: item.orFile || "",
-        crFile: item.crFile || "",
-        otherDocuments: item.otherDocuments || [],
+        orFile: item.orFile || "Official_Receipt.pdf", // temporary placeholder
+        crFile: item.crFile || "Certficate_of_Registration.pdf", // temporary placeholder
+        otherDocuments: item.otherDocuments || ['Other_Attachment.pdf', 'Additional_Document.pdf'], // temporary placeholder
     });
 
     // Pending file state for new uploads
@@ -146,7 +144,6 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
             ) {
                 errors.previousOwnerContact = "Dealer contact must be exactly 11 digits";
             }
-            if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
             if (!formData.lastRegistrationDate) {
                 errors.lastRegistrationDate = "Last registration date is required";
             } else {
@@ -182,10 +179,22 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
             ) {
                 errors.dealerContact = "Dealer contact must be exactly 11 digits";
             }
-            if (!formData.registrationStatus) errors.registrationStatus = "Registration status is required";
+        }
+
+        // Document Attachments validation - check for actual file selections
+        // Uncomment if OR is editable
+        // if (!formData.orFile && !pendingOrFile) {
+        //     errors.orFile = "Official Receipt (OR) attachment is required.";
+        // }
+        if (!formData.crFile && !pendingCrFile) {
+            errors.crFile = "Certificate of Registration (CR) attachment is required.";
+        }
+        if (pendingOtherFiles.length + formData.otherDocuments.length === 0) {
+            errors.otherDocuments = "At least one other document attachment is required.";
         }
 
         setFormErrors(errors);
+        console.log('Validation errors:', errors);
         return Object.keys(errors).length === 0;
     };
 
@@ -422,11 +431,11 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                         <div className="form-group">
                             <label>Status</label>
                             <input disabled
-								className={formErrors?.status ? "invalid-input" : ""}
-								type="text"
-								value={formatStatus(formData.status)}
-								onChange={(e) => handleChange("status", e.target.value)}
-							/>
+                                className={formErrors?.status ? "invalid-input" : ""}
+                                type="text"
+                                value={formatStatus(formData.status)}
+                                onChange={(e) => handleChange("status", e.target.value)}
+                            />
                             <p className="edit-error-message">{formErrors?.status}</p>
                         </div>
                     </div>
@@ -530,8 +539,8 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label className="required">Warranty Expiration Date</label>
-                                    <input
+                                    <label>Warranty Expiration Date</label>
+                                    <input disabled
                                         className={formErrors?.warrantyExpirationDate ? "invalid-input" : ""}
                                         type="date"
                                         value={formData.warrantyExpirationDate}
@@ -544,8 +553,8 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Last Registration Date</label>
-                                    <input disabled
+                                    <label className="required">Last Registration Date</label>
+                                    <input
                                         className={formErrors?.lastRegistrationDate ? "invalid-input" : ""}
                                         type="date"
                                         value={formData.lastRegistrationDate}
@@ -556,8 +565,8 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Last Maintenance Date</label>
-                                    <input disabled
+                                    <label className="required">Last Maintenance Date</label>
+                                    <input
                                         className={formErrors?.lastMaintenanceDate ? "invalid-input" : ""}
                                         type="date"
                                         value={formData.lastMaintenanceDate}
@@ -654,8 +663,8 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label className="required">Warranty Expiration Date</label>
-                                    <input
+                                    <label>Warranty Expiration Date</label>
+                                    <input disabled
                                         className={formErrors?.warrantyExpirationDate ? "invalid-input" : ""}
                                         type="date"
                                         value={formData.warrantyExpirationDate}
@@ -678,8 +687,9 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                     {/* Official Receipt (OR) */}
                     <div className="form-row">
                         <div className="form-group">
-                            <label className="required">Official Receipt (OR) Attachment</label>
-                            <label htmlFor="file-input-or" className="upload-zone">
+                            <label>Official Receipt (OR) Attachment</label>
+                            {/* Uncomment if OR is editable */}
+                            {/* <label htmlFor="file-input-or" className="upload-zone">
                                 <input
                                     type="file"
                                     accept=".pdf,.jpg,.jpeg,.png"
@@ -703,23 +713,41 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                     <p className="upload-text">Click to browse files</p>
                                     <p className="upload-subtext">PDF, JPG, PNG</p>
                                 </div>
-                            </label>
+                            </label> */}
 
-                            {/* Show existing OR file */}
+                            {/* Show existing OR file if not editable*/}
                             {formData.orFile && !pendingOrFile && (
+                                <FileList
+                                    files={[
+                                        { name: formData.orFile }
+                                    ]}
+                                    onFileClick={(file) => {
+                                        // Temporary opening of file
+                                        window.open(file.url, '_blank');
+                                    }}
+                                />
+                            )}
+
+                            {/* Show existing OR file if editable */}
+                            {/* {formData.orFile && !pendingOrFile && (
                                 <FileList
                                     files={[{ name: formData.orFile }]}
                                     showRemove={true}
                                     onRemove={() => handleChange("orFile", "")}
                                 />
-                            )}
+                            )} */}
 
                             {/* Show pending OR file */}
                             {pendingOrFile && (
                                 <FileList
                                     files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]}
                                     showRemove={true}
-                                    onRemove={() => setPendingOrFile(null)}
+                                    onRemove={async () => {
+                                        const result = await showRemoveFileConfirmation(pendingOrFile?.name);
+                                        if (result.isConfirmed) {
+                                            setPendingOrFile(null);
+                                        }
+                                    }}
                                 />
                             )}
                             <p className="edit-error-message">{formErrors?.orFile}</p>
@@ -729,7 +757,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                     {/* Certificate of Registration (CR) */}
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Certificate of Registration (CR) Attachment</label>
+                            <label className="required">Certificate of Registration (CR) Attachment</label>
                             <label htmlFor="file-input-cr" className="upload-zone">
                                 <input
                                     type="file"
@@ -761,7 +789,12 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                 <FileList
                                     files={[{ name: formData.crFile }]}
                                     showRemove={true}
-                                    onRemove={() => handleChange("crFile", "")}
+                                    onRemove={async () => {
+                                        const result = await showRemoveFileConfirmation(formData.crFile);
+                                        if (result.isConfirmed) {
+                                            handleChange("crFile", "");
+                                        }
+                                    }}
                                 />
                             )}
 
@@ -770,7 +803,12 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                 <FileList
                                     files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]}
                                     showRemove={true}
-                                    onRemove={() => setPendingCrFile(null)}
+                                    onRemove={async () => {
+                                        const result = await showRemoveFileConfirmation(pendingCrFile?.name);
+                                        if (result.isConfirmed) {
+                                            setPendingCrFile(null);
+                                        }
+                                    }}
                                 />
                             )}
                             <p className="edit-error-message">{formErrors?.crFile}</p>
@@ -780,7 +818,7 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                     {/* Other Documents/Attachments */}
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Other Attachments</label>
+                            <label className="required">Other Attachments</label>
                             <label htmlFor="file-input-other" className="upload-zone">
                                 <input
                                     type="file"
@@ -812,9 +850,13 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                     <FileList
                                         files={formData.otherDocuments.map(name => ({ name }))}
                                         showRemove={true}
-                                        onRemove={(idx) => {
-                                            const updated = formData.otherDocuments.filter((_, i) => i !== idx);
-                                            handleChange("otherDocuments", updated);
+                                        onRemove={async (idx) => {
+                                            const fileName = formData.otherDocuments[idx];
+                                            const result = await showRemoveFileConfirmation(fileName);
+                                            if (result.isConfirmed) {
+                                                const updated = formData.otherDocuments.filter((_, i) => i !== idx);
+                                                handleChange("otherDocuments", updated);
+                                            }
                                         }}
                                     />
                                 </>
@@ -827,8 +869,12 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
                                     <FileList
                                         files={pendingOtherFiles.map(f => ({ name: f.name, size: f.size }))}
                                         showRemove={true}
-                                        onRemove={(idx) => {
-                                            setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
+                                        onRemove={async (idx) => {
+                                            const fileName = pendingOtherFiles[idx]?.name;
+                                            const result = await showRemoveFileConfirmation(fileName);
+                                            if (result.isConfirmed) {
+                                                setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
+                                            }
                                         }}
                                     />
                                 </>
@@ -843,8 +889,8 @@ export default function EditBusModal({ item, onSave, onClose }: EditBusModalProp
 
             <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
-					<i className="ri-save-3-line" /> Update
-				</button>
+                    <i className="ri-save-3-line" /> Update
+                </button>
             </div>
         </>
     );

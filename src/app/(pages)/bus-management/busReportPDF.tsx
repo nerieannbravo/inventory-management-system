@@ -15,7 +15,7 @@ import {
     generateFileName,
     formatBusStatus,
     formatBodyBuilder,
-    formatBusCondition,
+    // formatBusCondition,
     formatBusType,
     getBusStatusStyle
 } from '@/utils/pdfReportUtils';
@@ -27,7 +27,6 @@ interface BusItem {
     bodyNumber: string;
     plateNumber: string;
     bodyBuilder: string;
-    condition: string;
     status: string;
     busType: string;
     seatCapacity: number;
@@ -119,9 +118,6 @@ const BusReportDocument: React.FC<{
                             <Text style={reportStyles.columnSmall}>
                                 {formatBodyBuilder(item.bodyBuilder)}
                             </Text>
-                            <Text style={reportStyles.columnMedium}>
-                                {formatBusCondition(item.condition)}
-                            </Text>
                             <Text style={reportStyles.columnSmall}>
                                 {formatBusType(item.busType)}
                             </Text>
@@ -182,7 +178,7 @@ export const BusReportPreviewModal: React.FC<BusReportPDFProps> = ({
                                     reportTitle={reportTitle}
                                 />
                             }
-                            fileName={generateFileName('bus')}
+                            fileName={generateFileName('Bus')}
                             className="download-btn"
                         >
                             {({ blob, url, loading, error }) =>

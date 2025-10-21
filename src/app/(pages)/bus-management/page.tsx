@@ -363,7 +363,7 @@ export default function BusManagement() {
                                     <th>Body Number</th>
                                     <th>Plate Number</th>
                                     <th>Body Builder</th>
-                                    <th>Condition</th>
+                                    {/* <th>Condition</th> */}
                                     <th>Status</th>
                                     <th>Bus Type</th>
                                     <th>Seat Capacity</th>
@@ -379,7 +379,7 @@ export default function BusManagement() {
                                         <td>{item.bodyNumber}</td>
                                         <td>{item.plateNumber}</td>
                                         <td>{item.bodyBuilder}</td>
-                                        <td>{item.condition}</td>
+                                        {/* <td>{item.condition}</td> */}
                                         <td className="table-status">
                                             <span className={`chip ${item.status}`}>
                                                 {formatStatus(item.status)}
