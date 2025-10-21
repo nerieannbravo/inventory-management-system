@@ -268,9 +268,10 @@
 
 /* ----- FILTER RESULT STYLING ----- */
 .filter-results {
-    font-size: 14px;
+    font-size: 12px;
     font-style: italic;
     color: var(--secondary-text-color);
+    margin-top: -10px;
     margin-bottom: 10px;
     padding-left: 5px;
 }

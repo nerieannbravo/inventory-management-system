@@ -52,6 +52,7 @@
   --warning-hover-color: #FCC42A;
   --highlight-hover-color: #9333EA;
   --table-row-hover-color: #DDDDDD;
+  --table-header-hover-color: #CBCBCB;
 
   /* Shadow */
   --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
