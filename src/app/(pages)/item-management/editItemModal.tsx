@@ -231,7 +231,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                 <form className="edit-form">
                     {/* Item Name */}
                     <div className="form-group">
-                        <label>Item Name</label>
+                        <label className="required">Item Name</label>
                         <input
                             className={formErrors?.itemName ? "invalid-input" : ""}
                             type="text"
@@ -245,7 +245,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                     <div className="form-row">
                         {/* Unit Measure */}
                         <div className="form-group">
-                            <label>Unit Measure</label>
+                            <label className="required">Unit Measure</label>
                             <input
                                 className={formErrors?.itemUnit ? "invalid-input" : ""}
                                 type="text"
@@ -275,7 +275,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
 
                         {/* Status */}
                         <div className="form-group">
-                            <label>Status</label>
+                            <label className="required">Status</label>
                             <select
                                 className={formErrors?.itemStatus ? "invalid-input" : ""}
                                 value={formData.itemStatus || ""}
@@ -314,35 +314,45 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
             </div>
 
             {/* Table */}
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Supplier Name</th>
-                        <th>Unit Price</th>
-                        <th>Average Delivery Time</th>
-                        <th>Last Updated</th>
-                        <th>Notes</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    {linkedSuppliers.map(supplier => (
-                        <tr key={supplier.id}>
-                            <td>{supplier.linkedSupplierName}</td>
-                            <td>{supplier.unitPrice}</td>
-                            <td>{supplier.deliveryTime}</td>
-                            <td>{supplier.lastUpdated}</td>
-                            <td>{supplier.notes}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-linkedSupplier", supplier)}
-                                    onDelete={() => openModal("delete-linkedSupplier", supplier)}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="modal-table-wrapper">
+                <div className="modal-table-container">
+                    <table className="modal-table">
+                        <thead className="modal-table-heading">
+                            <tr>
+                                <th>Supplier Name</th>
+                                <th>Unit Price</th>
+                                <th>Average Delivery Time</th>
+                                <th>Last Updated</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="modal-table-body">
+                            {linkedSuppliers.length > 0 ? (
+                                linkedSuppliers.map((supplier) => (
+                                    <tr key={supplier.id}>
+                                        <td>{supplier.linkedSupplierName}</td>
+                                        <td>{supplier.unitPrice}</td>
+                                        <td>{supplier.deliveryTime}</td>
+                                        <td>{supplier.lastUpdated}</td>
+                                        <td>{supplier.notes}</td>
+                                        <td>
+                                            <ActionButtons
+                                                onEdit={() => openModal("edit-linkedSupplier", supplier)}
+                                                onDelete={() => openModal("delete-linkedSupplier", supplier)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="no-data">No linked suppliers available.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>

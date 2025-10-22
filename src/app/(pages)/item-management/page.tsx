@@ -5,11 +5,13 @@ import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+// import Loading from "@/components/loading";
 
 import AddItemModal, { ItemForm } from "./addItemModal";
 import ViewItemModal from "./viewItemModal";
 import EditItemModal from "./editItemModal";
 import AddCategoryModal, { CategoryForm } from "./category/addCategoryModal";
+import { ItemReportPreviewModal } from "./itemReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -102,18 +104,26 @@ const hardcodedData = [
 
 
 export default function ItemManagement() {
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Item Management Report");
+
+    // Temporary filter state, remove if not being used anymore
+    const [filteredData, setFilteredData] = useState(hardcodedData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -179,34 +189,32 @@ export default function ItemManagement() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Keep a copy of the raw filters in state for other usages (report title check, etc.)
+        setFilterValues(filterValues);
 
-        // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
+
+        // normalizes a value to a simple comparable token (lowercase, remove non-alphanumerics)
+        const normalize = (value: any) =>
+            (value === null || value === undefined) ? "" : String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
 
         // Filter by status if selected
         if (filterValues.itemStatus && filterValues.itemStatus.length > 0) {
-            newData = newData.filter(item => filterValues.itemStatus.includes(item.itemStatus));
+            const normalizedFilters = filterValues.itemStatus.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.itemStatus)));
         }
 
-        // Sort by itemName or linkedSupplier
+        // Sorting
+        const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
         if (filterValues.sortBy === "itemName") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.itemName ?? "").localeCompare(b.itemName ?? "") * sortOrder;
-            });
+            newData.sort((a, b) => a.itemName.localeCompare(b.itemName) * orderMultiplier);
         } else if (filterValues.sortBy === "linkedSupplier") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.linkedSupplier ?? 0) - (b.linkedSupplier ?? 0) * sortOrder;
-            });
+            newData.sort((a, b) => ((a.linkedSupplier ?? 0) - (b.linkedSupplier ?? 0)) * orderMultiplier);
         }
 
         setFilteredData(newData);
         setCurrentPage(1); // Reset to first page when filters change
     };
-
 
     // for order status formatting
     function formatStatus(itemStatus: string) {
@@ -290,6 +298,23 @@ export default function ItemManagement() {
         closeModal();
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters are applied. 
+        // Modify this logic based on actual searching or filtering implementation.
+        const hasFilters = filteredData.length !== hardcodedData.length;
+
+        const title = hasFilters ? "Item Management Report - Filtered" : "Item Management Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
+    };
+
     return (
         <div className="card">
             <h1 className="title">Item Management</h1>
@@ -320,11 +345,7 @@ export default function ItemManagement() {
                     </button>
 
                     {/* Generate Report Button */}
-                    <button
-                        type="button"
-                        className="generate-btn"
-                    // onClick={handleGenerateReport}
-                    >
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -392,6 +413,14 @@ export default function ItemManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Item Management Report Preview Modal */}
+            <ItemReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                itemData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>

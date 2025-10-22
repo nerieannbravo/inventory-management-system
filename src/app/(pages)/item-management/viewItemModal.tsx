@@ -56,27 +56,30 @@ export default function ViewItemModal({ item, formatStatus, onClose }: ViewItemM
             </div >
 
             <p className="details-title">Linked Supplier/s</p>
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Supplier Name</th>
-                        <th>Unit Price</th>
-                        <th>Average Delivery Time</th>
-                        <th>Last Updated</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    <tr>
-                        <td>Supplier 1</td>
-                        <td>100</td>
-                        <td>3 days</td>
-                        <td>11/20/2024</td>
-                        <td className="table-ellipsis">Notes here...</td>
-                    </tr>
-                </tbody>
-            </table>
-
+            <div className="modal-table-wrapper">
+                <div className="modal-table-container">
+                    <table className="modal-table">
+                        <thead className="modal-table-heading">
+                            <tr>
+                                <th>Supplier Name</th>
+                                <th>Unit Price</th>
+                                <th>Average Delivery Time</th>
+                                <th>Last Updated</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody className="modal-table-body">
+                            <tr>
+                                <td>Supplier 1</td>
+                                <td>100</td>
+                                <td>3 days</td>
+                                <td>11/20/2024</td>
+                                <td className="table-ellipsis">Notes here...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </>
     );
 }

@@ -98,15 +98,16 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
         if (!supplierForm.supplierName) errors.supplierName = "Supplier name is required";
         if (!supplierForm.supplierContact) {
             errors.supplierContact = "Contact number is required";
+
+            // Only validate email if contact is missing
+            if (!supplierForm.supplierEmail) {
+                errors.supplierEmail = "Email is required";
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplierForm.supplierEmail)) {
+                errors.supplierEmail = "Invalid email format";
+            }
         } else if (!/^\d{11}$/.test(supplierForm.supplierContact)) {
             errors.supplierContact = "Contact number must be exactly 11 digits";
         }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supplierForm.supplierEmail)) {
-            errors.supplierEmail = "Invalid email format";
-        } 
-        // else if (!supplierForm.supplierEmail) {
-        //     errors.supplierEmail = "Email is required";
-        // }
         if (!supplierForm.supplierStatus) errors.supplierStatus = "Status is required";
         // if (!supplierForm.supplierStreet) errors.supplierStreet = "Street is required";
         // if (!supplierForm.supplierBarangay) errors.supplierBarangay = "Barangay is required";
@@ -248,7 +249,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                 <form className="add-form">
                     {/* Supplier Name */}
                     <div className="form-group">
-                        <label>Supplier Name</label>
+                        <label className="required">Supplier Name</label>
                         <input
                             className={formErrors?.supplierName ? "invalid-input" : ""}
                             type="text"
@@ -262,7 +263,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                     <div className="form-row">
                         {/* Supplier Contact */}
                         <div className="form-group">
-                            <label>Contact Number</label>
+                            <label className="required">Contact Number</label>
                             <input
                                 className={formErrors?.supplierContact ? "invalid-input" : ""}
                                 type="text"
@@ -289,7 +290,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
 
                         {/* Status */}
                         <div className="form-group">
-                            <label>Status</label>
+                            <label className="required">Status</label>
                             <select
                                 value={supplierForm.supplierStatus}
                                 onChange={(e) => handleChange("supplierStatus", e.target.value)}
@@ -334,7 +335,7 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                     <div className="form-row">
                         {/* City */}
                         <div className="form-group">
-                            <label>City</label>
+                            <label className="required">City</label>
                             <input
                                 className={formErrors?.supplierCity ? "invalid-input" : ""}
                                 type="text"
@@ -370,33 +371,37 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
             </div>
 
             {/* Table */}
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Unit Measure</th>
-                        <th>Unit Price</th>
-                        <th>Category</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    {linkedItems.map(item => (
-                        <tr key={item.id}>
-                            <td>{item.linkedItemName}</td>
-                            <td>{item.itemUnit}</td>
-                            <td>{item.unitPrice}</td>
-                            <td>{item.itemCategory}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-linkedItem", item)}
-                                    onDelete={() => openModal("delete-linkedItem", item)}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="modal-table-wrapper">
+                <div className="modal-table-container">
+                    <table className="modal-table">
+                        <thead className="modal-table-heading">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Unit Measure</th>
+                                <th>Unit Price</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="modal-table-body">
+                            {linkedItems.map(item => (
+                                <tr key={item.id}>
+                                    <td>{item.linkedItemName}</td>
+                                    <td>{item.itemUnit}</td>
+                                    <td>{item.unitPrice}</td>
+                                    <td>{item.itemCategory}</td>
+                                    <td>
+                                        <ActionButtons
+                                            onEdit={() => openModal("edit-linkedItem", item)}
+                                            onDelete={() => openModal("delete-linkedItem", item)}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>

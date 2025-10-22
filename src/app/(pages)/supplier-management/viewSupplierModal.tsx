@@ -79,25 +79,28 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
             </div >
 
             <p className="details-title">Linked Item/s</p>
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Unit Measure</th>
-                        <th>Unit Price</th>
-                        <th>Category</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    <tr>
-                        <td>Item 1</td>
-                        <td>pcs</td>
-                        <td>250</td>
-                        <td>Consumable</td>
-                    </tr>
-                </tbody>
-            </table>
-
+            <div className="modal-table-wrapper">
+                <div className="modal-table-container">
+                    <table className="modal-table">
+                        <thead className="modal-table-heading">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Unit Measure</th>
+                                <th>Unit Price</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody className="modal-table-body">
+                            <tr>
+                                <td>Item 1</td>
+                                <td>pcs</td>
+                                <td>250</td>
+                                <td>Consumable</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div >
         </>
     );
 }

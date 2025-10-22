@@ -55,7 +55,7 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
         if (!formData.linkedItemName) errors.linkedItemName = "Item name is required";
         if (!formData.itemCategory) errors.itemCategory = "Item category is required";
         if (!formData.itemUnit) errors.itemUnit = "Item unit is required";
-        if (formData.unitPrice <= 0) errors.unitPrice = "Unit price must be greater than zero";
+        if (formData.unitPrice <= 0) errors.unitPrice = "Unit price must be greater than 0";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -118,7 +118,7 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
                     <div className="form-row">
                         {/* Unit Measure */}
                         <div className="form-group">
-                            <label>Unit Measure</label>
+                            <label className="required">Unit Measure</label>
                             <input
                                 className={formErrors?.itemUnit ? "invalid-input" : ""}
                                 type="text"
@@ -126,17 +126,17 @@ export default function EditLinkedItemModal({ item, onSave, onClose }: EditLinke
                                 onChange={(e) => handleChange("itemUnit", e.target.value)}
                                 placeholder="Enter unit measure here..."
                             />
-                            <p className="edit-error-message"></p>
+                            <p className="edit-error-message">{formErrors?.itemUnit}</p>
                         </div>
 
                         {/* Unit Price */}
                         <div className="form-group">
-                            <label>Unit Price</label>
+                            <label className="required">Unit Price</label>
                             <input
                                 className={formErrors?.unitPrice ? "invalid-input" : ""}
                                 type="number"
                                 value={formData.unitPrice || ""}
-                                onChange={(e) => handleChange("unitPrice", parseFloat(e.target.value))}
+                                onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
                                 placeholder="Enter unit price here..."
                             />
                             <p className="edit-error-message">{formErrors?.unitPrice}</p>

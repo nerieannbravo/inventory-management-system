@@ -150,6 +150,19 @@ export const formatBusType = (type?: string): string => {
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 };
 
+// Formatting for item and supplier status
+export const formatItemSupplierStatus = (status: string): string => {
+    const statusMap: Record<string, string> = {
+        // Original format
+        'ACTIVE': 'Active',
+        'INACTIVE': 'Inactive',
+        // Temporary
+        'active': 'Active',
+        'inactive': 'Inactive'
+    };
+    return statusMap[status] || status;
+};
+
 // Status style functions
 export const getStockStatusStyle = (status: string) => {
     const statusStyleMap: Record<string, any> = {
@@ -209,6 +222,19 @@ export const getBusStatusStyle = (status: string) => {
         'active': [reportStyles.statusChip, statusColors.active],
         'decommissioned': [reportStyles.statusChip, statusColors.decommissioned],
         'under-maintenance': [reportStyles.statusChip, statusColors.underMaintenance]
+    };
+    return statusStyleMap[status] || [reportStyles.statusChip];
+};
+
+// Styling for item and supplier status
+export const getItemSupplierStatusStyle = (status: string) => {
+    const statusStyleMap: Record<string, any> = {
+        // Original format
+        'ACTIVE': [reportStyles.statusChip, statusColors.active],
+        'INACTIVE': [reportStyles.statusChip, statusColors.inactive],
+        // Temporary
+        'active': [reportStyles.statusChip, statusColors.active],
+        'inactive': [reportStyles.statusChip, statusColors.inactive]
     };
     return statusStyleMap[status] || [reportStyles.statusChip];
 };

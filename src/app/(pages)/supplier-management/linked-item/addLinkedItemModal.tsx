@@ -91,13 +91,17 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
         <>
             <div className="modal-heading">
                 <h1 className="modal-title">Add Linked Item</h1>
+                
+                <button className="close-modal-btn" onClick={handleClose}>
+                    <i className="ri-close-line"></i>
+                </button>
             </div>
 
             <div className="modal-content add">
                 <form className="add-form">
                     {/* Linked Item Name */}
                     <div className="form-group">
-                        <label>Item Name</label>
+                        <label className="required">Item Name</label>
                         <select
                             className={formErrors?.linkedItemName ? "invalid-input" : ""}
                             value={linkedItemForm.linkedItemName}
@@ -114,7 +118,7 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
                     <div className="form-row">
                         {/* Unit Measure */}
                         <div className="form-group">
-                            <label>Unit Measure</label>
+                            <label className="required">Unit Measure</label>
                             <input
                                 className={formErrors?.itemUnit ? "invalid-input" : ""}
                                 type="text"
@@ -127,7 +131,7 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
 
                         {/* Unit Price */}
                         <div className="form-group">
-                            <label>Unit Price</label>
+                            <label className="required">Unit Price</label>
                             <input
                                 className={formErrors?.unitPrice ? "invalid-input" : ""}
                                 type="number"
@@ -140,7 +144,7 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
 
                         {/* Item Category */}
                         <div className="form-group">
-                            <label>Item Category</label>
+                            <label className="required">Item Category</label>
                             <select
                                 className={formErrors?.itemCategory ? "invalid-input" : ""}
                                 value={linkedItemForm.itemCategory}
@@ -159,9 +163,6 @@ export default function AddLinkedItemModal({ onClose, onSave }: AddLinkedItemMod
             </div >
 
             <div className="modal-actions">
-                <button type="button" className="cancel-btn" onClick={handleClose}>
-                    Cancel
-                </button>
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

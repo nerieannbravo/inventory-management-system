@@ -90,13 +90,17 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
         <>
             <div className="modal-heading">
                 <h1 className="modal-title">Add Linked Supplier</h1>
+                
+                <button className="close-modal-btn" onClick={handleClose}>
+                    <i className="ri-close-line"></i>
+                </button>
             </div>
 
             <div className="modal-content add">
                 <form className="add-form">
                     {/* Linked Supplier Name */}
                     <div className="form-group">
-                        <label>Supplier Name</label>
+                        <label className="required">Supplier Name</label>
                         <select
                             className={formErrors?.linkedSupplierName ? "invalid-input" : ""}
                             value={linkedSupplierForm.linkedSupplierName}
@@ -113,7 +117,7 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
                     <div className="form-row">
                         {/* Unit Price */}
                         <div className="form-group">
-                            <label>Unit Price</label>
+                            <label className="required">Unit Price</label>
                             <input
                                 className={formErrors?.unitPrice ? "invalid-input" : ""}
                                 type="number"
@@ -126,7 +130,7 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
 
                         {/* Delivery Time */}
                         <div className="form-group">
-                            <label>Delivery Time</label>
+                            <label className="required">Delivery Time</label>
                             <input
                                 className={formErrors?.deliveryTime ? "invalid-input" : ""}
                                 type="text"
@@ -154,9 +158,6 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
             </div >
 
             <div className="modal-actions">
-                <button type="button" className="cancel-btn" onClick={handleClose}>
-                    Cancel
-                </button>
                 <button type="submit" className="submit-btn" onClick={handleSubmit}>
                     <i className="ri-save-3-line" /> Save
                 </button>

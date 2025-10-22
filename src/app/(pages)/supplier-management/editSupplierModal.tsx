@@ -102,7 +102,7 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.supplierEmail)) {
             errors.supplierEmail = "Invalid email format";
-        } 
+        }
         // else if (!formData.supplierEmail) {
         //     errors.supplierEmail = "Email is required";
         // }
@@ -369,33 +369,37 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
             </div>
 
             {/* Table */}
-            <table className="modal-table">
-                <thead className="modal-table-heading">
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Unit Measure</th>
-                        <th>Unit Price</th>
-                        <th>Category</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody className="modal-table-body">
-                    {linkedItems.map(item => (
-                        <tr key={item.id}>
-                            <td>{item.linkedItemName}</td>
-                            <td>{item.itemUnit}</td>
-                            <td>{item.unitPrice}</td>
-                            <td>{item.itemCategory}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-linkedItem", item)}
-                                    onDelete={() => openModal("delete-linkedItem", item)}
-                                />
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="modal-table-wrapper">
+                <div className="modal-table-container">
+                    <table className="modal-table">
+                        <thead className="modal-table-heading">
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Unit Measure</th>
+                                <th>Unit Price</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="modal-table-body">
+                            {linkedItems.map(item => (
+                                <tr key={item.id}>
+                                    <td>{item.linkedItemName}</td>
+                                    <td>{item.itemUnit}</td>
+                                    <td>{item.unitPrice}</td>
+                                    <td>{item.itemCategory}</td>
+                                    <td>
+                                        <ActionButtons
+                                            onEdit={() => openModal("edit-linkedItem", item)}
+                                            onDelete={() => openModal("delete-linkedItem", item)}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             <div className="modal-actions">
                 <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>

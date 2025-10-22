@@ -5,10 +5,12 @@ import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+// import Loading from "@/components/loading";
 
 import AddSupplierModal, { SupplierForm } from "./addSupplierModal";
 import ViewSupplierModal from "./viewSupplierModal";
 import EditSupplierModal from "./editSupplierModal";
+import { SupplierReportPreviewModal } from "./supplierReportPDF";
 
 import "@/styles/filters.css"
 import "@/styles/tables.css"
@@ -19,7 +21,7 @@ const hardcodedData = [
     {
         id: 1,
         supplierName: "Kang Seulgi",
-        supplierAdress: "Choji-dong, South Korea",
+        supplierAddress: "Choji-dong, South Korea",
         supplierContact: "09123456789",
         supplierEmail: "seulgi@redvelvet.com",
         supplierStatus: "active",
@@ -28,7 +30,7 @@ const hardcodedData = [
     {
         id: 2,
         supplierName: "Bae Joohyun",
-        supplierAdress: "Daegu, South Korea",
+        supplierAddress: "Daegu, South Korea",
         supplierContact: "09375839774",
         supplierEmail: "irene@redvelvet.com",
         supplierStatus: "active",
@@ -37,7 +39,7 @@ const hardcodedData = [
     {
         id: 3,
         supplierName: "Son Seungwan",
-        supplierAdress: "Seoul, South Korea",
+        supplierAddress: "Seoul, South Korea",
         supplierContact: "09288466274",
         supplierEmail: "wendy@redvelvet.com",
         supplierStatus: "inactive",
@@ -46,7 +48,7 @@ const hardcodedData = [
     {
         id: 4,
         supplierName: "Park Sooyoung",
-        supplierAdress: "Jeju-do, South Korea",
+        supplierAddress: "Jeju-do, South Korea",
         supplierContact: "09747281193",
         supplierEmail: "joy@redvelvet.com",
         supplierStatus: "active",
@@ -55,7 +57,7 @@ const hardcodedData = [
     {
         id: 5,
         supplierName: "Kim Yerim",
-        supplierAdress: "Seoul, South Korea",
+        supplierAddress: "Seoul, South Korea",
         supplierContact: "09338592064",
         supplierEmail: "yeri@redvelvet.com",
         supplierStatus: "inactive",
@@ -66,18 +68,26 @@ const hardcodedData = [
 
 
 export default function SupplierManagement() {
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Supplier Management Report");
+
+    // Temporary filter state, remove if not being used anymore
+    const [filteredData, setFilteredData] = useState(hardcodedData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -143,28 +153,27 @@ export default function SupplierManagement() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Keep a copy of the raw filters in state for other usages (report title check, etc.)
+        setFilterValues(filterValues);
 
-        // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
+
+        // normalizes a value to a simple comparable token (lowercase, remove non-alphanumerics)
+        const normalize = (value: any) =>
+            (value === null || value === undefined) ? "" : String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
 
         // Filter by status if selected
         if (filterValues.supplierStatus && filterValues.supplierStatus.length > 0) {
-            newData = newData.filter(supplier => filterValues.supplierStatus.includes(supplier.supplierStatus));
+            const normalizedFilters = filterValues.supplierStatus.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.supplierStatus)));
         }
 
-        // Sort by supplierName or linkedItem
+        // Sorting
+        const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
         if (filterValues.sortBy === "supplierName") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.supplierName ?? "").localeCompare(b.supplierName ?? "") * sortOrder;
-            });
+            newData.sort((a, b) => a.supplierName.localeCompare(b.supplierName) * orderMultiplier);
         } else if (filterValues.sortBy === "linkedItem") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.linkedItem ?? 0) - (b.linkedItem ?? 0) * sortOrder;
-            });
+            newData.sort((a, b) => ((a.linkedItem ?? 0) - (b.linkedItem ?? 0)) * orderMultiplier);
         }
 
         setFilteredData(newData);
@@ -240,6 +249,23 @@ export default function SupplierManagement() {
         closeModal();
     };
 
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters are applied. 
+        // Modify this logic based on actual searching or filtering implementation.
+        const hasFilters = filteredData.length !== hardcodedData.length;
+
+        const title = hasFilters ? "Supplier Management Report - Filtered" : "Supplier Management Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
+    };
+
     return (
         <div className="card">
             <h1 className="title">Supplier Management</h1>
@@ -261,11 +287,7 @@ export default function SupplierManagement() {
                     </div>
 
                     {/* Generate Report Button */}
-                    <button
-                        type="button"
-                        className="generate-btn"
-                        // onClick={handleGenerateReport}
-                    >
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
@@ -297,7 +319,7 @@ export default function SupplierManagement() {
                                         className={selectedIds.includes(supplier.id) ? "selected" : ""}
                                     >
                                         <td>{supplier.supplierName}</td>
-                                        <td>{supplier.supplierAdress}</td>
+                                        <td>{supplier.supplierAddress}</td>
                                         <td>{supplier.supplierContact}</td>
                                         <td>{supplier.supplierEmail}</td>
                                         <td className="table-status">
@@ -335,6 +357,14 @@ export default function SupplierManagement() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Supplier Management Report Preview Modal */}
+            <SupplierReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                supplierData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>

@@ -117,7 +117,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
                     <div className="form-row">
                         {/* Unit Price */}
                         <div className="form-group">
-                            <label>Unit Price</label>
+                            <label className="required">Unit Price</label>
                             <input
                                 className={formErrors?.unitPrice ? "invalid-input" : ""}
                                 type="number"
@@ -130,7 +130,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
                         {/* Delivery Time */}
                         <div className="form-group">
-                            <label>Delivery Time</label>
+                            <label className="required">Delivery Time</label>
                             <input
                                 className={formErrors?.deliveryTime ? "invalid-input" : ""}
                                 type="text"

@@ -216,4 +216,10 @@ export const statusColors = {
         backgroundColor: '#D6E4FF',
         color: '#0050B3',
     },
+
+    // Item Status Colors
+    inactive: {
+        backgroundColor: '#FFDDDD',
+        color: '#A50000',
+    },
 };
