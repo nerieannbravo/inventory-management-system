@@ -2,57 +2,67 @@ import React, { useState, useEffect } from "react";
 
 import ModalManager from "@/components/modalManager";
 import ActionButtons from "@/components/actionButtons";
-import EditCategoryModal from "./editCategoryModal";
+import EditDisposalMethodModal from "./editDisposalMethodModal";
 
 import {
-    showCategorySaveConfirmation, showCategorySavedSuccess,
+    showDisposalMethodSaveConfirmation, showDisposalMethodSavedSuccess,
     showCloseWithoutSavingConfirmation
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
-export interface CategoryForm {
-    categoryName: string;
-    categoryDescription: string;
+export interface DisposalMethodForm {
+    disposalMethodName: string;
+    disposalMethodDescription: string;
 }
 
 interface FormError {
     [key: string]: string;
 }
 
-interface AddCategoryModalProps {
-    onSave: (categoryForm: CategoryForm) => void;
+interface AddDisposalMethodModalProps {
+    onSave: (disposalMethodForm: DisposalMethodForm) => void;
     onClose: () => void;
 }
 
-// Sample category data - replace with your actual data source
-const sampleCategoryList = [
+// Sample disposal method data - replace with your actual data source
+const sampleDisposalMethodList = [
     {
         id: 1,
-        categoryName: "Category 1",
-        categoryDescription: "Description for Category 1"
+        disposalMethodName: "Sold",
+        disposalMethodDescription: "Description for Sold"
     },
     {
         id: 2,
-        categoryName: "Category 2",
-        categoryDescription: "Description for Category 2"
+        disposalMethodName: "Donated",
+        disposalMethodDescription: "Description for Donated"
+    },
+    {
+        id: 3,
+        disposalMethodName: "Discarded",
+        disposalMethodDescription: "Description for Discarded"
+    },
+    {
+        id: 4,
+        disposalMethodName: "Scrapped",
+        disposalMethodDescription: "Description for Scrapped"
     }
 ];
 
-export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalProps) {
+export default function AddDisposalMethodModal({ onSave, onClose }: AddDisposalMethodModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
     const [activeRow, setActiveRow] = useState<any>(null);
 
-    // State for category list
-    const [categoryList, setCategoryList] = useState(sampleCategoryList);
+    // State for disposal method list
+    const [disposalMethodList, setDisposalMethodList] = useState(sampleDisposalMethodList);
 
-    // Initial category form state
-    const [categoryForm, setCategoryForm] = useState<CategoryForm>({
-        categoryName: "",
-        categoryDescription: ""
+    // Initial disposal method form state
+    const [disposalMethodForm, setDisposalMethodForm] = useState<DisposalMethodForm>({
+        disposalMethodName: "",
+        disposalMethodDescription: ""
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
@@ -61,10 +71,10 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
     // Track if form has been modified
     useEffect(() => {
         setIsDirty(true);
-    }, [categoryForm]);
+    }, [disposalMethodForm]);
 
     const handleChange = (field: string, value: any) => {
-        setCategoryForm((prev) => ({ ...prev, [field]: value }));
+        setDisposalMethodForm((prev) => ({ ...prev, [field]: value }));
 
         // Clear the error for that field
         if (formErrors[field]) {
@@ -77,7 +87,7 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
     const validateForm = (): boolean => {
         const errors: FormError = {};
 
-        if (!categoryForm.categoryName) errors.categoryName = "Category name is required";
+        if (!disposalMethodForm.disposalMethodName) errors.disposalMethodName = "Disposal method name is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -88,10 +98,10 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
 
         if (!validateForm()) return;
 
-        const result = await showCategorySaveConfirmation();
+        const result = await showDisposalMethodSaveConfirmation();
         if (result.isConfirmed) {
-            onSave(categoryForm);
-            await showCategorySavedSuccess();
+            onSave(disposalMethodForm);
+            await showDisposalMethodSavedSuccess();
         }
     };
 
@@ -107,16 +117,16 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
         }
     };
 
-    // Modal management for category actions
-    const openModal = (mode: "edit-category", rowData?: any) => {
+    // Modal management for disposal method actions
+    const openModal = (mode: "edit-disposal-method", rowData?: any) => {
         let content;
 
         switch (mode) {
-            case "edit-category":
+            case "edit-disposal-method":
                 content = (
-                    <EditCategoryModal
+                    <EditDisposalMethodModal
                         item={rowData}
-                        onSave={handleEditCategory}
+                        onSave={handleEditDisposalMethod}
                         onClose={closeModal}
                     />
                 );
@@ -136,19 +146,19 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
         setActiveRow(null);
     };
 
-    // Handle edit category
-    const handleEditCategory = (updatedCategory: any) => {
-        const updatedList = categoryList.map(category =>
-            category.id === updatedCategory.id ? updatedCategory : category
+    // Handle edit disposal method
+    const handleEditDisposalMethod = (updatedDisposalMethod: any) => {
+        const updatedList = disposalMethodList.map(disposalMethod =>
+            disposalMethod.id === updatedDisposalMethod.id ? updatedDisposalMethod : disposalMethod
         );
-        setCategoryList(updatedList);
+        setDisposalMethodList(updatedList);
         closeModal();
     }
 
     return (
         <>
             <div className="modal-heading">
-                <h1 className="modal-title">Add Category</h1>
+                <h1 className="modal-title">Add Disposal Method</h1>
                 <div className="modal-date-time">
                     <p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
                     <p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
@@ -159,40 +169,40 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                 </button>
             </div>
 
-            {/* For Category Details */}
+            {/* For Disposal Method Details */}
             <div className="modal-content add">
                 <form className="add-form">
-                    {/* Category Name */}
+                    {/* Disposal Method Name */}
                     <div className="form-group">
-                        <label className="required">Category Name</label>
+                        <label>Disposal Method Name</label>
                         <input
-                            className={formErrors?.categoryName ? "invalid-input" : ""}
+                            className={formErrors?.disposalMethodName ? "invalid-input" : ""}
                             type="text"
-                            value={categoryForm.categoryName}
-                            onChange={(e) => handleChange("categoryName", e.target.value)}
-                            placeholder="Enter category name here..."
+                            value={disposalMethodForm.disposalMethodName}
+                            onChange={(e) => handleChange("disposalMethodName", e.target.value)}
+                            placeholder="Enter disposal method name here..."
                         />
-                        <p className="add-error-message">{formErrors?.categoryName}</p>
+                        <p className="add-error-message">{formErrors?.disposalMethodName}</p>
                     </div>
 
-                    {/* Category Description */}
+                    {/* Disposal Method Description */}
                     <div className="form-group">
                         <label>Description</label>
                         <textarea
-                            className={formErrors?.categoryDescription ? "invalid-input" : ""}
-                            value={categoryForm.categoryDescription}
-                            onChange={(e) => handleChange("categoryDescription", e.target.value)}
-                            placeholder="Enter category description here..."
+                            className={formErrors?.disposalMethodDescription ? "invalid-input" : ""}
+                            value={disposalMethodForm.disposalMethodDescription}
+                            onChange={(e) => handleChange("disposalMethodDescription", e.target.value)}
+                            placeholder="Enter disposal method description here..."
                         >
                         </textarea>
-                        <p className="add-error-message">{formErrors?.categoryDescription}</p>
+                        <p className="add-error-message">{formErrors?.disposalMethodDescription}</p>
                     </div>
                 </form>
             </div>
 
-            {/* Category List */}
+            {/* Disposal Method List */}
             <div className="details-header">
-                <p className="details-title">Existing Categories</p>
+                <p className="details-title">Existing Disposal Methods</p>
             </div>
 
             {/* Table */}
@@ -201,27 +211,27 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                     <table className="modal-table">
                         <thead className="modal-table-heading">
                             <tr>
-                                <th>Category Name</th>
+                                <th>Method Name</th>
                                 <th>Description</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody className="modal-table-body">
-                            {categoryList.length > 0 ? (
-                                categoryList.map((category) => (
-                                    <tr key={category.id}>
-                                        <td>{category.categoryName}</td>
-                                        <td>{category.categoryDescription}</td>
+                            {disposalMethodList.length > 0 ? (
+                                disposalMethodList.map(disposalMethod => (
+                                    <tr key={disposalMethod.id}>
+                                        <td>{disposalMethod.disposalMethodName}</td>
+                                        <td>{disposalMethod.disposalMethodDescription}</td>
                                         <td>
                                             <ActionButtons
-                                                onEdit={() => openModal("edit-category", category)}
+                                                onEdit={() => openModal("edit-disposal-method", disposalMethod)}
                                             />
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="no-data">No categories available.</td>
+                                    <td colSpan={3} className="no-data">No disposal methods available.</td>
                                 </tr>
                             )}
                         </tbody>

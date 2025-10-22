@@ -1,14 +1,16 @@
 import "@/styles/forms.css";
+import { FileList } from "@/components/fileList";
 
 interface ViewStockDisposalModalProps {
     item: {
         id: number,
-        sku: string,
+        itemName: string,
         category: string,
-        stockDisposalDate: string,
-        // viewitional fields would be included in a real application
+        sku: string,
+        disposalMethod: string,
+        disposalDate: string,
+        // Additional fields would be included in a real application
     };
-    // formatStatus: (status: string) => string;
     onClose: () => void;
 }
 
@@ -24,7 +26,7 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
             </div>
 
             <div className="modal-content view">
-                <form className="view-stock-disposal-form">
+                <form className="view-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
@@ -36,15 +38,15 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Stock Details</p>
+            <p className="details-title">I. Stock Details</p>
             <div className="modal-content view">
-                <form className="view-stock-disposal-form">
+                <form className="view-form">
                     {/* Item name and category*/}
                     <div className="form-row">
                         {/* Item Name */}
                         <div className="form-group">
                             <label>Item Name</label>
-                            <p>Fuel Iveco</p>
+                            <p>{item.itemName}</p>
                         </div>
 
                         {/* Category */}
@@ -78,21 +80,21 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
             </div>
 
             {/* For disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content view">
-                <form className="view-stock-disposal-form">
+                <form className="view-form">
                     {/* disposal date and type */}
                     <div className="form-row">
                         {/* Disposal Date */}
                         <div className="form-group">
                             <label>Disposal Date</label>
-                            <p>{item.stockDisposalDate}</p>
+                            <p>{item.disposalDate}</p>
                         </div>
 
                         {/* Disposal Method */}
                         <div className="form-group">
                             <label>Disposal Method</label>
-                            <p>{item.category}</p>
+                            <p>{item.disposalMethod}</p>
                         </div>
                     </div>
 
@@ -116,22 +118,6 @@ export default function ViewStockDisposalModal({ item, onClose }: ViewStockDispo
                         <div className="form-group">
                             <label>Reason for Disposal</label>
                             <p>Not usable because it is expired</p>
-                        </div>
-                    </div>
-
-                    {/* Attachments */}
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Attachments</label>
-                            <div className="uploaded-document-item">
-                                {/* Example: Replace with dynamic document list */}
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Warranty.pdf
-                                </a>
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Insurance.pdf
-                                </a>
-                            </div>
                         </div>
                     </div>
 

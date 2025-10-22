@@ -1,27 +1,27 @@
 import React, { useState, useEffect } from "react";
 
 import {
-    showCategoryUpdateConfirmation, showCategoryUpdatedSuccess,
+    showDisposalMethodUpdateConfirmation, showDisposalMethodSavedSuccess,
     showCloseWithoutUpdatingConfirmation
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
 
-interface EditCategoryModalProps {
+interface EditDisposalMethodModalProps {
     item: {
         id: number;
-        categoryName: string;
-        categoryDescription: string;
+        disposalMethodName: string;
+        disposalMethodDescription: string;
     };
     onSave: (updatedItem: any) => void;
     onClose: () => void;
 }
 
-export default function EditCategoryModal({ item, onSave, onClose }: EditCategoryModalProps) {
+export default function EditDisposalMethodModal({ item, onSave, onClose }: EditDisposalMethodModalProps) {
     const [formData, setFormData] = useState({
         id: item.id,
-        categoryName: item.categoryName,
-        categoryDescription: item.categoryDescription
+        disposalMethodName: item.disposalMethodName,
+        disposalMethodDescription: item.disposalMethodDescription
     });
 
     // State to track if form is dirty (has changes)
@@ -48,8 +48,8 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
         const errors: Record<string, string> = {};
 
         // Validate inputs
-        if (!formData.categoryName) errors.categoryName = "Category name is required";
-        // if (!formData.categoryDescription) errors.categoryDescription = "Category description is required";
+        if (!formData.disposalMethodName) errors.disposalMethodName = "Disposal method name is required";
+        if (!formData.disposalMethodDescription) errors.disposalMethodDescription = "Disposal method description is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -60,10 +60,10 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
 
         if (!validateForm()) return;
 
-        const result = await showCategoryUpdateConfirmation(formData.categoryName);
+        const result = await showDisposalMethodUpdateConfirmation(formData.disposalMethodName);
         if (result.isConfirmed) {
             onSave(formData);
-            await showCategoryUpdatedSuccess();
+            await showDisposalMethodSavedSuccess();
         }
     };
 
@@ -82,7 +82,7 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
     return (
         <>
             <div className="modal-heading">
-                <h1 className="modal-title">Edit Category</h1>
+                <h1 className="modal-title">Edit Disposal Method</h1>
                 <div className="modal-date-time">
                     <p>{new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
                     <p>{new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}</p>
@@ -93,32 +93,32 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
                 </button>
             </div>
 
-            {/* Edit Category Form */}
+            {/* Edit Disposal Method Form */}
             <div className="modal-content edit">
                 <form className="edit-form">
-                    {/* Category Name */}
+                    {/* Disposal Method Name */}
                     <div className="form-group">
-                        <label className="required">Category Name</label>
+                        <label>Disposal Method Name</label>
                         <input
-                            className={formErrors?.categoryName ? "invalid-input" : ""}
+                            className={formErrors?.disposalMethodName ? "invalid-input" : ""}
                             type="text"
-                            value={formData.categoryName}
-                            onChange={(e) => handleChange("categoryName", e.target.value)}
-                            placeholder="Enter category name here..."
+                            value={formData.disposalMethodName}
+                            onChange={(e) => handleChange("disposalMethodName", e.target.value)}
+                            placeholder="Enter disposal method name here..."
                         />
-                        <p className="edit-error-message">{formErrors?.categoryName}</p>
+                        <p className="edit-error-message">{formErrors?.disposalMethodName}</p>
                     </div>
 
-                    {/* Category Description */}
+                    {/* Disposal Method Description */}
                     <div className="form-group">
                         <label>Description</label>
                         <textarea
-                            className={formErrors?.categoryDescription ? "invalid-input" : ""}
-                            value={formData.categoryDescription}
-                            onChange={(e) => handleChange("categoryDescription", e.target.value)}
-                            placeholder="Enter category description here..."
+                            className={formErrors?.disposalMethodDescription ? "invalid-input" : ""}
+                            value={formData.disposalMethodDescription}
+                            onChange={(e) => handleChange("disposalMethodDescription", e.target.value)}
+                            placeholder="Enter disposal method description here..."
                         />
-                        <p className="edit-error-message">{formErrors?.categoryDescription}</p>
+                        <p className="edit-error-message">{formErrors?.disposalMethodDescription}</p>
                     </div>
                 </form >
             </div >

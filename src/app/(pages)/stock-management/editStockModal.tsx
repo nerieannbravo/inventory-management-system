@@ -9,13 +9,13 @@ import "@/styles/forms.css";
 
 interface EditStockModalProps {
 	item: {
-		id: number;
-		itemName: string;
-		currentStock: number;
-		unitMeasure: string;
-		category: string;
-		status: string;
-		reorderLevel: number;
+		id: number,
+		itemName: string,
+		currentStock: number,
+		unitMeasure: string,
+		category: string,
+		status: string,
+		reorderLevel: number,
 		// Additional fields would be included in a real application
 	};
 	onSave: (updatedItem: any) => void;
@@ -186,6 +186,7 @@ export default function EditStockModal({ item, onSave, onClose }: EditStockModal
 								value={formData.category}
 								onChange={(e) => handleChange("category", e.target.value)}
 							/>
+							<p className="edit-error-message"></p>
 						</div>
 
 						{/* Status */}

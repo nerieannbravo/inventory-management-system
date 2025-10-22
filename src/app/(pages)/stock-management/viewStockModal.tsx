@@ -4,23 +4,23 @@ import "@/styles/forms.css";
 import ActionButtons from "@/components/actionButtons";
 
 interface Batch {
-	id: number;
-	quantity: number;
-	expirationDate: string;
-	dateAdded: string;
-	deletable?: boolean;
+	id: number,
+	quantity: number,
+	expirationDate: string,
+	dateAdded: string,
+	deletable?: boolean,
 }
 
 interface ViewStockModalProps {
 	item: {
-		id: number;
-		itemName: string;
-		currentStock: number;
-		unitMeasure: string;
-		category: string;
-		status: string;
-		reorderLevel: number;
-		batches?: Batch[];
+		id: number,
+		itemName: string,
+		currentStock: number,
+		unitMeasure: string,
+		category: string,
+		status: string,
+		reorderLevel: number,
+		batches?: Batch[],
 	};
 	formatStatus: (status: string) => string;
 	onClose: () => void;
@@ -30,8 +30,8 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 	// manage batches locally so UI updates after delete
 	const [batches, setBatches] = useState<Batch[]>(
 		item.batches ?? [
-			{ id: 1, quantity: 20, expirationDate: "2025-10-14", dateAdded: "2025-03-16", deletable: true },
-			{ id: 2, quantity: 14, expirationDate: "2026-01-23", dateAdded: "2025-08-22", deletable: false },
+			{ id: 1, quantity: 20, expirationDate: "November 14, 2026", dateAdded: "March 16, 2025", deletable: true },
+			{ id: 2, quantity: 14, expirationDate: "January 23, 2025", dateAdded: "August 22, 2024", deletable: false },
 		]
 	);
 
@@ -91,43 +91,47 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 			</div>
 
 			<p className="details-title">Batches</p>
-			<table className="modal-table">
-				<thead className="modal-table-heading">
-					<tr>
-						<th>Quantity</th>
-						<th>Expiration Date</th>
-						<th>Date Added</th>
-						<th>Action</th>
-					</tr>
-				</thead>
-				<tbody className="modal-table-body">
-					{batches.map(batch => (
-						<tr key={batch.id}>
-							<td>{batch.quantity}</td>
-							<td>{batch.expirationDate}</td>
-							<td>{batch.dateAdded}</td>
-							<td>
-								<ActionButtons
-									onDelete={() => {
-										if (!batch.deletable) {
-											showDeleteExpiredError("This batch cannot be deleted because it has not expired yet.");
-											return;
-										}
-										handleRemoveExpired(batch.id);
-									}}
-									disableDelete={!batch.deletable}
-								/>
+			<div className="modal-table-wrapper">
+				<div className="modal-table-container">
+					<table className="modal-table">
+						<thead className="modal-table-heading">
+							<tr>
+								<th>Quantity</th>
+								<th>Expiration Date</th>
+								<th>Date Added</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody className="modal-table-body">
+							{batches.map(batch => (
+								<tr key={batch.id}>
+									<td>{batch.quantity}</td>
+									<td>{batch.expirationDate}</td>
+									<td>{batch.dateAdded}</td>
+									<td>
+										<ActionButtons
+											onDelete={() => {
+												if (!batch.deletable) {
+													showDeleteExpiredError("This batch cannot be deleted because it has not expired yet.");
+													return;
+												}
+												handleRemoveExpired(batch.id);
+											}}
+											disableDelete={!batch.deletable}
+										/>
 
-							</td>
-						</tr>
-					))}
-					{batches.length === 0 && (
-						<tr>
-							<td colSpan={4} className="no-data">No batches available</td>
-						</tr>
-					)}
-				</tbody>
-			</table>
+									</td>
+								</tr>
+							))}
+							{batches.length === 0 && (
+								<tr>
+									<td colSpan={4} className="no-data">No batches available</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</>
 	);
 }

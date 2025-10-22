@@ -6,29 +6,24 @@ import {
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
-import "@/styles/modal.css";
 
 // Export the interface so it can be imported by other components
 export interface StockDisposalForm {
-    // Dropdown for item name and category
-    itemName: string;
-    category: string;
-
     // For stock details
-    sku: string;
-    expirationDate: string;
-    quantity: number;
-    unitMeasure: string;
-    manufacturer: string;
+    itemName: string,
+    category: string,
+    sku: string,
+    expirationDate: string,
+    currentStock: number,
+    unitMeasure: string,
 
     // Disposal details
-    stockDisposalDate: string;
-    stockDisposalMethod: string;
-    quantityDisposal: number,
-    unitMeasureDisposal: string,
-    stockDisposalReason: string;
-    stockDisposalAttachment: string[];
-    stockDisposalRemarks: string;
+    disposalDate: string,
+    disposalMethod: string,
+    disposalQuantity: number,
+    disposalUnitMeasure: string,
+    disposalReason: string,
+    disposalRemarks: string,
 }
 
 interface FormError {
@@ -49,18 +44,16 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
         // Stock details
         sku: "",
         expirationDate: "",
-        quantity: 0,
+        currentStock: 0,
         unitMeasure: "",
-        manufacturer: "",
 
         // Disposal details
-        stockDisposalDate: "",
-        stockDisposalMethod: "",
-        quantityDisposal: 0,
-        unitMeasureDisposal: "",
-        stockDisposalReason: "",
-        stockDisposalAttachment: [],
-        stockDisposalRemarks: "",
+        disposalDate: "",
+        disposalMethod: "",
+        disposalQuantity: 0,
+        disposalUnitMeasure: "",
+        disposalReason: "",
+        disposalRemarks: "",
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
@@ -88,26 +81,22 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             errors.sku = "SKU is required";
         }
 
-        if (!stockDisposalForm.stockDisposalDate) {
-            errors.stockDisposalDate = "Disposal date is required";
+        if (!stockDisposalForm.disposalDate) {
+            errors.disposalDate = "Disposal date is required";
         }
-        if (!stockDisposalForm.stockDisposalMethod) {
-            errors.stockDisposalMethod = "Disposal method is required";
+        if (!stockDisposalForm.disposalMethod) {
+            errors.disposalMethod = "Disposal method is required";
         }
         //Disposal quantity
-        if (!stockDisposalForm.quantityDisposal || stockDisposalForm.quantityDisposal === 0) {
-            errors.quantityDisposal = "Disposal quantity is required and cannot be 0";
-        } 
-        // IF DISPOSAL QUANTITY CANNOT BE GREATER THAN THE STOCK QUANTITY
-        // else if (stockDisposalForm.quantityDisposal >= stockDisposalForm.quantity) {
-        //     errors.quantityDisposal = "Disposal quantity cannot be greater than available quantity";
-        // } 
-
-        if (!stockDisposalForm.unitMeasureDisposal) {
-            errors.unitMeasureDisposal = "Unit measure is required";
+        if (!stockDisposalForm.disposalQuantity || stockDisposalForm.disposalQuantity === 0) {
+            errors.disposalQuantity = "Disposal quantity is required and cannot be 0";
         }
-        if (!stockDisposalForm.stockDisposalReason) {
-            errors.stockDisposalReason = "Disposal reason is required";
+        else if (stockDisposalForm.disposalQuantity > stockDisposalForm.currentStock) {
+            errors.disposalQuantity = "Disposal quantity cannot be greater than current stock";
+        }
+
+        if (!stockDisposalForm.disposalReason) {
+            errors.disposalReason = "Disposal reason is required";
         }
 
         setFormErrors(errors);
@@ -154,17 +143,17 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     <div className="form-row">
                         {/* SKU */}
                         <div className="form-group">
-                            <label>SKU</label>
+                            <label className="required">SKU</label>
                             <select
                                 className={formErrors?.sku ? "invalid-input" : ""}
                                 value={stockDisposalForm.sku}
                                 onChange={(e) => handleChange("sku", e.target.value)}
                             >
-                                <option value="" disabled>--Select SKU Here--</option>
+                                <option value="" disabled>Select SKU here...</option>
                                 <option value="Tire001">Tire001 - Michelin X Coach</option>
                                 <option value="Oil002">Oil002 - Shell Rimula R4</option>
                                 <option value="Battery003">Battery003 - Motolite Gold</option>
@@ -179,117 +168,112 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
             </div>
 
             {/* For view stock detais */}
-            <p className="bus-details-title">I. Stock Details</p>
+            <p className="details-title">I. Stock Details</p>
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     {/* SKU and category */}
                     <div className="form-row">
                         {/* Item Name */}
                         <div className="form-group">
                             <label>Item Name</label>
-                            <input
+                            <input disabled
                                 className={formErrors?.itemName ? "invalid-input" : ""}
                                 type="text"
                                 value={stockDisposalForm.itemName}
                                 onChange={(e) => handleChange("itemName", e.target.value)}
-                                placeholder="Item Name here"
-                                disabled
+                                placeholder="Item name here..."
                             />
                         </div>
 
                         {/* Category */}
                         <div className="form-group">
                             <label>Category</label>
-                            <input
+                            <input disabled
                                 className={formErrors?.category ? "invalid-input" : ""}
                                 type="text"
                                 value={stockDisposalForm.category}
                                 onChange={(e) => handleChange("category", e.target.value)}
-                                placeholder="Category here"
-                                disabled
+                                placeholder="Category here..."
                             />
+                            <p className="add-error-message"></p>
                         </div>
                     </div>
 
-                    {/* Quantity and Unit Measure */}
+                    {/* Current Stock and Unit Measure */}
                     <div className="form-row">
-                        {/* Quantity */}
+                        {/* Current Stock */}
                         <div className="form-group">
-                            <label>Quantity</label>
-                            <input
-                                className={formErrors?.quantity ? "invalid-input" : ""}
+                            <label>Current Stock</label>
+                            <input disabled
+                                className={formErrors?.currentStock ? "invalid-input" : ""}
                                 type="text"
-                                value={0} 
-                                onChange={(e) => handleChange("quantity", e.target.value)}
-                                placeholder="Quantity here"
-                                disabled
+                                value={stockDisposalForm.currentStock}
+                                onChange={(e) => handleChange("currentStock", e.target.value)}
+                                placeholder="Current stock here..."
                             />
                         </div>
 
                         {/* Unit Measure */}
                         <div className="form-group">
                             <label>Unit Measure</label>
-                            <input
+                            <input disabled
                                 className={formErrors?.unitMeasure ? "invalid-input" : ""}
                                 type="text"
                                 value={stockDisposalForm.unitMeasure}
                                 onChange={(e) => handleChange("unitMeasure", e.target.value)}
-                                placeholder="Bus type here"
-                                disabled
+                                placeholder="Unit measure here..."
                             />
                         </div>
 
                         {/* Expiration Date */}
                         <div className="form-group">
                             <label>Expiration Date</label>
-                            <input
+                            <input disabled
                                 className={formErrors?.expirationDate ? "invalid-input" : ""}
                                 type="text"
-                                value={stockDisposalForm.expirationDate}
+                                value={stockDisposalForm.expirationDate || "N/A"}
                                 onChange={(e) => handleChange("expirationDate", e.target.value)}
-                                placeholder="Expiration Date here"
-                                disabled
+                                placeholder="Expiration date here..."
                             />
+                            <p className="add-error-message"></p>
                         </div>
                     </div>
                 </form>
             </div>
 
             {/* For Disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content add">
-                <form className="add-stock-disposal-form">
+                <form className="add-form">
                     {/* Disposal date and method */}
                     <div className="form-row">
                         {/* Disposal Date */}
                         <div className="form-group">
-                            <label>Disposal Date</label>
+                            <label className="required">Disposal Date</label>
                             <input
-                                className={formErrors?.stockDisposalDate ? "invalid-input" : ""}
+                                className={formErrors?.disposalDate ? "invalid-input" : ""}
                                 type="date"
-                                value={stockDisposalForm.stockDisposalDate}
-                                onChange={(e) => handleChange("stockDisposalDate", e.target.value)}
+                                value={stockDisposalForm.disposalDate}
+                                onChange={(e) => handleChange("disposalDate", e.target.value)}
                             />
-                            <p className="add-error-message">{formErrors?.stockDisposalDate}</p>
+                            <p className="add-error-message">{formErrors?.disposalDate}</p>
                         </div>
 
                         {/* Disposal Method */}
                         <div className="form-group">
-                            <label>Disposal Method</label>
+                            <label className="required">Disposal Method</label>
                             <select
-                                value={stockDisposalForm.stockDisposalMethod}
-                                onChange={(e) => handleChange("stockDisposalMethod", e.target.value)}
-                                className={formErrors?.stockDisposalMethod ? "invalid-input" : ""}
+                                value={stockDisposalForm.disposalMethod}
+                                onChange={(e) => handleChange("disposalMethod", e.target.value)}
+                                className={formErrors?.disposalMethod ? "invalid-input" : ""}
                             >
-                                <option value="" disabled>--Select Disposal Method--</option>
+                                <option value="" disabled>Select disposal method here...</option>
                                 <option value="sold">Sold</option>
-                                <option value="scrapped">Scrapped</option>
                                 <option value="donated">Donated</option>
-                                <option value="traded">Traded In</option>
-                                <option value="transfered">Transfered</option>
-                                <option value="auctioned">Auctioned</option>
+                                <option value="discarded">Discarded</option>
+                                <option value="scrapped">Scrapped</option>
                             </select>
-                            <p className="add-error-message">{formErrors?.stockDisposalMethod}</p>
+                            <p className="add-error-message">{formErrors?.disposalMethod}</p>
                         </div>
                     </div>
 
@@ -297,92 +281,45 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                     <div className="form-row">
                         {/* Quantity */}
                         <div className="form-group">
-                            <label>Quantity</label>
+                            <label className="required">Quantity</label>
                             <input
-                                className={formErrors?.quantityDisposal ? "invalid-input" : ""}
+                                className={formErrors?.disposalQuantity ? "invalid-input" : ""}
                                 type="number"
                                 min={1}
-                                value={stockDisposalForm.quantityDisposal}
-                                onChange={(e) => handleChange("quantityDisposal", Number(e.target.value))}
+                                value={stockDisposalForm.disposalQuantity}
+                                onChange={(e) => handleChange("disposalQuantity", Number(e.target.value))}
                                 placeholder="Enter quantity to dispose"
                             />
-                            <p className="add-error-message">{formErrors?.quantityDisposal}</p>
+                            <p className="add-error-message">{formErrors?.disposalQuantity}</p>
                         </div>
 
                         {/* Unit Measure */}
                         <div className="form-group">
                             <label>Unit Measure</label>
-                            <select
-                                value={stockDisposalForm.unitMeasureDisposal}
-                                onChange={(e) => handleChange("unitMeasureDisposal", e.target.value)}
-                                className={formErrors?.unitMeasureDisposal ? "invalid-input" : ""}
-                            >
-                                <option value="" disabled>--Select Unit Measure--</option>
-                                <option value="pcs">Pieces</option>
-                                <option value="liters">Liters</option>
-                                <option value="kg">Kilograms</option>
-                                <option value="box">Box</option>
-                                {/* Add more unit measures as needed */}
-                            </select>
-                            <p className="add-error-message">{formErrors?.unitMeasureDisposal}</p>
+                            <input disabled
+                                className={formErrors?.disposalUnitMeasure ? "invalid-input" : ""}
+                                type="number"
+                                min={1}
+                                value={stockDisposalForm.disposalUnitMeasure}
+                                onChange={(e) => handleChange("disposalUnitMeasure", Number(e.target.value))}
+                                placeholder="Unit measure here..."
+                            />
+                            <p className="add-error-message">{formErrors?.disposalUnitMeasure}</p>
                         </div>
                     </div>
 
                     {/* Reason for Disposal */}
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Reason for Disposal</label>
+                            <label className="required">Reason for Disposal</label>
                             <input
-                                className={formErrors?.stockDisposalReason ? "invalid-input" : ""}
+                                className={formErrors?.disposalReason ? "invalid-input" : ""}
                                 type="text"
-                                value={stockDisposalForm.stockDisposalReason}
-                                onChange={(e) => handleChange("stockDisposalReason", e.target.value)}
+                                value={stockDisposalForm.disposalReason}
+                                onChange={(e) => handleChange("disposalReason", e.target.value)}
                                 placeholder="Enter disposal reason here..."
                             />
-                            <p className="add-error-message">{formErrors?.stockDisposalReason}</p>
-                        </div>
-                    </div>
-
-                    {/* Form row - Disposal Documents */}
-                    <div className="form-row">
-                        {/* Disposal Documents */}
-                        <div className="form-group">
-                            <label>Disposal Attachments</label>
-                            <input
-                                className={formErrors?.stockDisposalAttachment ? "invalid-input" : ""}
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                multiple
-                                onChange={(e) => {
-                                    const files = Array.from(e.target.files || []);
-                                    const newFileNames = files.map(f => f.name);
-                                    const allFiles = Array.from(new Set([...stockDisposalForm.stockDisposalAttachment, ...newFileNames]));
-                                    handleChange("stockDisposalAttachment", allFiles);
-                                }}
-                            />
-                            {/* Show all uploaded document names and remove buttons */}
-                            {stockDisposalForm.stockDisposalAttachment.length > 0 && (
-                                <ul className="uploaded-documents-list">
-                                    {stockDisposalForm.stockDisposalAttachment.map((doc, idx) => (
-                                        <li key={idx} className="uploaded-document-item">
-                                            <span>{doc}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = stockDisposalForm.stockDisposalAttachment.filter((_, i) => i !== idx);
-                                                    handleChange("stockDisposalAttachment", updated);
-                                                }}
-                                                className="remove-document-button"
-                                                aria-label={`Remove document ${doc}`}
-                                            >
-                                                <i className="ri-close-line"></i>
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-
-                            <p className="add-error-message">{formErrors?.stockDisposalAttachment}</p>
+                            <p className="add-error-message">{formErrors?.disposalReason}</p>
                         </div>
                     </div>
 
@@ -391,13 +328,13 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
                         <div className="form-group">
                             <label>Remarks</label>
                             <input
-                                className={formErrors?.stockDisposalRemarks ? "invalid-input" : ""}
+                                className={formErrors?.disposalRemarks ? "invalid-input" : ""}
                                 type="text"
-                                value={stockDisposalForm.stockDisposalRemarks}
-                                onChange={(e) => handleChange("stockDisposalRemarks", e.target.value)}
+                                value={stockDisposalForm.disposalRemarks}
+                                onChange={(e) => handleChange("disposalRemarks", e.target.value)}
                                 placeholder="Enter remarks here..."
                             />
-                            <p className="add-error-message">{formErrors?.stockDisposalRemarks}</p>
+                            <p className="add-error-message">{formErrors?.disposalRemarks}</p>
                         </div>
                     </div>
 

@@ -5,14 +5,17 @@ import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+// import Loading from "@/components/loading";
 
 import AddStockDisposalModal, { StockDisposalForm } from "./addStockDisposalModal";
 import ViewStockDisposalModal from "./viewStockDisposalModal";
-// import EditStockDisposalModal from "./editStockDisposalModal";
+import AddDisposalMethodModal, { DisposalMethodForm } from "../disposal-method/addDisposalMethodModal";
+import { StockDisposalReportPreviewModal } from "./stockDisposalReportPDF";
 
-import "@/styles/filters.css"
-import "@/styles/tables.css"
-import "@/styles/chips.css"
+import "@/styles/filters.css";
+import "@/styles/tables.css";
+import "@/styles/chips.css";
+import "@/styles/loading.css";
 
 const hardcodedData = [
     {
@@ -20,30 +23,40 @@ const hardcodedData = [
         sku: "SKU-0001",
         itemName: "Fuel - Iveco",
         category: "Consumable",
-        stockDisposalDate: "2023-10-01",
+        disposalMethod: "Sold",
+        disposalDate: "October 1, 2023",
     },
     {
         id: 2,
         sku: "SKU-0002",
         itemName: "Welding Machine",
         category: "Machine",
-        stockDisposalDate: "2023-10-05",
+        disposalMethod: "Donated",
+        disposalDate: "October 5, 2023",
     },
 ];
 
 export default function StockDisposal() {
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Stock Disposal Report");
+
+    // Temporary filter state, remove if not being used anymore
+    const [filteredData, setFilteredData] = useState(hardcodedData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -75,27 +88,15 @@ export default function StockDisposal() {
             defaultValue: { from: "", to: "" }
         },
         {
-            id: "stockDisposalCategory",
-            title: "Category",
-            type: "checkbox",
-            options: [
-                { id: "consumable", label: "Consumable" },
-                { id: "tool", label: "Tool" },
-                { id: "equipment", label: "Equipment" },
-                { id: "machine", label: "Machine" }
-            ],
-            defaultValue: "stockDisposalDate"
-        },
-        {
             id: "sortBy",
             title: "Sort By",
             type: "radio",
             options: [
-                { id: "stockDisposalDate", label: "Disposal Date" },
+                { id: "disposalDate", label: "Disposal Date" },
                 { id: "sku", label: "SKU" },
-                { id: "item", label: "Item Name" }
+                { id: "itemName", label: "Item Name" }
             ],
-            defaultValue: "stockDisposalDate"
+            defaultValue: "disposalDate"
         },
         {
             id: "order",
@@ -113,33 +114,19 @@ export default function StockDisposal() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Keep a copy of the raw filters in state for other usages (report title check, etc.)
+        setFilterValues(filterValues);
 
-        // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
 
-        // Filter by status if selected
-        // if (filterValues.busMaintenanceStatus && filterValues.busMaintenanceStatus.length > 0) {
-        //     newData = newData.filter(item => filterValues.busMaintenanceStatus.includes(item.busMaintenanceStatus));
-        // }
-
-        // Sort by body number or date
+        // Sorting
+        const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
         if (filterValues.sortBy === "sku") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.sku.localeCompare(b.sku) * sortOrder;
-            });
-        } else if (filterValues.sortBy === "stockDisposalDate") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.stockDisposalDate ?? "").localeCompare(b.stockDisposalDate ?? "") * sortOrder;
-            });
+            newData.sort((a, b) => a.sku.localeCompare(b.sku) * orderMultiplier);
+        } else if (filterValues.sortBy === "disposalDate") {
+            newData.sort((a, b) => a.disposalDate.localeCompare(b.disposalDate) * orderMultiplier);
         } else if (filterValues.sortBy === "itemName") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.itemName ?? "").localeCompare(b.itemName ?? "") * sortOrder;
-            });
+            newData.sort((a, b) => (a.itemName ?? "").localeCompare(b.itemName ?? "") * orderMultiplier);
         }
 
         setFilteredData(newData);
@@ -147,7 +134,7 @@ export default function StockDisposal() {
     };
 
     // for the modals of add, view, and edit
-    const openModal = (mode: "add-stock-disposal" | "view-stock-disposal" | "edit-stock-disposal", rowData?: any) => {
+    const openModal = (mode: "add-stock-disposal" | "view-stock-disposal" | "add-disposal-method", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -160,20 +147,15 @@ export default function StockDisposal() {
             case "view-stock-disposal":
                 content = <ViewStockDisposalModal
                     item={rowData}
-                    // formatStatus={formatStatus}
                     onClose={closeModal}
                 />;
                 break;
-            // case "edit-stock-disposal":
-            //     content = <EditStockDisposalModal
-            //         item={rowData}
-            //         onSave={handleEditStockDisposal}
-            //         onClose={closeModal}
-            //     />;
-            //     break;
-            // case "delete-order":
-            //     handleDeleteOrder(rowData);
-            //     return;
+            case "add-disposal-method":
+                content = <AddDisposalMethodModal
+                    onSave={handleAddDisposalMethod}
+                    onClose={closeModal}
+                />;
+                break;
             default:
                 content = null;
         }
@@ -197,13 +179,30 @@ export default function StockDisposal() {
         closeModal();
     };
 
-    // Handle edit stock disposal
-    // const handleEditStockDisposal = (updatedItem: any) => {
-    //     console.log("Updating item:", updatedItem);
-    //     // Logic to update the item in the data
-    //     // In a real app, this would likely be an API call
-    //     closeModal();
-    // };
+    // Handle add disposal method
+    const handleAddDisposalMethod = (disposalMethodForm: DisposalMethodForm) => {
+        console.log("Saving form:", disposalMethodForm);
+        // Logic to add disposal method to the data
+        // In a real app, this would likely be an API call
+        closeModal();
+    };
+
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters are applied. 
+        // Modify this logic based on actual searching or filtering implementation.
+        const hasFilters = filteredData.length !== hardcodedData.length;
+
+        const title = hasFilters ? "Stock Disposal Report - Filtered" : "Stock Disposal Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
+    };
 
     return (
         <div className="card">
@@ -224,6 +223,20 @@ export default function StockDisposal() {
                             onApply={handleApplyFilters}
                         />
                     </div>
+
+                    {/* Add Disposal Method Button */}
+                    <button
+                        type="button"
+                        className="default-btn"
+                        onClick={() => openModal("add-disposal-method")}
+                    >
+                        <i className="ri-apps-2-add-line" /> Add Method
+                    </button>
+
+                    {/* Generate Report Button */}
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
+                        <i className="ri-receipt-line" /> Generate Report
+                    </button>
 
                     {/* Add Stock Disposal Button */}
                     <button className="main-btn" onClick={() => openModal("add-stock-disposal")}>
@@ -253,12 +266,10 @@ export default function StockDisposal() {
                                         <td>{item.sku}</td>
                                         <td>{item.itemName}</td>
                                         <td>{item.category}</td>
-                                        <td>{item.stockDisposalDate}</td>
+                                        <td>{item.disposalDate}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-stock-disposal", item)}
-                                                // onEdit={() => openModal("edit-stock-disposal", item)}
-                                            // disableEdit={item.busDisposalStatus !== "pending" && item.busDisposalStatus !== "approved"}
                                             />
                                         </td>
                                     </tr>
@@ -284,6 +295,14 @@ export default function StockDisposal() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Bus Report Preview Modal */}
+            <StockDisposalReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                stockDisposalData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>
