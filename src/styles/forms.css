@@ -204,7 +204,7 @@
 }
 
 /* ----- MODAL FORMS STYLING: FONT UPLOADED FILES ----- */
-/* .uploaded-documents-list {
+.uploaded-documents-list {
     margin-bottom: 5px;
     padding-left: 0;
     list-style: none;
@@ -241,11 +241,11 @@
     cursor: pointer;
     padding: 0;
     font-size: 16px;
-} */
+}
 
 
 /* ----- MODAL FORMS STYLING: DOCUMENT LINKS ----- */
-/* .view-documents-list {
+.view-documents-list {
     margin-bottom: 5px;
     padding-left: 0;
 }
@@ -282,7 +282,7 @@
     background-color: var(--table-header-color);
     color: var(--secondary-text-color);
     font-style: italic;
-} */
+}
 
 /* ----- FILE UPLOAD SECTION ----- */
 .upload-zone {
