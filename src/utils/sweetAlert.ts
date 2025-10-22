@@ -1040,3 +1040,71 @@ export const showCategoryUpdatedSuccess = () => {
         }
     });
 };
+
+//-------------------- DISPOSAL METHOD SPECIFIC -------------------//
+
+// ----- Add Disposal Method Confirmation ----- //
+export const showDisposalMethodSaveConfirmation = () => {
+    return Swal.fire({
+        title: 'Confirm Save',
+        text: 'Are you sure you want to save this disposal method?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Add Disposal Method Success ----- //
+export const showDisposalMethodSavedSuccess = () => {
+    return Swal.fire({
+        icon: 'success',
+        title: 'Saved!',
+        text: 'Disposal method added successfully.',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Disposal Method Confirmation ----- //
+export const showDisposalMethodUpdateConfirmation = (disposalMethodName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the details for <strong>${disposalMethodName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Disposal Method Success ----- //
+export const showDisposalMethodUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Disposal method detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
