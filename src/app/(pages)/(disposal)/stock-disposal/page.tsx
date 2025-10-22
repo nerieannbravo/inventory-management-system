@@ -253,6 +253,7 @@ export default function StockDisposal() {
                                     <th>SKU</th>
                                     <th>Item Name</th>
                                     <th>Category</th>
+                                    <th>Disposal Method</th>
                                     <th>Disposal Date</th>
                                     <th>Actions</th>
                                 </tr>
@@ -266,6 +267,7 @@ export default function StockDisposal() {
                                         <td>{item.sku}</td>
                                         <td>{item.itemName}</td>
                                         <td>{item.category}</td>
+                                        <td>{item.disposalMethod}</td>
                                         <td>{item.disposalDate}</td>
                                         <td>
                                             <ActionButtons
