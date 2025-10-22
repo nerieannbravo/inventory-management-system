@@ -419,13 +419,49 @@
 
 
 /* ----- MODAL FORMS STYLING: TABLE ----- */
+/* ----- OUTER WRAPPER: radius + shadow + height limit ----- */
+.modal-table-wrapper {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    background-color: var(--foreground-color);
+    width: 100%;
+    max-height: calc(6 * 40px); /* Max height for 6 rows */
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-self: center;
+}
+
+/* ----- INNER CONTAINER: scrollable area ----- */
+.modal-table-container {
+    width: 100%;
+    height: auto;
+    max-height: inherit;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.modal-table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.modal-table-container::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.modal-table-container::-webkit-scrollbar-track {
+    background-color: var(--table-row-color);
+    border-radius: 8px;
+}
+
+/* ----- TABLE STYLING ----- */
 .modal-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
-    border: 1px solid var(--table-header-color);
-    margin: 5px 0;
-    margin-bottom: 20px;
 }
 
 .modal-table-heading {
@@ -436,19 +472,24 @@
     background-color: var(--table-header-color);
     color: var(--primary-text-color);
     font-weight: bold;
-    border-bottom: 1px solid var(--table-header-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .modal-table-body {
     text-align: center;
     vertical-align: middle;
     background-color: var(--foreground-color);
+    color: var(--secondary-text-color);
 }
 
 .modal-table-body tr {
     height: 40px;
-    border-bottom: 1px solid var(--table-header-color);
+    border-bottom: 1px solid var(--border-color);
     transition: all 0.2s ease-in-out;
+}
+
+.modal-table-body tr:hover {
+    background-color: var(--table-row-color);
 }
 
 .modal-table-heading th,
@@ -457,6 +498,7 @@
     padding: 5px 15px;
     white-space: normal;
     word-wrap: break-word;
+    text-overflow: ellipsis;
 }
 
 
