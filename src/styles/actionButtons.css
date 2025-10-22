@@ -27,7 +27,7 @@
 }
 
 .action-btn.send {
-    background-color: var(--violet-color);
+    background-color: var(--highlight-color);
 }
 
 .action-btn.approve {
@@ -52,7 +52,7 @@
 }
 
 .action-btn.send:hover:not(.disabled) {
-    background-color: var(--violet-hover-color);
+    background-color: var(--highlight-hover-color);
 }
 
 .action-btn.approve:hover:not(.disabled) {
@@ -90,7 +90,7 @@
 }
 
 .modal-table-body td .action-btn.send {
-    color: var(--violet-color);
+    color: var(--highlight-color);
 }
 
 .modal-table-body td .action-btn.approve {
@@ -122,7 +122,7 @@
 
 .modal-table-body td .action-btn.send:hover:not(.disabled) {
     background: none;
-    color: var(--violet-hover-color);
+    color: var(--highlight-hover-color);
 }
 
 .modal-table-body td .action-btn.approve:hover:not(.disabled) {
