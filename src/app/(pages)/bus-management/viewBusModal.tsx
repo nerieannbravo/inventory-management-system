@@ -5,9 +5,11 @@ interface ViewBusModalProps {
     item: {
         id: number,
         bodyNumber: string,
+        plateNumber: string,
         bodyBuilder: string,
-        busType: string,
         status: string,
+        busType: string,
+        seatCapacity: number,
         condition: string,
         // Additional fields would be included in a real application
     };
@@ -34,7 +36,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                     <div className="form-row">
                         <div className="form-group">
                             <label>Plate Number</label>
-                            <p>NGJ 4213</p>
+                            <p>{item.plateNumber}</p>
                         </div>
 
                         <div className="form-group">
@@ -98,7 +100,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
                         <div className="form-group">
                             <label>Seat Capacity</label>
-                            <p>45</p>
+                            <p>{item.seatCapacity}</p>
                         </div>
 
                         <div className="form-group">
