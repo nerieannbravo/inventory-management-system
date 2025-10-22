@@ -91,6 +91,13 @@
   color: var(--primary-text-color);
 }
 
+.no-data {
+    text-align: center;
+    font-style: italic;
+    padding: 8px;
+    color: var(--tertiary-text-color);
+}
+
 /* .table-body tr:nth-child(even) {
     background-color: var(--table-row-color);
 } */
