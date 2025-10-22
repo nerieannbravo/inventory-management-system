@@ -469,7 +469,7 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
 
                         {/* Model */}
                         <div className="form-group">
-                            <label>Model</label>
+                            <label className="required">Model</label>
                             <input
                                 className={formErrors?.model ? "invalid-input" : ""}
                                 type="text"
