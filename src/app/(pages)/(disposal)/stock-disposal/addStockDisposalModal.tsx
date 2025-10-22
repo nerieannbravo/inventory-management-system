@@ -37,11 +37,9 @@ interface AddStockDisposalModalProps {
 
 export default function AddStockDisposalModal({ onSave, onClose }: AddStockDisposalModalProps) {
     const [stockDisposalForm, setStockDisposalForm] = useState<StockDisposalForm>({
-        // Dropdown for plate number
+        // Stock details
         itemName: "",
         category: "",
-
-        // Stock details
         sku: "",
         expirationDate: "",
         currentStock: 0,
@@ -87,7 +85,7 @@ export default function AddStockDisposalModal({ onSave, onClose }: AddStockDispo
         if (!stockDisposalForm.disposalMethod) {
             errors.disposalMethod = "Disposal method is required";
         }
-        //Disposal quantity
+        
         if (!stockDisposalForm.disposalQuantity || stockDisposalForm.disposalQuantity === 0) {
             errors.disposalQuantity = "Disposal quantity is required and cannot be 0";
         }

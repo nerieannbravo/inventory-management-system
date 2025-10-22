@@ -5,14 +5,17 @@ import ActionButtons from "@/components/actionButtons";
 import ModalManager from "@/components/modalManager";
 import FilterDropdown, { FilterSection } from "@/components/filterDropdown";
 import PaginationComponent from "@/components/pagination";
+// import Loading from "@/components/loading";
 
 import AddBusDisposalModal, { BusDisposalForm } from "./addBusDisposalModal";
 import ViewBusDisposalModal from "./viewBusDisposalModal";
-// import EditBusDisposalModal from "./editBusDisposalModal";
+import AddDisposalMethodModal, { DisposalMethodForm } from "../disposal-method/addDisposalMethodModal";
+import { BusDisposalReportPreviewModal } from "./busDisposalReportPDF";
 
-import "@/styles/filters.css"
-import "@/styles/tables.css"
-import "@/styles/chips.css"
+import "@/styles/filters.css";
+import "@/styles/tables.css";
+import "@/styles/chips.css";
+import "@/styles/loading.css";
 
 const hardcodedData = [
     {
@@ -20,32 +23,40 @@ const hardcodedData = [
         bodyNumber: "BUS123",
         bodyBuilder: "Agila",
         busType: "Airconditioned",
-        busDisposalMethod: "Sold",
-        busDisposalDate: "2023-10-01",
+        disposalMethod: "Sold",
+        disposalDate: "January 15, 2023",
     },
     {
         id: 2,
         bodyNumber: "BUS456",
         bodyBuilder: "Hilltop",
         busType: "Ordinary",
-        busDisposalMethod: "Scrapped",
-        busDisposalDate: "2023-10-05",
+        disposalMethod: "Scrapped",
+        disposalDate: "August 22, 2022",
     },
 ];
 
 export default function BusDisposal() {
-    // for modal
+    // Modal state
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeRow, setActiveRow] = useState<any>(null);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
 
-    // For filtering
-    const [filteredData, setFilteredData] = useState(hardcodedData);
-
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10); // default number of rows per page
+
+    // Search and filter state
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterValues, setFilterValues] = useState<Record<string, any>>({});
+
+    // PDF Report state
+    const [showReportPreview, setShowReportPreview] = useState(false);
+    const [reportTitle, setReportTitle] = useState("Bus Disposal Report");
+
+    // Temporary filter state, remove if not being used anymore
+    const [filteredData, setFilteredData] = useState(hardcodedData);
 
     // Calculate paginated data
     const paginatedData = useMemo(() => {
@@ -101,10 +112,10 @@ export default function BusDisposal() {
             title: "Sort By",
             type: "radio",
             options: [
-                { id: "busDisposalDate", label: "Disposal Date" },
+                { id: "disposalDate", label: "Disposal Date" },
                 { id: "bodyNumber", label: "Body Number" },
             ],
-            defaultValue: "busDisposalDate"
+            defaultValue: "disposalDate"
         },
         {
             id: "order",
@@ -122,28 +133,33 @@ export default function BusDisposal() {
     const handleApplyFilters = (filterValues: Record<string, any>) => {
         console.log("Applied filters:", filterValues);
 
-        // In a real application, you would filter your data based on these values
-        // For now, we'll just log them and keep the original data
+        // Keep a copy of the raw filters in state for other usages (report title check, etc.)
+        setFilterValues(filterValues);
 
-        // Example implementation for filtering and sorting:
         let newData = [...hardcodedData];
 
-        // Filter by status if selected
-        // if (filterValues.busMaintenanceStatus && filterValues.busMaintenanceStatus.length > 0) {
-        //     newData = newData.filter(item => filterValues.busMaintenanceStatus.includes(item.busMaintenanceStatus));
-        // }
+        // normalizes a value to a simple comparable token (lowercase, remove non-alphanumerics)
+        const normalize = (value: any) =>
+            (value === null || value === undefined) ? "" : String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
 
-        // Sort by body number or date
-        if (filterValues.sortBy === "bodyNumber") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return a.bodyNumber.localeCompare(b.bodyNumber) * sortOrder;
-            });
-        } else if (filterValues.sortBy === "busDisposalDate") {
-            newData.sort((a, b) => {
-                const sortOrder = filterValues.order === "asc" ? 1 : -1;
-                return (a.busDisposalDate ?? "").localeCompare(b.busDisposalDate ?? "") * sortOrder;
-            });
+        // Filter by bodyBuilder if selected
+        if (filterValues.bodyBuilder && filterValues.bodyBuilder.length > 0) {
+            const normalizedFilters = filterValues.bodyBuilder.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.bodyBuilder)));
+        }
+
+        // Filter by busType if selected
+        if (filterValues.busType && filterValues.busType.length > 0) {
+            const normalizedFilters = filterValues.busType.map((filter: string) => normalize(filter));
+            newData = newData.filter(item => normalizedFilters.includes(normalize(item.busType)));
+        }
+
+        // Sorting
+        const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
+        if (filterValues.sortBy === "disposalDate") {
+            newData.sort((a, b) => a.disposalDate.localeCompare(b.disposalDate) * orderMultiplier);
+        } else if (filterValues.sortBy === "bodyNumber") {
+            newData.sort((a, b) => (a.bodyNumber ?? "").localeCompare(b.bodyNumber ?? "") * orderMultiplier);
         }
 
         setFilteredData(newData);
@@ -151,7 +167,7 @@ export default function BusDisposal() {
     };
 
     // for the modals of add, view, and edit
-    const openModal = (mode: "add-bus-disposal" | "view-bus-disposal" | "edit-bus-disposal", rowData?: any) => {
+    const openModal = (mode: "add-bus-disposal" | "view-bus-disposal" | "add-disposal-method", rowData?: any) => {
         let content;
 
         switch (mode) {
@@ -164,20 +180,15 @@ export default function BusDisposal() {
             case "view-bus-disposal":
                 content = <ViewBusDisposalModal
                     item={rowData}
-                    // formatStatus={formatStatus}
                     onClose={closeModal}
                 />;
                 break;
-            // case "edit-bus-disposal":
-            //     content = <EditBusDisposalModal
-            //         item={rowData}
-            //         onSave={handleEditBusDisposal}
-            //         onClose={closeModal}
-            //     />;
-            //     break;
-            // case "delete-order":
-            //     handleDeleteOrder(rowData);
-            //     return;
+            case "add-disposal-method":
+                content = <AddDisposalMethodModal
+                    onSave={handleAddDisposalMethod}
+                    onClose={closeModal}
+                />;
+                break;
             default:
                 content = null;
         }
@@ -196,18 +207,35 @@ export default function BusDisposal() {
     // Handle add bus disposal
     const handleAddBusDisposal = (busDisposalForm: BusDisposalForm) => {
         console.log("Saving form:", busDisposalForm);
-        // Logic to add bus to the data
+        // Logic to add bus disposal to the data
         // In a real app, this would likely be an API call
         closeModal();
     };
 
-    // Handle edit bus disposal
-    // const handleEditBusDisposal = (updatedItem: any) => {
-    //     console.log("Updating item:", updatedItem);
-    //     // Logic to update the item in the data
-    //     // In a real app, this would likely be an API call
-    //     closeModal();
-    // };
+    // Handle add disposal method
+    const handleAddDisposalMethod = (disposalMethodForm: DisposalMethodForm) => {
+        console.log("Saving form:", disposalMethodForm);
+        // Logic to add disposal method to the data
+        // In a real app, this would likely be an API call
+        closeModal();
+    };
+
+    // Handle generate report
+    const handleGenerateReport = () => {
+        // Check if any filters are applied. 
+        // Modify this logic based on actual searching or filtering implementation.
+        const hasFilters = filteredData.length !== hardcodedData.length;
+
+        const title = hasFilters ? "Bus Disposal Report - Filtered" : "Bus Disposal Report";
+
+        setReportTitle(title);
+        setShowReportPreview(true);
+    };
+
+    // Handle close report
+    const handleCloseReportPreview = () => {
+        setShowReportPreview(false);
+    };
 
     return (
         <div className="card">
@@ -228,6 +256,20 @@ export default function BusDisposal() {
                             onApply={handleApplyFilters}
                         />
                     </div>
+
+                    {/* Add Disposal Method Button */}
+                    <button
+                        type="button"
+                        className="default-btn"
+                        onClick={() => openModal("add-disposal-method")}
+                    >
+                        <i className="ri-apps-2-add-line" /> Add Method
+                    </button>
+
+                    {/* Generate Report Button */}
+                    <button type="button" className="generate-btn" onClick={handleGenerateReport}>
+                        <i className="ri-receipt-line" /> Generate Report
+                    </button>
 
                     {/* Add Bus Disposal Button */}
                     <button className="main-btn" onClick={() => openModal("add-bus-disposal")}>
@@ -258,13 +300,11 @@ export default function BusDisposal() {
                                         <td>{item.bodyNumber}</td>
                                         <td>{item.bodyBuilder}</td>
                                         <td>{item.busType}</td>
-                                        <td>{item.busDisposalMethod}</td>
-                                        <td>{item.busDisposalDate}</td>
+                                        <td>{item.disposalMethod}</td>
+                                        <td>{item.disposalDate}</td>
                                         <td>
                                             <ActionButtons
                                                 onView={() => openModal("view-bus-disposal", item)}
-                                            // onEdit={() => openModal("edit-bus-disposal", item)}
-                                            // disableEdit={item.busDisposalStatus !== "pending" && item.busDisposalStatus !== "approved"}
                                             />
                                         </td>
                                     </tr>
@@ -290,6 +330,14 @@ export default function BusDisposal() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 modalContent={modalContent}
+            />
+
+            {/* Bus Disposal Report Preview Modal */}
+            <BusDisposalReportPreviewModal
+                isOpen={showReportPreview}
+                onClose={handleCloseReportPreview}
+                busDisposalData={filteredData}
+                reportTitle={reportTitle}
             />
 
         </div>

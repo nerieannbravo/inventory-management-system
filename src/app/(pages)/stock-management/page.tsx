@@ -148,8 +148,8 @@ export default function StocksManagement() {
             ]
         },
         // {
-        //     id: "categories",
-        //     title: "Categories",
+        //     id: "category",
+        //     title: "Category",
         //     type: "checkbox",
         //     options: [
         //         { id: "consumable", label: "Consumable" },
@@ -200,9 +200,9 @@ export default function StocksManagement() {
             newData = newData.filter(item => normalizedFilters.includes(normalize(item.status)));
         }
 
-        // Filter by categories if selected
-        // if (filterValues.categories && filterValues.categories.length > 0) {
-        //     const normalizedFilters = filterValues.categories.map((filter: string) => normalize(filter));
+        // Filter by category if selected
+        // if (filterValues.category && filterValues.category.length > 0) {
+        //     const normalizedFilters = filterValues.category.map((filter: string) => normalize(filter));
         //     newData = newData.filter(item => normalizedFilters.includes(normalize(item.category)));
         // }
 

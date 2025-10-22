@@ -4,8 +4,10 @@ interface ViewBusDisposalModalProps {
     item: {
         id: number,
         bodyNumber: string,
-        busDisposalMethod: string,
-        busDisposalDate: string,
+        bodyBuilder: string,
+        busType: string,
+        disposalMethod: string,
+        disposalDate: string,
         // viewitional fields would be included in a real application
     };
     // formatStatus: (status: string) => string;
@@ -24,7 +26,7 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
             </div>
 
             <div className="modal-content view">
-                <form className="view-bus-disposal-form">
+                <form className="view-form">
                     <div className="form-row">
                         {/* Body Number */}
                         <div className="form-group">
@@ -36,9 +38,9 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
             </div>
 
             {/* For view bus detais */}
-            <p className="bus-details-title">I. Bus Details</p>
+            <p className="details-title">I. Bus Details</p>
             <div className="modal-content view">
-                <form className="view-bus-disposal-form">
+                <form className="view-form">
                     {/* Plate number, body builder, and bus type */}
                     <div className="form-row">
                         {/* Plate Number */}
@@ -50,13 +52,13 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                         {/* Body Builder */}
                         <div className="form-group">
                             <label>Body Builder</label>
-                            <p>Agila</p>
+                            <p>{item.bodyBuilder}</p>
                         </div>
 
                         {/* Bus Type */}
                         <div className="form-group">
                             <label>Bus Type</label>
-                            <p>Airconditioned</p>
+                            <p>{item.busType}</p>
                         </div>
                     </div>
 
@@ -106,21 +108,21 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
             </div>
 
             {/* For disposal detais */}
-            <p className="bus-details-title">II. Disposal Details</p>
+            <p className="details-title">II. Disposal Details</p>
             <div className="modal-content view">
-                <form className="view-bus-disposal-form">
+                <form className="view-form">
                     {/* disposal date and type */}
                     <div className="form-row">
                         {/* Disposal Date */}
                         <div className="form-group">
                             <label>Disposal Date</label>
-                            <p>{item.busDisposalDate}</p>
+                            <p>{item.disposalDate}</p>
                         </div>
 
                         {/* Disposal Method */}
                         <div className="form-group">
                             <label>Disposal Method</label>
-                            <p>{item.busDisposalMethod}</p>
+                            <p>{item.disposalMethod}</p>
                         </div>
                     </div>
 
@@ -129,22 +131,6 @@ export default function ViewBusDisposalModal({ item, onClose }: ViewBusDisposalM
                         <div className="form-group">
                             <label>Reason for Disposal</label>
                             <p>Not usable</p>
-                        </div>
-                    </div>
-
-                    {/* Attachments */}
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Attachments</label>
-                            <div className="uploaded-document-item">
-                                {/* Example: Replace with dynamic document list */}
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Warranty.pdf
-                                </a>
-                                <a href="#" target="_blank" rel="noopener noreferrer" className="document-link">
-                                    Insurance.pdf
-                                </a>
-                            </div>
                         </div>
                     </div>
 

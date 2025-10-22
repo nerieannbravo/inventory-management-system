@@ -121,10 +121,10 @@ export default function StockDisposal() {
 
         // Sorting
         const orderMultiplier = filterValues.order === "desc" ? -1 : 1;
-        if (filterValues.sortBy === "sku") {
-            newData.sort((a, b) => a.sku.localeCompare(b.sku) * orderMultiplier);
-        } else if (filterValues.sortBy === "disposalDate") {
+        if (filterValues.sortBy === "disposalDate") {
             newData.sort((a, b) => a.disposalDate.localeCompare(b.disposalDate) * orderMultiplier);
+        } else if (filterValues.sortBy === "sku") {
+            newData.sort((a, b) => (a.sku ?? "").localeCompare(b.sku ?? "") * orderMultiplier);
         } else if (filterValues.sortBy === "itemName") {
             newData.sort((a, b) => (a.itemName ?? "").localeCompare(b.itemName ?? "") * orderMultiplier);
         }
@@ -174,7 +174,7 @@ export default function StockDisposal() {
     // Handle add stock disposal
     const handleAddStockDisposal = (stockDisposalForm: StockDisposalForm) => {
         console.log("Saving form:", stockDisposalForm);
-        // Logic to add bus to the data
+        // Logic to add stock disposal to the data
         // In a real app, this would likely be an API call
         closeModal();
     };
@@ -299,7 +299,7 @@ export default function StockDisposal() {
                 modalContent={modalContent}
             />
 
-            {/* Bus Report Preview Modal */}
+            {/* Stock Disposal Report Preview Modal */}
             <StockDisposalReportPreviewModal
                 isOpen={showReportPreview}
                 onClose={handleCloseReportPreview}
