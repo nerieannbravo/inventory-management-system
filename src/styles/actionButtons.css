@@ -26,6 +26,18 @@
     background-color: var(--error-color);
 }
 
+.action-btn.send {
+    background-color: var(--violet-color);
+}
+
+.action-btn.approve {
+    background-color: var(--success-color);
+}
+
+.action-btn.reject {
+    background-color: var(--error-color);
+}
+
 /* ----- ACTION BUTTONS: HOVER STYLING ----- */
 .action-btn.view:hover:not(.disabled) {
     background-color: var(--success-hover-color);
@@ -36,6 +48,18 @@
 }
 
 .action-btn.delete:hover:not(.disabled) {
+    background-color: var(--error-hover-color);
+}
+
+.action-btn.send:hover:not(.disabled) {
+    background-color: var(--violet-hover-color);
+}
+
+.action-btn.approve:hover:not(.disabled) {
+    background-color: var(--success-hover-color);
+}
+
+.action-btn.reject:hover:not(.disabled) {
     background-color: var(--error-hover-color);
 }
 
@@ -53,6 +77,10 @@
     background: none;
 }
 
+.modal-table-body td .action-btn.view {
+    color: var(--success-color);
+}
+
 .modal-table-body td .action-btn.edit {
     color: var(--info-color);
 }
@@ -61,8 +89,25 @@
     color: var(--error-color);
 }
 
+.modal-table-body td .action-btn.send {
+    color: var(--violet-color);
+}
+
+.modal-table-body td .action-btn.approve {
+    color: var(--success-color);
+}
+
+.modal-table-body td .action-btn.reject {
+    color: var(--error-color);
+}
+
 .modal-table-body td .action-btn:hover:not(.disabled) {
     background: none;
+}
+
+.modal-table-body td .action-btn.edit:hover:not(.disabled) {
+    background: none;
+    color: var(--success-hover-color);
 }
 
 .modal-table-body td .action-btn.edit:hover:not(.disabled) {
@@ -74,6 +119,22 @@
     background: none;
     color: var(--error-hover-color);
 }
+
+.modal-table-body td .action-btn.send:hover:not(.disabled) {
+    background: none;
+    color: var(--violet-hover-color);
+}
+
+.modal-table-body td .action-btn.approve:hover:not(.disabled) {
+    background: none;
+    color: var(--success-hover-color);
+}
+
+.modal-table-body td .action-btn.reject:hover:not(.disabled) {
+    background: none;
+    color: var(--error-hover-color);
+}
+
 
 /* -----  MODAL TABLE ACTION BUTTONS: DISABLED STATE STYLING ----- */
 .modal-table-body td .action-btn.disabled {

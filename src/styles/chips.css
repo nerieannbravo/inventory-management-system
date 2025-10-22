@@ -7,6 +7,7 @@
     display: inline-block;
 }
 
+/* ----- SUCCESS/GREEN STYLING ----- */
 .chip.available,
 .chip.returned,
 .chip.approved,
@@ -16,6 +17,7 @@
     color: var(--success-chip-text-color);
 }
 
+/* ----- ERROR/RED STYLING ----- */
 .chip.out-of-stock,
 .chip.not-returned,
 .chip.decommissioned,
@@ -25,14 +27,16 @@
     color: var(--error-chip-text-color);
 }
 
+/* ----- INFO/BLUE STYLING ----- */
 .chip.maintenance,
 .chip.consumed,
-.chip.completed,
-.chip.under-maintenance {
+.chip.under-maintenance,
+.chip.adjusted {
     background-color: var(--info-chip-bg-color);
     color: var(--info-chip-text-color);
 }
 
+/* ----- WARNING/YELLOW STYLING ----- */
 .chip.in-use,
 .chip.low-stock,
 .chip.pending {
@@ -40,7 +44,9 @@
     color: var(--warning-chip-text-color);
 }
 
-.chip.expired {
+/* ----- EXPIRED/GRAY STYLING ----- */
+.chip.expired,
+.chip.closed {
     background-color: var(--expired-chip-bg-color);
     color: var(--primary-text-color);
 }
