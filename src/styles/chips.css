@@ -40,14 +40,16 @@
 .chip.in-use,
 .chip.low-stock,
 .chip.pending,
-.chip.draft {
+.chip.draft,
+.chip.flagged {
     background-color: var(--warning-chip-bg-color);
     color: var(--warning-chip-text-color);
 }
 
 /* ----- EXPIRED/GRAY STYLING ----- */
 .chip.expired,
-.chip.closed {
-    background-color: var(--expired-chip-bg-color);
+.chip.closed,
+.chip.blocked {
+    background-color: var(--gray-chip-bg-color);
     color: var(--primary-text-color);
 }

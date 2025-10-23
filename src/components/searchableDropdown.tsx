@@ -70,6 +70,12 @@ export default function SearchableDropdown({
         setDisplayValue(newValue);
         setIsOpen(true);
 
+        // If field is cleared, notify parent immediately
+        if (!newValue) {
+            onChange(null, "");
+            return;
+        }
+
         if (allowCustom) {
             // Check for exact match
             const exactMatch = options.find(option =>

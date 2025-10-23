@@ -222,4 +222,14 @@ export const statusColors = {
         backgroundColor: '#FFDDDD',
         color: '#A50000',
     },
+
+    // Supplier Status Colors
+    flagged: {
+        backgroundColor: '#FFF5C2',
+        color: '#85643B',
+    },
+    blocked: {
+        backgroundColor: '#D9D9D9',
+        color: 'black',
+    },
 };

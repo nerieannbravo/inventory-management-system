@@ -156,9 +156,13 @@ export const formatItemSupplierStatus = (status: string): string => {
         // Original format
         'ACTIVE': 'Active',
         'INACTIVE': 'Inactive',
+        'FLAGGED': 'Flagged',
+        'BLOCKED': 'Blocked',
         // Temporary
         'active': 'Active',
-        'inactive': 'Inactive'
+        'inactive': 'Inactive',
+        'flagged': 'Flagged',
+        'blocked': 'Blocked'
     };
     return statusMap[status] || status;
 };
@@ -232,9 +236,13 @@ export const getItemSupplierStatusStyle = (status: string) => {
         // Original format
         'ACTIVE': [reportStyles.statusChip, statusColors.active],
         'INACTIVE': [reportStyles.statusChip, statusColors.inactive],
+        'FLAGGED': [reportStyles.statusChip, statusColors.flagged],
+        'BLOCKED': [reportStyles.statusChip, statusColors.blocked],
         // Temporary
         'active': [reportStyles.statusChip, statusColors.active],
-        'inactive': [reportStyles.statusChip, statusColors.inactive]
+        'inactive': [reportStyles.statusChip, statusColors.inactive],
+        'flagged': [reportStyles.statusChip, statusColors.flagged],
+        'blocked': [reportStyles.statusChip, statusColors.blocked]
     };
     return statusStyleMap[status] || [reportStyles.statusChip];
 };
