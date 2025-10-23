@@ -22,7 +22,7 @@ const hardcodedData = [
     {
         id: 1,
         itemName: "Tires",
-        itemUnit: "pcs",
+        itemUnitMeasure: "pcs",
         itemCategory: "Consumable",
         itemStatus: "active",
         linkedSupplier: 2,
@@ -30,7 +30,7 @@ const hardcodedData = [
     {
         id: 2,
         itemName: "Lathe Machine",
-        itemUnit: "unit",
+        itemUnitMeasure: "unit",
         itemCategory: "Machine",
         itemStatus: "active",
         linkedSupplier: 1,
@@ -38,7 +38,7 @@ const hardcodedData = [
     {
         id: 3,
         itemName: "Welding Machine",
-        itemUnit: "unit",
+        itemUnitMeasure: "unit",
         itemCategory: "Equipment",
         itemStatus: "inactive",
         linkedSupplier: 3,
@@ -46,7 +46,7 @@ const hardcodedData = [
     {
         id: 4,
         itemName: "Hammer",
-        itemUnit: "pcs",
+        itemUnitMeasure: "pcs",
         itemCategory: "Tool",
         itemStatus: "active",
         linkedSupplier: 4,
@@ -54,7 +54,7 @@ const hardcodedData = [
     {
         id: 5,
         itemName: "Hydraulic Oil",
-        itemUnit: "liters",
+        itemUnitMeasure: "liters",
         itemCategory: "Consumable",
         itemStatus: "active",
         linkedSupplier: 2,
@@ -62,7 +62,7 @@ const hardcodedData = [
     {
         id: 6,
         itemName: "Compressor",
-        itemUnit: "unit",
+        itemUnitMeasure: "unit",
         itemCategory: "Equipment",
         itemStatus: "active",
         linkedSupplier: 5,
@@ -70,7 +70,7 @@ const hardcodedData = [
     {
         id: 7,
         itemName: "Wrench Set",
-        itemUnit: "sets",
+        itemUnitMeasure: "sets",
         itemCategory: "Tool",
         itemStatus: "inactive",
         linkedSupplier: 3,
@@ -78,7 +78,7 @@ const hardcodedData = [
     {
         id: 8,
         itemName: "Drill Press",
-        itemUnit: "unit",
+        itemUnitMeasure: "unit",
         itemCategory: "Machine",
         itemStatus: "active",
         linkedSupplier: 6,
@@ -86,7 +86,7 @@ const hardcodedData = [
     {
         id: 9,
         itemName: "Cutting Discs",
-        itemUnit: "pcs",
+        itemUnitMeasure: "pcs",
         itemCategory: "Consumable",
         itemStatus: "active",
         linkedSupplier: 4,
@@ -94,7 +94,7 @@ const hardcodedData = [
     {
         id: 10,
         itemName: "Safety Gloves",
-        itemUnit: "pairs",
+        itemUnitMeasure: "pairs",
         itemCategory: "Tool",
         itemStatus: "active",
         linkedSupplier: 1,
@@ -216,7 +216,7 @@ export default function ItemManagement() {
         setCurrentPage(1); // Reset to first page when filters change
     };
 
-    // for order status formatting
+    // for item status formatting
     function formatStatus(itemStatus: string) {
         switch (itemStatus) {
             case "active":
@@ -295,7 +295,7 @@ export default function ItemManagement() {
         console.log("Saving form:", categoryForm);
         // Logic to add category to the data
         // In a real app, this would likely be an API call
-        closeModal();
+        // closeModal();
     };
 
     // Handle generate report
@@ -376,7 +376,7 @@ export default function ItemManagement() {
                                         className={selectedIds.includes(item.id) ? "selected" : ""}
                                     >
                                         <td>{item.itemName}</td>
-                                        <td>{item.itemUnit}</td>
+                                        <td>{item.itemUnitMeasure}</td>
                                         <td>{item.itemCategory}</td>
                                         <td className="table-status">
                                             <span className={`chip ${item.itemStatus}`}>

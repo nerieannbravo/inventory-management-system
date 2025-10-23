@@ -100,8 +100,33 @@ export default function AddDisposalMethodModal({ onSave, onClose }: AddDisposalM
 
         const result = await showDisposalMethodSaveConfirmation();
         if (result.isConfirmed) {
+            // Generate a new ID for the disposal method
+            const newId = disposalMethodList.length > 0
+                ? Math.max(...disposalMethodList.map(c => c.id)) + 1
+                : 1;
+
+            // Create the new disposal method object with an ID
+            const newDisposalMethod = {
+                id: newId,
+                disposalMethodName: disposalMethodForm.disposalMethodName,
+                disposalMethodDescription: disposalMethodForm.disposalMethodDescription
+            };
+
+            // Add to the local list
+            setDisposalMethodList(prev => [...prev, newDisposalMethod]);
+
+            // Call parent's onSave (for any external handling needed)
             onSave(disposalMethodForm);
+
+            // Show success message
             await showDisposalMethodSavedSuccess();
+
+            // Reset the form but keep modal open
+            setDisposalMethodForm({
+                disposalMethodName: "",
+                disposalMethodDescription: ""
+            });
+            setIsDirty(false);
         }
     };
 
@@ -200,6 +225,12 @@ export default function AddDisposalMethodModal({ onSave, onClose }: AddDisposalM
                 </form>
             </div>
 
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit}>
+                    <i className="ri-save-3-line" /> Save
+                </button>
+            </div>
+
             {/* Disposal Method List */}
             <div className="details-header">
                 <p className="details-title">Existing Disposal Methods</p>
@@ -237,12 +268,6 @@ export default function AddDisposalMethodModal({ onSave, onClose }: AddDisposalM
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
-                </button>
             </div>
 
             {/* Dynamic Modal Manager */}

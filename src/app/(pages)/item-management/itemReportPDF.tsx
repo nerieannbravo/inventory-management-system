@@ -22,7 +22,7 @@ import "@/styles/pdfModal.css";
 interface ItemItem {
     id: number;
     itemName: string;
-    itemUnit: string;
+    itemUnitMeasure: string;
     itemCategory: string;
     linkedSupplier: number;
     itemStatus: string;
@@ -102,7 +102,7 @@ const ItemReportDocument: React.FC<{
                                 {item.itemName}
                             </Text>
                             <Text style={reportStyles.columnMedium}>
-                                {item.itemUnit}
+                                {item.itemUnitMeasure}
                             </Text>
                             <Text style={reportStyles.columnMedium}>
                                 {item.itemCategory}

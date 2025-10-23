@@ -4,13 +4,12 @@ interface ViewSupplierModalProps {
     item: {
         id: number;
         supplierName: string,
-        supplierStreet: string,
-        supplierBarangay: string,
-        supplierCity: string,
-        supplierProvince: string,
+        supplierAddress: string,
+        supplierContactPerson: string,
         supplierContact: string,
         supplierEmail: string,
         supplierStatus: string,
+        supplierRemarks: string,
         // Additional fields would be included in a real application
     };
     formatStatus: (status: string) => string;
@@ -37,10 +36,17 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
 
                     <div className="form-row">
                         <div className="form-group">
+                            <label>Contact Person</label>
+                            <p>Lee Soo Man</p>
+                        </div>
+
+                        <div className="form-group">
                             <label>Contact Number</label>
                             <p>{item.supplierContact}</p>
                         </div>
+                    </div>
 
+                    <div className="form-row">
                         <div className="form-group">
                             <label>Email</label>
                             <p>{item.supplierEmail}</p>
@@ -52,28 +58,14 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                         </div>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Street</label>
-                            <p>178 Don Fabian Extension</p>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Barangay</label>
-                            <p>Commonwealth</p>
-                        </div>
+                    <div className="form-group">
+                        <label>Supplier Address</label>
+                        <p>{item.supplierAddress}</p>
                     </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>City</label>
-                            <p>Quezon City</p>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Province</label>
-                            <p>Metro Manila</p>
-                        </div>
+                    <div className="form-group">
+                        <label>Remarks</label>
+                        <p>Remarks...</p>
                     </div>
                 </div>
             </div >
@@ -85,17 +77,30 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                         <thead className="modal-table-heading">
                             <tr>
                                 <th>Item Name</th>
-                                <th>Unit Measure</th>
-                                <th>Unit Price</th>
                                 <th>Category</th>
+                                <th>Supplier Unit</th>
+                                <th>Conversion</th>
+                                <th>Unit Price</th>
+                                <th>Delivery Time</th>
+                                <th>Notes</th>
+                                {/* <th>Actions</th> */}
                             </tr>
                         </thead>
                         <tbody className="modal-table-body">
                             <tr>
                                 <td>Item 1</td>
-                                <td>pcs</td>
-                                <td>250</td>
                                 <td>Consumable</td>
+                                <td>set</td>
+                                <td>1</td>
+                                <td>₱100.00</td>
+                                <td>5 days</td>
+                                <td>Notes here</td>
+                                {/* <td>
+                                    <ActionButtons
+                                        onToggleStar={() => handleTogglePreferred(linkedItem.id)}
+                                        isStarred={linkedItem.isPreferred}
+                                    />
+                                </td> */}
                             </tr>
                         </tbody>
                     </table>

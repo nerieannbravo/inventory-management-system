@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import ModalManager from "@/components/modalManager";
 import ActionButtons from "@/components/actionButtons";
+import SearchableDropdown from "@/components/searchableDropdown";
+
 import AddLinkedSupplierModal, { LinkedSupplierForm } from "./linked-supplier/addLinkedSupplierModal";
 import EditLinkedSupplierModal from "./linked-supplier/editLinkedSupplierModal";
 
@@ -12,12 +14,11 @@ import {
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
-import { link } from "fs";
 
 // Export the interface so it can be imported by other components
 export interface ItemForm {
     itemName: string,
-    itemUnit: string,
+    itemUnitMeasure: string,
     itemCategory: string,
     itemStatus: string,
     itemDescription: string,
@@ -37,18 +38,18 @@ const sampleLinkedSuppliers = [
     {
         id: 1,
         linkedSupplierName: "Supplier 1",
+        supplierUnitMeasure: "pcs",
+        conversionFactor: 1,
         unitPrice: 50,
-        deliveryTime: "1 week",
-        lastUpdated: "07/01/2025",
-        notes: "Can be delayed"
+        deliveryTime: "1 week"
     },
     {
         id: 2,
         linkedSupplierName: "Supplier 2",
-        unitPrice: 55,
-        deliveryTime: "1 week",
-        lastUpdated: "09/03/2025",
-        notes: "N/A"
+        supplierUnitMeasure: "btl",
+        conversionFactor: 1,
+        unitPrice: 40,
+        deliveryTime: "5 days"
     }
 ];
 
@@ -64,7 +65,7 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
     // Initial item form state
     const [itemForm, setItemForm] = useState<ItemForm>({
         itemName: "",
-        itemUnit: "",
+        itemUnitMeasure: "",
         itemCategory: "",
         itemStatus: "",
         itemDescription: "",
@@ -72,6 +73,33 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+
+    // Define unit measure options
+    const unitMeasureOptions = [
+        { id: 1, label: "Bags (bag)", value: "bag" },
+        { id: 2, label: "Bottles (btl)", value: "btl" },
+        { id: 3, label: "Boxes (box)", value: "box" },
+        { id: 4, label: "Cans (can)", value: "can" },
+        { id: 5, label: "Cartons (ctn)", value: "ctn" },
+        { id: 6, label: "Centimeters (cm)", value: "cm" },
+        { id: 7, label: "Gallons (gal)", value: "gal" },
+        { id: 8, label: "Grams (g)", value: "g" },
+        { id: 9, label: "Kilograms (kg)", value: "kg" },
+        { id: 10, label: "Liters (L)", value: "L" },
+        { id: 11, label: "Meters (m)", value: "m" },
+        { id: 12, label: "Pairs (pr)", value: "pr" },
+        { id: 13, label: "Pieces (pcs)", value: "pcs" },
+        { id: 14, label: "Rolls (roll)", value: "roll" },
+        { id: 15, label: "Sets (set)", value: "set" },
+    ];
+
+    // Define category options
+    const categoryOptions = [
+        { id: 1, label: "Consumable", value: "Consumable" },
+        { id: 2, label: "Tool", value: "Tool" },
+        { id: 3, label: "Machine", value: "Machine" },
+        { id: 4, label: "Equipment", value: "Equipment" },
+    ];
 
     // Track if form has been modified
     useEffect(() => {
@@ -93,7 +121,7 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
         const errors: FormError = {};
 
         if (!itemForm.itemName) errors.itemName = "Item name is required";
-        if (!itemForm.itemUnit) errors.itemUnit = "Item unit is required";
+        if (!itemForm.itemUnitMeasure) errors.itemUnitMeasure = "Item unit is required";
         if (!itemForm.itemCategory) errors.itemCategory = "Item category is required";
         if (!itemForm.itemStatus) errors.itemStatus = "Item status is required";
 
@@ -174,10 +202,10 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
         const newSupplier = {
             id: linkedSuppliers.length + 1,
             linkedSupplierName: linkedSupplierForm.linkedSupplierName,
+            supplierUnitMeasure: linkedSupplierForm.supplierUnitMeasure,
+            conversionFactor: linkedSupplierForm.conversionFactor,
             unitPrice: linkedSupplierForm.unitPrice,
-            deliveryTime: linkedSupplierForm.deliveryTime,
-            lastUpdated: new Date().toLocaleDateString("en-US"),
-            notes: linkedSupplierForm.notes
+            deliveryTime: linkedSupplierForm.deliveryTime
         };
         setLinkedSuppliers([...linkedSuppliers, newSupplier]);
         closeModal();
@@ -194,10 +222,10 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                     ? {
                         ...supplier,
                         linkedSupplierName: updatedSupplier.linkedSupplierName,
+                        supplierUnitMeasure: updatedSupplier.supplierUnitMeasure,
+                        conversionFactor: updatedSupplier.conversionFactor,
                         unitPrice: updatedSupplier.unitPrice,
-                        deliveryTime: updatedSupplier.deliveryTime,
-                        notes: updatedSupplier.notes,
-                        lastUpdated: new Date().toLocaleDateString("en-US")
+                        deliveryTime: updatedSupplier.deliveryTime
                     }
                     : supplier
             )
@@ -249,31 +277,35 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                         {/* Unit Measure */}
                         <div className="form-group">
                             <label className="required">Unit Measure</label>
-                            <input
-                                className={formErrors?.itemUnit ? "invalid-input" : ""}
-                                type="text"
-                                value={itemForm.itemUnit}
-                                onChange={(e) => handleChange("itemUnit", e.target.value)}
-                                placeholder="Enter unit measure here..."
+                            <SearchableDropdown
+                                options={unitMeasureOptions}
+                                value={itemForm.itemUnitMeasure}
+                                onChange={(selected, customValue) => {
+                                    const value = selected ? selected.value : customValue || "";
+                                    handleChange("itemUnitMeasure", value);
+                                }}
+                                placeholder="Search unit measure..."
+                                error={formErrors?.itemUnitMeasure}
+                                allowCustom={false}
+                                noResultsText="No unit measure found"
                             />
-                            <p className="add-error-message">{formErrors?.itemUnit}</p>
                         </div>
 
                         {/* Category */}
                         <div className="form-group">
                             <label className="required">Category</label>
-                            <select
+                            <SearchableDropdown
+                                options={categoryOptions}
                                 value={itemForm.itemCategory}
-                                onChange={(e) => handleChange("itemCategory", e.target.value)}
-                                className={formErrors?.itemCategory ? "invalid-input" : ""}
-                            >
-                                <option value="" disabled>Select category...</option>
-                                <option value="Consumable">Consumable</option>
-                                <option value="Tool">Tool</option>
-                                <option value="Equipment">Equipment</option>
-                                <option value="Machine">Machine</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.itemCategory}</p>
+                                onChange={(selected, customValue) => {
+                                    const value = selected ? selected.value : customValue || "";
+                                    handleChange("itemCategory", value);
+                                }}
+                                placeholder="Search unit measure..."
+                                error={formErrors?.itemCategory}
+                                allowCustom={false}
+                                noResultsText="No category found"
+                            />
                         </div>
 
                         {/* Status */}
@@ -285,8 +317,8 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                                 className={formErrors?.itemStatus ? "invalid-input" : ""}
                             >
                                 <option value="" disabled>Select status...</option>
-                                <option value="sold">Active</option>
-                                <option value="traded">Inactive</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                             </select>
                             <p className="add-error-message">{formErrors?.itemStatus}</p>
                         </div>
@@ -322,10 +354,10 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                         <thead className="modal-table-heading">
                             <tr>
                                 <th>Supplier Name</th>
+                                <th>Supplier Unit</th>
+                                <th>Conversion</th>
                                 <th>Unit Price</th>
-                                <th>Average Delivery Time</th>
-                                <th>Last Updated</th>
-                                <th>Notes</th>
+                                <th>Delivery Time</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -334,10 +366,14 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                                 linkedSuppliers.map((supplier) => (
                                     <tr key={supplier.id}>
                                         <td>{supplier.linkedSupplierName}</td>
-                                        <td>{supplier.unitPrice}</td>
-                                        <td>{supplier.deliveryTime}</td>
-                                        <td>{supplier.lastUpdated}</td>
-                                        <td>{supplier.notes}</td>
+                                        <td>{supplier.supplierUnitMeasure}</td>
+                                        <td>
+                                            {supplier.conversionFactor ? (
+                                                <>1 {supplier.supplierUnitMeasure} = {supplier.conversionFactor} {itemForm.itemUnitMeasure}</>
+                                            ) : '—'}
+                                        </td>
+                                        <td>₱{supplier.unitPrice?.toFixed(2)}</td>
+                                        <td>{supplier.deliveryTime || '—'}</td>
                                         <td>
                                             <ActionButtons
                                                 onEdit={() => openModal("edit-linkedSupplier", supplier)}

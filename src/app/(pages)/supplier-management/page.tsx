@@ -33,7 +33,7 @@ const hardcodedData = [
         supplierAddress: "Daegu, South Korea",
         supplierContact: "09375839774",
         supplierEmail: "irene@redvelvet.com",
-        supplierStatus: "active",
+        supplierStatus: "inactive",
         linkedItem: 1,
     },
     {
@@ -42,7 +42,7 @@ const hardcodedData = [
         supplierAddress: "Seoul, South Korea",
         supplierContact: "09288466274",
         supplierEmail: "wendy@redvelvet.com",
-        supplierStatus: "inactive",
+        supplierStatus: "flagged",
         linkedItem: 3,
     },
     {
@@ -51,7 +51,7 @@ const hardcodedData = [
         supplierAddress: "Jeju-do, South Korea",
         supplierContact: "09747281193",
         supplierEmail: "joy@redvelvet.com",
-        supplierStatus: "active",
+        supplierStatus: "blocked",
         linkedItem: 4,
     },
     {
@@ -60,7 +60,7 @@ const hardcodedData = [
         supplierAddress: "Seoul, South Korea",
         supplierContact: "09338592064",
         supplierEmail: "yeri@redvelvet.com",
-        supplierStatus: "inactive",
+        supplierStatus: "active",
         linkedItem: 2,
     },
 ];
@@ -188,6 +188,10 @@ export default function SupplierManagement() {
                 return "Active";
             case "inactive":
                 return "Inactive";
+                case "flagged":
+                return "Flagged";
+            case "blocked":
+                return "Blocked";
             default:
                 return supplierStatus;
         }

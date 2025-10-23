@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import ModalManager from "@/components/modalManager";
 import ActionButtons from "@/components/actionButtons";
+import SearchableDropdown from "@/components/searchableDropdown";
+
 import AddLinkedSupplierModal, { LinkedSupplierForm } from "./linked-supplier/addLinkedSupplierModal";
 import EditLinkedSupplierModal from "./linked-supplier/editLinkedSupplierModal";
 
@@ -17,7 +19,7 @@ interface EditItemModalProps {
     item: {
         id: number;
         itemName: string,
-        itemUnit: string,
+        itemUnitMeasure: string,
         itemCategory: string,
         itemStatus: string,
         // Additional fields would be included in a real application
@@ -31,18 +33,20 @@ const sampleLinkedSuppliers = [
     {
         id: 1,
         linkedSupplierName: "Supplier 1",
+        supplierUnitMeasure: "pcs",
+        conversionFactor: 1,
         unitPrice: 50,
         deliveryTime: "1 week",
-        lastUpdated: "07/01/2025",
-        notes: "Can be delayed"
+        supplierStatus: "active"
     },
     {
         id: 2,
         linkedSupplierName: "Supplier 2",
-        unitPrice: 55,
-        deliveryTime: "1 week",
-        lastUpdated: "09/03/2025",
-        notes: "N/A"
+        supplierUnitMeasure: "btl",
+        conversionFactor: 1,
+        unitPrice: 40,
+        deliveryTime: "5 days",
+        supplierStatus: "inactive"
     }
 ];
 
@@ -59,7 +63,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
     const [formData, setFormData] = useState({
         id: item.id,
         itemName: item.itemName,
-        itemUnit: item.itemUnit,
+        itemUnitMeasure: item.itemUnitMeasure,
         itemCategory: item.itemCategory,
         itemStatus: item.itemStatus,
         itemDescription: ""
@@ -71,6 +75,33 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    // Define unit measure options
+    const unitMeasureOptions = [
+        { id: 1, label: "Bags (bag)", value: "bag" },
+        { id: 2, label: "Bottles (btl)", value: "btl" },
+        { id: 3, label: "Boxes (box)", value: "box" },
+        { id: 4, label: "Cans (can)", value: "can" },
+        { id: 5, label: "Cartons (ctn)", value: "ctn" },
+        { id: 6, label: "Centimeters (cm)", value: "cm" },
+        { id: 7, label: "Gallons (gal)", value: "gal" },
+        { id: 8, label: "Grams (g)", value: "g" },
+        { id: 9, label: "Kilograms (kg)", value: "kg" },
+        { id: 10, label: "Liters (L)", value: "L" },
+        { id: 11, label: "Meters (m)", value: "m" },
+        { id: 12, label: "Pairs (pr)", value: "pr" },
+        { id: 13, label: "Pieces (pcs)", value: "pcs" },
+        { id: 14, label: "Rolls (roll)", value: "roll" },
+        { id: 15, label: "Sets (set)", value: "set" },
+    ];
+
+    // Define category options
+    const categoryOptions = [
+        { id: 1, label: "Consumable", value: "Consumable" },
+        { id: 2, label: "Tool", value: "Tool" },
+        { id: 3, label: "Machine", value: "Machine" },
+        { id: 4, label: "Equipment", value: "Equipment" },
+    ];
 
     // Check if form data has changed from original
     useEffect(() => {
@@ -90,7 +121,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
 
         // Validate inputs
         if (!formData.itemName) errors.itemName = "Item name is required";
-        if (!formData.itemUnit) errors.itemUnit = "Item unit is required";
+        if (!formData.itemUnitMeasure) errors.itemUnitMeasure = "Item unit is required";
         if (!formData.itemCategory) errors.itemCategory = "Item category is required";
         if (!formData.itemStatus) errors.itemStatus = "Item status is required";
 
@@ -121,6 +152,18 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
             onClose();
         }
     };
+
+    // for item status formatting
+    function formatStatus(itemStatus: string) {
+        switch (itemStatus) {
+            case "active":
+                return "Active";
+            case "inactive":
+                return "Inactive";
+            default:
+                return itemStatus;
+        }
+    }
 
     // Modal management for supplier actions (add, edit, delete, etc.)
     const openModal = (mode: "add-linkedSupplier" | "edit-linkedSupplier" | "delete-linkedSupplier", rowData?: any) => {
@@ -171,10 +214,11 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
         const newSupplier = {
             id: linkedSuppliers.length + 1,
             linkedSupplierName: linkedSupplierForm.linkedSupplierName,
+            supplierUnitMeasure: linkedSupplierForm.supplierUnitMeasure,
+            conversionFactor: linkedSupplierForm.conversionFactor,
             unitPrice: linkedSupplierForm.unitPrice,
             deliveryTime: linkedSupplierForm.deliveryTime,
-            lastUpdated: new Date().toLocaleDateString("en-US"),
-            notes: linkedSupplierForm.notes
+            supplierStatus: linkedSupplierForm.supplierStatus
         };
         setLinkedSuppliers([...linkedSuppliers, newSupplier]);
         closeModal();
@@ -191,10 +235,11 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                     ? {
                         ...supplier,
                         linkedSupplierName: updatedSupplier.linkedSupplierName,
+                        supplierUnitMeasure: updatedSupplier.supplierUnitMeasure,
+                        conversionFactor: updatedSupplier.conversionFactor,
                         unitPrice: updatedSupplier.unitPrice,
                         deliveryTime: updatedSupplier.deliveryTime,
-                        notes: updatedSupplier.notes,
-                        lastUpdated: new Date().toLocaleDateString("en-US")
+                        supplierStatus: updatedSupplier.supplierStatus
                     }
                     : supplier
             )
@@ -246,30 +291,35 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         {/* Unit Measure */}
                         <div className="form-group">
                             <label className="required">Unit Measure</label>
-                            <input
-                                className={formErrors?.itemUnit ? "invalid-input" : ""}
-                                type="text"
-                                value={formData.itemUnit || ""}
-                                onChange={(e) => handleChange("itemUnit", e.target.value)}
-                                placeholder="Enter unit measure here..."
+                            <SearchableDropdown
+                                options={unitMeasureOptions}
+                                value={formData.itemUnitMeasure}
+                                onChange={(selected, customValue) => {
+                                    const value = selected ? selected.value : customValue || "";
+                                    handleChange("itemUnitMeasure", value);
+                                }}
+                                placeholder="Search unit measure..."
+                                error={formErrors?.itemUnitMeasure}
+                                allowCustom={false}
+                                noResultsText="No unit measure found"
                             />
-                            <p className="edit-error-message">{formErrors?.itemUnit}</p>
                         </div>
 
                         {/* Category */}
                         <div className="form-group">
-                            <label>Category</label>
-                            <select disabled
-                                className={formErrors?.itemCategory ? "invalid-input" : ""}
-                                value={formData.itemCategory || ""}
-                                onChange={(e) => handleChange("itemCategory", e.target.value)}
-                            >
-                                <option value="" disabled>Select category...</option>
-                                <option value="Consumable">Consumable</option>
-                                <option value="Tool">Tool</option>
-                                <option value="Equipment">Equipment</option>
-                                <option value="Machine">Machine</option>
-                            </select>
+                            <label className="required">Category</label>
+                            <SearchableDropdown
+                                options={categoryOptions}
+                                value={formData.itemCategory}
+                                onChange={(selected, customValue) => {
+                                    const value = selected ? selected.value : customValue || "";
+                                    handleChange("itemCategory", value);
+                                }}
+                                placeholder="Search unit measure..."
+                                error={formErrors?.itemCategory}
+                                allowCustom={false}
+                                noResultsText="No category found"
+                            />
                             <p className="edit-error-message">{formErrors?.itemCategory}</p>
                         </div>
 
@@ -282,9 +332,8 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                                 onChange={(e) => handleChange("itemStatus", e.target.value)}
                             >
                                 <option value="" disabled>Select status...</option>
-                                <option value="Available">Available</option>
-                                <option value="Out of Stock">Out of Stock</option>
-                                <option value="Discontinued">Discontinued</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                             </select>
                             <p className="edit-error-message">{formErrors?.itemStatus}</p>
                         </div>
@@ -320,10 +369,11 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         <thead className="modal-table-heading">
                             <tr>
                                 <th>Supplier Name</th>
+                                <th>Supplier Unit</th>
+                                <th>Conversion</th>
                                 <th>Unit Price</th>
-                                <th>Average Delivery Time</th>
-                                <th>Last Updated</th>
-                                <th>Notes</th>
+                                <th>Delivery Time</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -332,10 +382,19 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                                 linkedSuppliers.map((supplier) => (
                                     <tr key={supplier.id}>
                                         <td>{supplier.linkedSupplierName}</td>
-                                        <td>{supplier.unitPrice}</td>
-                                        <td>{supplier.deliveryTime}</td>
-                                        <td>{supplier.lastUpdated}</td>
-                                        <td>{supplier.notes}</td>
+                                        <td>{supplier.supplierUnitMeasure}</td>
+                                        <td>
+                                            {supplier.conversionFactor ? (
+                                                <>1 {supplier.supplierUnitMeasure} = {supplier.conversionFactor} {formData.itemUnitMeasure}</>
+                                            ) : '—'}
+                                        </td>
+                                        <td>₱{supplier.unitPrice?.toFixed(2)}</td>
+                                        <td>{supplier.deliveryTime || '—'}</td>
+                                        <td>
+                                            <span className={`chip ${supplier.supplierStatus}`}>
+                                                {formatStatus(supplier.supplierStatus)}
+                                            </span>
+                                        </td>
                                         <td>
                                             <ActionButtons
                                                 onEdit={() => openModal("edit-linkedSupplier", supplier)}

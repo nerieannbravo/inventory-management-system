@@ -48,6 +48,8 @@ const SupplierReportDocument: React.FC<{
     const totalSupplier = supplierData.length;
     const activeSupplier = supplierData.filter(item => item.supplierStatus === 'ACTIVE' || item.supplierStatus === 'active').length;
     const inactiveSupplier = supplierData.filter(item => item.supplierStatus === 'INACTIVE' || item.supplierStatus === 'inactive').length;
+    const flaggedSupplier = supplierData.filter(item => item.supplierStatus === 'FLAGGED' || item.supplierStatus === 'flagged').length;
+    const blockedSupplier = supplierData.filter(item => item.supplierStatus === 'BLOCKED' || item.supplierStatus === 'blocked').length;
 
     return (
         <Document>
@@ -76,6 +78,14 @@ const SupplierReportDocument: React.FC<{
                     <View style={reportStyles.summaryItem}>
                         <Text style={reportStyles.summaryNumber}>{inactiveSupplier}</Text>
                         <Text style={reportStyles.summaryLabel}>Inactive Supplier</Text>
+                    </View>
+                    <View style={reportStyles.summaryItem}>
+                        <Text style={reportStyles.summaryNumber}>{flaggedSupplier}</Text>
+                        <Text style={reportStyles.summaryLabel}>Flagged Supplier</Text>
+                    </View>
+                    <View style={reportStyles.summaryItem}>
+                        <Text style={reportStyles.summaryNumber}>{blockedSupplier}</Text>
+                        <Text style={reportStyles.summaryLabel}>Blocked Supplier</Text>
                     </View>
                 </View>
 

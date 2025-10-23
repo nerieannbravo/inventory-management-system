@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import ModalManager from "@/components/modalManager";
 import ActionButtons from "@/components/actionButtons";
+import SearchableDropdown from "@/components/searchableDropdown";
+
 import AddLinkedItemModal, { LinkedItemForm } from "./linked-item/addLinkedItemModal";
 import EditLinkedItemModal from "./linked-item/editLinkedItemModal";
 
@@ -21,9 +23,11 @@ interface EditSupplierModalProps {
         supplierBarangay: string,
         supplierCity: string,
         supplierProvince: string,
+        supplierContactPerson: string,
         supplierContact: string,
         supplierEmail: string,
         supplierStatus: string,
+        supplierRemarks: string,
         // Additional fields would be included in a real application
     };
     onSave: (updatedItem: any) => void;
@@ -35,16 +39,20 @@ const sampleLinkedItems = [
     {
         id: 1,
         linkedItemName: "Item 1",
-        itemUnit: "liters",
         itemCategory: "Consumable",
+        supplierUnitMeasure: "btl",
+        conversionFactor: 1,
         unitPrice: 100,
+        deliveryTime: "1 week"
     },
     {
         id: 2,
         linkedItemName: "Item 2",
-        itemUnit: "pcs",
         itemCategory: "Tool",
-        unitPrice: 1500,
+        supplierUnitMeasure: "pcs",
+        conversionFactor: 1,
+        unitPrice: 150,
+        deliveryTime: "5 days"
     }
 ];
 
@@ -65,9 +73,11 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
         supplierBarangay: "",
         supplierCity: "",
         supplierProvince: "",
+        supplierContactPerson: "",
         supplierContact: item.supplierContact,
         supplierEmail: item.supplierEmail,
         supplierStatus: item.supplierStatus,
+        supplierRemarks: "",
     });
 
     // State to track if form is dirty (has changes)
@@ -76,6 +86,25 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    // Define unit measure options
+    const unitMeasureOptions = [
+        { id: 1, label: "Bags (bag)", value: "bag" },
+        { id: 2, label: "Bottles (btl)", value: "btl" },
+        { id: 3, label: "Boxes (box)", value: "box" },
+        { id: 4, label: "Cans (can)", value: "can" },
+        { id: 5, label: "Cartons (ctn)", value: "ctn" },
+        { id: 6, label: "Centimeters (cm)", value: "cm" },
+        { id: 7, label: "Gallons (gal)", value: "gal" },
+        { id: 8, label: "Grams (g)", value: "g" },
+        { id: 9, label: "Kilograms (kg)", value: "kg" },
+        { id: 10, label: "Liters (L)", value: "L" },
+        { id: 11, label: "Meters (m)", value: "m" },
+        { id: 12, label: "Pairs (pr)", value: "pr" },
+        { id: 13, label: "Pieces (pcs)", value: "pcs" },
+        { id: 14, label: "Rolls (roll)", value: "roll" },
+        { id: 15, label: "Sets (set)", value: "set" },
+    ];
 
     // Check if form data has changed from original
     useEffect(() => {
@@ -97,15 +126,16 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
         if (!formData.supplierName) errors.supplierName = "Supplier name is required";
         if (!formData.supplierContact) {
             errors.supplierContact = "Contact number is required";
+
+            // Only validate email if contact is missing
+            if (!formData.supplierEmail) {
+                errors.supplierEmail = "Email is required";
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.supplierEmail)) {
+                errors.supplierEmail = "Invalid email format";
+            }
         } else if (!/^\d{11}$/.test(formData.supplierContact)) {
             errors.supplierContact = "Contact number must be exactly 11 digits";
         }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.supplierEmail)) {
-            errors.supplierEmail = "Invalid email format";
-        }
-        // else if (!formData.supplierEmail) {
-        //     errors.supplierEmail = "Email is required";
-        // }
         if (!formData.supplierStatus) errors.supplierStatus = "Status is required";
         // if (!formData.supplierStreet) errors.supplierStreet = "Street is required";
         // if (!formData.supplierBarangay) errors.supplierBarangay = "Barangay is required";
@@ -190,8 +220,10 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
             id: linkedItems.length + 1,
             linkedItemName: linkedItemForm.linkedItemName,
             itemCategory: linkedItemForm.itemCategory,
-            itemUnit: linkedItemForm.itemUnit,
-            unitPrice: linkedItemForm.unitPrice
+            supplierUnitMeasure: linkedItemForm.supplierUnitMeasure,
+            conversionFactor: linkedItemForm.conversionFactor,
+            unitPrice: linkedItemForm.unitPrice,
+            deliveryTime: linkedItemForm.deliveryTime
         };
         setLinkedItems([...linkedItems, newItem]);
         closeModal();
@@ -209,8 +241,10 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                         ...item,
                         linkedItemName: updatedItem.linkedItemName,
                         itemCategory: updatedItem.itemCategory,
-                        itemUnit: updatedItem.itemUnit,
-                        unitPrice: updatedItem.unitPrice
+                        supplierUnitMeasure: updatedItem.supplierUnitMeasure,
+                        conversionFactor: updatedItem.conversionFactor,
+                        unitPrice: updatedItem.unitPrice,
+                        deliveryTime: updatedItem.deliveryTime
                     }
                     : item
             )
@@ -247,7 +281,7 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                 <form className="edit-form">
                     {/* Supplier Name */}
                     <div className="form-group">
-                        <label>Supplier Name</label>
+                        <label className="required">Supplier Name</label>
                         <input
                             className={formErrors?.supplierName ? "invalid-input" : ""}
                             type="text"
@@ -259,15 +293,34 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                     </div>
 
                     <div className="form-row">
+                        {/* Supplier Contact Person */}
+                        <div className="form-group">
+                            <label>Contact Person</label>
+                            <input
+                                className={formErrors?.supplierContactPerson ? "invalid-input" : ""}
+                                type="text"
+                                value={formData.supplierContactPerson}
+                                onChange={(e) => handleChange("supplierContactPerson", e.target.value)}
+                                placeholder="Enter contact person here..."
+                            />
+                            <p className="edit-error-message">{formErrors?.supplierContactPerson}</p>
+                        </div>
+
                         {/* Supplier Contact */}
                         <div className="form-group">
-                            <label>Contact Number</label>
+                            <label className="required">Contact Number</label>
                             <input
                                 className={formErrors?.supplierContact ? "invalid-input" : ""}
                                 type="text"
                                 value={formData.supplierContact}
-                                onChange={(e) => handleChange("supplierContact", e.target.value)}
+                                onChange={(e) => {
+                                    // Only allow numbers, hyphens, and spaces
+                                    const value = e.target.value.replace(/[^0-9]/g, "");
+                                    handleChange("supplierContact", value);
+                                }}
                                 placeholder="Enter contact number here..."
+                                inputMode="tel"
+                                pattern="[0-9]*"
                                 maxLength={11}
                             />
                             <p className="edit-error-message">{formErrors?.supplierContact}</p>
@@ -284,21 +337,6 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                                 placeholder="Enter email here..."
                             />
                             <p className="edit-error-message">{formErrors?.supplierEmail}</p>
-                        </div>
-
-                        {/* Status */}
-                        <div className="form-group">
-                            <label>Status</label>
-                            <select
-                                value={formData.supplierStatus}
-                                onChange={(e) => handleChange("supplierStatus", e.target.value)}
-                                className={formErrors?.supplierStatus ? "invalid-input" : ""}
-                            >
-                                <option value="" disabled>Select status...</option>
-                                <option value="sold">Active</option>
-                                <option value="traded">Inactive</option>
-                            </select>
-                            <p className="edit-error-message">{formErrors?.supplierStatus}</p>
                         </div>
                     </div>
 
@@ -333,7 +371,7 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                     <div className="form-row">
                         {/* City */}
                         <div className="form-group">
-                            <label>City</label>
+                            <label className="required">City</label>
                             <input
                                 className={formErrors?.supplierCity ? "invalid-input" : ""}
                                 type="text"
@@ -357,6 +395,36 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                             <p className="edit-error-message">{formErrors?.supplierProvince}</p>
                         </div>
                     </div>
+
+                    {/* Status */}
+                    <div className="form-group">
+                        <label className="required">Status</label>
+                        <select
+                            value={formData.supplierStatus}
+                            onChange={(e) => handleChange("supplierStatus", e.target.value)}
+                            className={formErrors?.supplierStatus ? "invalid-input" : ""}
+                        >
+                            <option value="" disabled>Select status...</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="flagged">Flagged</option>
+                            <option value="blocked">Blocked</option>
+                        </select>
+                        <p className="edit-error-message">{formErrors?.supplierStatus}</p>
+                    </div>
+
+                    {/* Supplier Remarks */}
+                    <div className="form-group">
+                        <label>Remarks</label>
+                        <textarea
+                            className={formErrors?.supplierRemarks ? "invalid-input" : ""}
+                            value={formData.supplierRemarks}
+                            onChange={(e) => handleChange("supplierRemarks", e.target.value)}
+                            placeholder="Enter remarks here..."
+                        >
+                        </textarea>
+                        <p className="edit-error-message">{formErrors?.supplierRemarks}</p>
+                    </div>
                 </form >
             </div >
 
@@ -375,27 +443,37 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                         <thead className="modal-table-heading">
                             <tr>
                                 <th>Item Name</th>
-                                <th>Unit Measure</th>
-                                <th>Unit Price</th>
                                 <th>Category</th>
+                                <th>Supplier Unit</th>
+                                <th>Conversion</th>
+                                <th>Unit Price</th>
+                                <th>Delivery Time</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody className="modal-table-body">
-                            {linkedItems.map(item => (
-                                <tr key={item.id}>
-                                    <td>{item.linkedItemName}</td>
-                                    <td>{item.itemUnit}</td>
-                                    <td>{item.unitPrice}</td>
-                                    <td>{item.itemCategory}</td>
-                                    <td>
-                                        <ActionButtons
-                                            onEdit={() => openModal("edit-linkedItem", item)}
-                                            onDelete={() => openModal("delete-linkedItem", item)}
-                                        />
-                                    </td>
+                            {linkedItems.length > 0 ? (
+                                linkedItems.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>{item.linkedItemName}</td>
+                                        <td>{item.itemCategory}</td>
+                                        <td>{item.supplierUnitMeasure}</td>
+                                        <td>{item.conversionFactor}</td>
+                                        <td>₱{item.unitPrice?.toFixed(2)}</td>
+                                        <td>{item.deliveryTime || '—'}</td>
+                                        <td>
+                                            <ActionButtons
+                                                onEdit={() => openModal("edit-linkedItem", item)}
+                                                onDelete={() => openModal("delete-linkedItem", item)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="no-data">No linked suppliers available.</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>

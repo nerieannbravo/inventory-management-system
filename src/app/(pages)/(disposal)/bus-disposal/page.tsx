@@ -217,7 +217,7 @@ export default function BusDisposal() {
         console.log("Saving form:", disposalMethodForm);
         // Logic to add disposal method to the data
         // In a real app, this would likely be an API call
-        closeModal();
+        // closeModal();
     };
 
     // Handle generate report

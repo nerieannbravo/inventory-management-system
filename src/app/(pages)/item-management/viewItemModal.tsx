@@ -1,10 +1,11 @@
 import "@/styles/forms.css";
+import ActionButtons from "@/components/actionButtons";
 
 interface ViewItemModalProps {
     item: {
         id: number;
         itemName: string,
-        itemUnit: string,
+        itemUnitMeasure: string,
         itemCategory: string,
         itemStatus: string,
         // Additional fields would be included in a real application
@@ -34,7 +35,7 @@ export default function ViewItemModal({ item, formatStatus, onClose }: ViewItemM
                     <div className="form-row">
                         <div className="form-group">
                             <label>Unit Measure</label>
-                            <p>{item.itemUnit}</p>
+                            <p>{item.itemUnitMeasure}</p>
                         </div>
 
                         <div className="form-group">
@@ -62,19 +63,32 @@ export default function ViewItemModal({ item, formatStatus, onClose }: ViewItemM
                         <thead className="modal-table-heading">
                             <tr>
                                 <th>Supplier Name</th>
+                                <th>Supplier Unit</th>
+                                <th>Conversion</th>
                                 <th>Unit Price</th>
-                                <th>Average Delivery Time</th>
-                                <th>Last Updated</th>
-                                <th>Notes</th>
+                                <th>Delivery Time</th>
+                                <th>Status</th>
+                                {/* <th>Actions</th> */}
                             </tr>
                         </thead>
                         <tbody className="modal-table-body">
                             <tr>
                                 <td>Supplier 1</td>
-                                <td>100</td>
-                                <td>3 days</td>
-                                <td>11/20/2024</td>
-                                <td className="table-ellipsis">Notes here...</td>
+                                <td>set</td>
+                                <td>1 set = 3 pcs</td>
+                                <td>₱100.00</td>
+                                <td>5 days</td>
+                                <td>
+                                    <span className={`chip ${"active"}`}>
+                                        Active
+                                    </span>
+                                </td>
+                                {/* <td>
+                                    <ActionButtons
+                                        onToggleStar={() => handleTogglePreferred(supplierItem.id)}
+                                        isStarred={supplierItem.isPreferred}
+                                    />
+                                </td> */}
                             </tr>
                         </tbody>
                     </table>

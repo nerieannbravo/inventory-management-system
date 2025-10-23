@@ -90,8 +90,33 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
 
         const result = await showCategorySaveConfirmation();
         if (result.isConfirmed) {
+            // Generate a new ID for the category
+            const newId = categoryList.length > 0 
+                ? Math.max(...categoryList.map(c => c.id)) + 1 
+                : 1;
+
+            // Create the new category object with an ID
+            const newCategory = {
+                id: newId,
+                categoryName: categoryForm.categoryName,
+                categoryDescription: categoryForm.categoryDescription
+            };
+
+            // Add to the local list
+            setCategoryList(prev => [...prev, newCategory]);
+
+            // Call parent's onSave (for any external handling needed)
             onSave(categoryForm);
+
+            // Show success message
             await showCategorySavedSuccess();
+
+            // Reset the form but keep modal open
+            setCategoryForm({
+                categoryName: "",
+                categoryDescription: ""
+            });
+            setIsDirty(false);
         }
     };
 
@@ -190,6 +215,12 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                 </form>
             </div>
 
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit}>
+                    <i className="ri-save-3-line" /> Save
+                </button>
+            </div>
+
             {/* Category List */}
             <div className="details-header">
                 <p className="details-title">Existing Categories</p>
@@ -227,12 +258,6 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
-                </button>
             </div>
 
             {/* Dynamic Modal Manager */}

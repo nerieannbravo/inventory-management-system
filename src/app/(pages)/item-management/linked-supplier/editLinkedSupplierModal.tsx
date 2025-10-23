@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import SearchableDropdown from "@/components/searchableDropdown";
+
 import {
     showSupplierUpdateConfirmation, showSupplierUpdatedSuccess,
     showCloseWithoutUpdatingConfirmation
@@ -11,8 +13,11 @@ interface EditLinkedSupplierModalProps {
     item: {
         id: number;
         linkedSupplierName: string;
+        supplierUnitMeasure: string;
+        conversionFactor: number;
         unitPrice: number;
         deliveryTime: string;
+        supplierStatus: string;
         notes: string;
     };
     onSave: (updatedItem: any) => void;
@@ -23,8 +28,11 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
     const [formData, setFormData] = useState({
         id: item.id,
         linkedSupplierName: item.linkedSupplierName,
+        supplierUnitMeasure: item.supplierUnitMeasure,
+        conversionFactor: item.conversionFactor,
         unitPrice: item.unitPrice,
         deliveryTime: item.deliveryTime,
+        supplierStatus: item.supplierStatus,
         notes: item.notes
     });
 
@@ -34,6 +42,34 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+    // Define supplier options
+    const supplierOptions = [
+        { id: 1, label: "Supplier 1", value: "Supplier 1" },
+        { id: 2, label: "Supplier 2", value: "Supplier 2" },
+        { id: 3, label: "Supplier 3", value: "Supplier 3" },
+        { id: 4, label: "Supplier 4", value: "Supplier 4" },
+        { id: 5, label: "Supplier 5", value: "Supplier 5" },
+    ];
+
+    // Define unit measure options
+    const unitMeasureOptions = [
+        { id: 1, label: "Bags (bag)", value: "bag" },
+        { id: 2, label: "Bottles (btl)", value: "btl" },
+        { id: 3, label: "Boxes (box)", value: "box" },
+        { id: 4, label: "Cans (can)", value: "can" },
+        { id: 5, label: "Cartons (ctn)", value: "ctn" },
+        { id: 6, label: "Centimeters (cm)", value: "cm" },
+        { id: 7, label: "Gallons (gal)", value: "gal" },
+        { id: 8, label: "Grams (g)", value: "g" },
+        { id: 9, label: "Kilograms (kg)", value: "kg" },
+        { id: 10, label: "Liters (L)", value: "L" },
+        { id: 11, label: "Meters (m)", value: "m" },
+        { id: 12, label: "Pairs (pr)", value: "pr" },
+        { id: 13, label: "Pieces (pcs)", value: "pcs" },
+        { id: 14, label: "Rolls (roll)", value: "roll" },
+        { id: 15, label: "Sets (set)", value: "set" },
+    ];
 
     // Check if form data has changed from original
     useEffect(() => {
@@ -53,8 +89,14 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
         // Validate inputs
         if (!formData.linkedSupplierName) errors.linkedSupplierName = "Supplier name is required";
-        if (formData.unitPrice <= 0) errors.unitPrice = "Unit price must be greater than 0";
-        if (!formData.deliveryTime) errors.deliveryTime = "Delivery time is required";
+        if (!formData.supplierUnitMeasure) errors.supplierUnitMeasure = "Supplier unit measure is required";
+        if (!formData.conversionFactor) errors.conversionFactor = "Conversion factor is required";
+        if (!formData.unitPrice) {
+            errors.unitPrice = "Unit price is required";
+        } else if (formData.unitPrice <= 0) {
+            errors.unitPrice = "Unit price must be greater than 0";
+        }
+        // if (!formData.deliveryTime) errors.deliveryTime = "Delivery time is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -103,24 +145,64 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
                 <form className="edit-form">
                     {/* Linked Supplier Name */}
                     <div className="form-group">
-                        <label>Supplier Name</label>
-                        <input disabled
-                            className={formErrors?.linkedSupplierName ? "invalid-input" : ""}
-                            type="text"
+                        <label className="required">Supplier Name</label>
+                        <SearchableDropdown
+                            options={supplierOptions}
                             value={formData.linkedSupplierName}
-                            onChange={(e) => handleChange("linkedSupplierName", e.target.value)}
-                            placeholder="Enter supplier name here..."
+                            onChange={(selected, customValue) => {
+                                const value = selected ? selected.value : customValue || "";
+                                handleChange("linkedSupplierName", value);
+                            }}
+                            placeholder="Search or select supplier..."
+                            error={formErrors?.linkedSupplierName}
+                            allowCustom={false}
+                            noResultsText="No suppliers found"
                         />
-                        <p className="edit-error-message">{formErrors?.linkedSupplierName}</p>
+                    </div>
+
+                    <div className="form-row">
+                        {/* Supplier Unit Measure */}
+                        <div className="form-group">
+                            <label className="required">Supplier's Unit Measure</label>
+                            <SearchableDropdown
+                                options={unitMeasureOptions}
+                                value={formData.supplierUnitMeasure}
+                                onChange={(selected, customValue) => {
+                                    const value = selected ? selected.value : customValue || "";
+                                    handleChange("supplierUnitMeasure", value);
+                                }}
+                                placeholder="Search unit measure..."
+                                error={formErrors?.supplierUnitMeasure}
+                                allowCustom={false}
+                                noResultsText="No unit measure found"
+                            />
+                        </div>
+
+                        {/* Conversion Factor */}
+                        <div className="form-group">
+                            <label className="required">Conversion Factor</label>
+                            <input
+                                className={formErrors?.conversionFactor ? "invalid-input" : ""}
+                                type="number"
+                                step={0.01}
+                                min={0.01}
+                                value={formData.conversionFactor || ""}
+                                onChange={(e) => handleChange("conversionFactor", Number(e.target.value))}
+                                placeholder="Enter conversion factor here..."
+                            />
+                            <p className="add-error-message">{formErrors?.conversionFactor}</p>
+                        </div>
                     </div>
 
                     <div className="form-row">
                         {/* Unit Price */}
                         <div className="form-group">
-                            <label className="required">Unit Price</label>
+                            <label className="required">Unit Price (per supplier unit)</label>
                             <input
                                 className={formErrors?.unitPrice ? "invalid-input" : ""}
                                 type="number"
+                                step={0.01}
+                                min={0.01}
                                 value={formData.unitPrice || ""}
                                 onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
                                 placeholder="Enter unit price here..."
@@ -130,7 +212,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
                         {/* Delivery Time */}
                         <div className="form-group">
-                            <label className="required">Delivery Time</label>
+                            <label>Average Delivery Time</label>
                             <input
                                 className={formErrors?.deliveryTime ? "invalid-input" : ""}
                                 type="text"

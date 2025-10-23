@@ -20,9 +20,11 @@ export interface SupplierForm {
     supplierBarangay: string,
     supplierCity: string,
     supplierProvince: string,
+    supplierContactPerson: string,
     supplierContact: string,
     supplierEmail: string,
     supplierStatus: string,
+    supplierRemarks: string,
 }
 
 interface FormError {
@@ -39,16 +41,20 @@ const sampleLinkedItems = [
     {
         id: 1,
         linkedItemName: "Item 1",
-        itemUnit: "liters",
         itemCategory: "Consumable",
+        supplierUnitMeasure: "btl",
+        conversionFactor: 1,
         unitPrice: 100,
+        deliveryTime: "1 week"
     },
     {
         id: 2,
         linkedItemName: "Item 2",
-        itemUnit: "pcs",
         itemCategory: "Tool",
-        unitPrice: 1500,
+        supplierUnitMeasure: "pcs",
+        conversionFactor: 1,
+        unitPrice: 150,
+        deliveryTime: "5 days"
     }
 ];
 
@@ -68,9 +74,11 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
         supplierBarangay: "",
         supplierCity: "",
         supplierProvince: "",
+        supplierContactPerson: "",
         supplierContact: "",
         supplierEmail: "",
         supplierStatus: "",
+        supplierRemarks: "",
     });
 
     const [formErrors, setFormErrors] = useState<FormError>({});
@@ -192,8 +200,10 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
             id: linkedItems.length + 1,
             linkedItemName: linkedItemForm.linkedItemName,
             itemCategory: linkedItemForm.itemCategory,
-            itemUnit: linkedItemForm.itemUnit,
-            unitPrice: linkedItemForm.unitPrice
+            supplierUnitMeasure: linkedItemForm.supplierUnitMeasure,
+            conversionFactor: linkedItemForm.conversionFactor,
+            unitPrice: linkedItemForm.unitPrice,
+            deliveryTime: linkedItemForm.deliveryTime
         };
         setLinkedItems([...linkedItems, newItem]);
         closeModal();
@@ -211,8 +221,10 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                         ...item,
                         linkedItemName: updatedItem.linkedItemName,
                         itemCategory: updatedItem.itemCategory,
-                        itemUnit: updatedItem.itemUnit,
-                        unitPrice: updatedItem.unitPrice
+                        supplierUnitMeasure: updatedItem.supplierUnitMeasure,
+                        conversionFactor: updatedItem.conversionFactor,
+                        unitPrice: updatedItem.unitPrice,
+                        deliveryTime: updatedItem.deliveryTime
                     }
                     : item
             )
@@ -261,6 +273,19 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                     </div>
 
                     <div className="form-row">
+                        {/* Supplier Contact Person */}
+                        <div className="form-group">
+                            <label>Contact Person</label>
+                            <input
+                                className={formErrors?.supplierContactPerson ? "invalid-input" : ""}
+                                type="text"
+                                value={supplierForm.supplierContactPerson}
+                                onChange={(e) => handleChange("supplierContactPerson", e.target.value)}
+                                placeholder="Enter contact person here..."
+                            />
+                            <p className="add-error-message">{formErrors?.supplierContactPerson}</p>
+                        </div>
+
                         {/* Supplier Contact */}
                         <div className="form-group">
                             <label className="required">Contact Number</label>
@@ -268,8 +293,14 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                                 className={formErrors?.supplierContact ? "invalid-input" : ""}
                                 type="text"
                                 value={supplierForm.supplierContact}
-                                onChange={(e) => handleChange("supplierContact", e.target.value)}
+                                onChange={(e) => {
+                                    // Only allow numbers, hyphens, and spaces
+                                    const value = e.target.value.replace(/[^0-9]/g, "");
+                                    handleChange("supplierContact", value);
+                                }}
                                 placeholder="Enter contact number here..."
+                                inputMode="tel"
+                                pattern="[0-9]*"
                                 maxLength={11}
                             />
                             <p className="add-error-message">{formErrors?.supplierContact}</p>
@@ -286,21 +317,6 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                                 placeholder="Enter email here..."
                             />
                             <p className="add-error-message">{formErrors?.supplierEmail}</p>
-                        </div>
-
-                        {/* Status */}
-                        <div className="form-group">
-                            <label className="required">Status</label>
-                            <select
-                                value={supplierForm.supplierStatus}
-                                onChange={(e) => handleChange("supplierStatus", e.target.value)}
-                                className={formErrors?.supplierStatus ? "invalid-input" : ""}
-                            >
-                                <option value="" disabled>Select status...</option>
-                                <option value="sold">Active</option>
-                                <option value="traded">Inactive</option>
-                            </select>
-                            <p className="add-error-message">{formErrors?.supplierStatus}</p>
                         </div>
                     </div>
 
@@ -359,6 +375,36 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                             <p className="add-error-message">{formErrors?.supplierProvince}</p>
                         </div>
                     </div>
+
+                    {/* Status */}
+                    <div className="form-group">
+                        <label className="required">Status</label>
+                        <select
+                            value={supplierForm.supplierStatus}
+                            onChange={(e) => handleChange("supplierStatus", e.target.value)}
+                            className={formErrors?.supplierStatus ? "invalid-input" : ""}
+                        >
+                            <option value="" disabled>Select status...</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="flagged">Flagged</option>
+                            <option value="blocked">Blocked</option>
+                        </select>
+                        <p className="add-error-message">{formErrors?.supplierStatus}</p>
+                    </div>
+
+                    {/* Supplier Remarks */}
+                    <div className="form-group">
+                        <label>Remarks</label>
+                        <textarea
+                            className={formErrors?.supplierRemarks ? "invalid-input" : ""}
+                            value={supplierForm.supplierRemarks}
+                            onChange={(e) => handleChange("supplierRemarks", e.target.value)}
+                            placeholder="Enter remarks here..."
+                        >
+                        </textarea>
+                        <p className="add-error-message">{formErrors?.supplierRemarks}</p>
+                    </div>
                 </form>
             </div>
 
@@ -377,27 +423,37 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                         <thead className="modal-table-heading">
                             <tr>
                                 <th>Item Name</th>
-                                <th>Unit Measure</th>
-                                <th>Unit Price</th>
                                 <th>Category</th>
+                                <th>Supplier Unit</th>
+                                <th>Conversion</th>
+                                <th>Unit Price</th>
+                                <th>Delivery Time</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody className="modal-table-body">
-                            {linkedItems.map(item => (
-                                <tr key={item.id}>
-                                    <td>{item.linkedItemName}</td>
-                                    <td>{item.itemUnit}</td>
-                                    <td>{item.unitPrice}</td>
-                                    <td>{item.itemCategory}</td>
-                                    <td>
-                                        <ActionButtons
-                                            onEdit={() => openModal("edit-linkedItem", item)}
-                                            onDelete={() => openModal("delete-linkedItem", item)}
-                                        />
-                                    </td>
+                            {linkedItems.length > 0 ? (
+                                linkedItems.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>{item.linkedItemName}</td>
+                                        <td>{item.itemCategory}</td>
+                                        <td>{item.supplierUnitMeasure}</td>
+                                        <td>{item.conversionFactor}</td>
+                                        <td>₱{item.unitPrice?.toFixed(2)}</td>
+                                        <td>{item.deliveryTime || '—'}</td>
+                                        <td>
+                                            <ActionButtons
+                                                onEdit={() => openModal("edit-linkedItem", item)}
+                                                onDelete={() => openModal("delete-linkedItem", item)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={7} className="no-data">No linked suppliers available.</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
