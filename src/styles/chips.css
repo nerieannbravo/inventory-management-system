@@ -12,7 +12,8 @@
 .chip.returned,
 .chip.approved,
 .chip.active,
-.chip.completed {
+.chip.completed,
+.chip.received {
     background-color: var(--success-chip-bg-color);
     color: var(--success-chip-text-color);
 }
@@ -31,7 +32,8 @@
 .chip.maintenance,
 .chip.consumed,
 .chip.under-maintenance,
-.chip.adjusted {
+.chip.adjusted,
+.chip.to-be-refunded {
     background-color: var(--info-chip-bg-color);
     color: var(--info-chip-text-color);
 }
@@ -41,15 +43,28 @@
 .chip.low-stock,
 .chip.pending,
 .chip.draft,
-.chip.flagged {
+.chip.flagged,
+.chip.to-be-replaced {
     background-color: var(--warning-chip-bg-color);
     color: var(--warning-chip-text-color);
 }
 
-/* ----- EXPIRED/GRAY STYLING ----- */
+/* ----- GRAY STYLING ----- */
 .chip.expired,
 .chip.closed,
 .chip.blocked {
     background-color: var(--gray-chip-bg-color);
     color: var(--primary-text-color);
+}
+
+/* ----- ORANGE STYLING ----- */
+/* .chip.partially-completed {
+    background-color: #FCD8B2;
+    color: #BE600E;
+} */
+
+/* ----- PURPLE STYLING ----- */
+.chip.partially-completed {
+    background-color: #E1D6FF;
+    color: #6E38CC;
 }

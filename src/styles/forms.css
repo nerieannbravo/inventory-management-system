@@ -382,7 +382,7 @@
     box-shadow: var(--box-shadow);
     background-color: var(--foreground-color);
     width: 100%;
-    max-height: calc(6 * 40px); /* Max height for 6 rows */
+    max-height: calc(6 * 50px); /* Max height for 6 rows */
     margin-bottom: 15px;
     border: 1px solid var(--border-color);
     display: flex;
@@ -444,6 +444,10 @@
     transition: all 0.2s ease-in-out;
 }
 
+.modal-table-body tr:last-child {
+    border-bottom: none;
+}
+
 .modal-table-body tr:hover {
     background-color: var(--table-row-color);
 }
@@ -457,6 +461,16 @@
     text-overflow: ellipsis;
 }
 
+.modal-table-body .table-status {
+    white-space: nowrap;
+}
+
+.table-total-row {
+    border-top: 1px solid var(--border-color);
+    background-color: var(--table-row-color);
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+}
 
 /* ----- MODAL FORMS STYLING: TABLE BUTTON ----- */
 .modal-table-add-btn {
