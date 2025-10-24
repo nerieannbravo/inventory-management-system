@@ -20,15 +20,15 @@ interface ViewOrderModalProps {
         remarks: string;
         items: {
             isApproved: boolean;
-            itemName: string; //
-            originalQuantity: number; //
-            approvedQuantity: number; //
-            receivedQuantity: number; //
-            usableQuantity: number; //
-            unitMeasure: string; //
-            estimatedUnitCost: number; //
-            actualUnitCost: number; //
-            itemOrderStatus: string; //
+            itemName: string;
+            originalQuantity: number;
+            approvedQuantity: number;
+            receivedQuantity: number;
+            usableQuantity: number;
+            unitMeasure: string;
+            estimatedUnitCost: number;
+            actualUnitCost: number;
+            itemOrderStatus: string;
             adjustmentReason: string;
             attachmentFiles: File[];
         }[];
