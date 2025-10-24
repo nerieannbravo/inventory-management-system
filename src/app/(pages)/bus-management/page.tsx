@@ -231,7 +231,7 @@ export default function BusManagement() {
         setCurrentPage(1); // Reset to first page when filters change
     };
 
-    // for items status formatting
+    // for bus status formatting
     const formatStatus = (status: string) => {
         switch (status) {
             case "active":
@@ -343,7 +343,7 @@ export default function BusManagement() {
                         <i className="ri-receipt-line" /> Generate Report
                     </button>
 
-                    {/* Add Stocks Button */}
+                    {/* Add Bus Button */}
                     <button className="main-btn" onClick={() => openModal("add-bus")}>
                         <i className="ri-add-line" /> Add Bus
                     </button>
@@ -371,30 +371,37 @@ export default function BusManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.bodyNumber}</td>
-                                        <td>{item.plateNumber}</td>
-                                        <td>{item.bodyBuilder}</td>
-                                        {/* <td>{item.condition}</td> */}
-                                        <td className="table-status">
-                                            <span className={`chip ${item.status}`}>
-                                                {formatStatus(item.status)}
-                                            </span>
-                                        </td>
-                                        <td>{item.busType}</td>
-                                        <td>{item.seatCapacity}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-bus", item)}
-                                                onEdit={() => openModal("edit-bus", item)}
-                                            />
+                                {paginatedData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="no-records">
+                                            No records found.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    paginatedData.map(item => (
+                                        <tr
+                                            key={item.id}
+                                            className={selectedIds.includes(item.id) ? "selected" : ""}
+                                        >
+                                            <td>{item.bodyNumber}</td>
+                                            <td>{item.plateNumber}</td>
+                                            <td>{item.bodyBuilder}</td>
+                                            {/* <td>{item.condition}</td> */}
+                                            <td className="table-status">
+                                                <span className={`chip ${item.status}`}>
+                                                    {formatStatus(item.status)}
+                                                </span>
+                                            </td>
+                                            <td>{item.busType}</td>
+                                            <td>{item.seatCapacity}</td>
+                                            <td>
+                                                <ActionButtons
+                                                    onView={() => openModal("view-bus", item)}
+                                                    onEdit={() => openModal("edit-bus", item)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )))}
                             </tbody>
                         </table>
                     </div>

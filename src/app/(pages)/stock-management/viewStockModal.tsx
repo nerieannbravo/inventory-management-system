@@ -90,7 +90,10 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 				</div>
 			</div>
 
-			<p className="details-title">Batches</p>
+			<div className="details-header">
+				<p className="details-title">Batch/es</p>
+			</div>
+
 			<div className="modal-table-wrapper">
 				<div className="modal-table-container">
 					<table className="modal-table">

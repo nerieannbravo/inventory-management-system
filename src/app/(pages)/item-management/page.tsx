@@ -355,6 +355,11 @@ export default function ItemManagement() {
                     </button>
                 </div>
 
+                {/* Use when filtering with date range */}
+                {/* <div className="filter-results">
+                    Items from January 12, 2023 to December 12, 2024
+                </div> */}
+
                 {/* Table */}
                 <div className="table-wrapper">
                     <div className="table-container">
@@ -370,28 +375,35 @@ export default function ItemManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.itemName}</td>
-                                        <td>{item.itemUnitMeasure}</td>
-                                        <td>{item.itemCategory}</td>
-                                        <td className="table-status">
-                                            <span className={`chip ${item.itemStatus}`}>
-                                                {formatStatus(item.itemStatus)}
-                                            </span>
-                                        </td>
-                                        <td>{item.linkedSupplier}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-item", item)}
-                                                onEdit={() => openModal("edit-item", item)}
-                                            />
+                                {paginatedData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="no-records">
+                                            No records found.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    paginatedData.map(item => (
+                                        <tr
+                                            key={item.id}
+                                            className={selectedIds.includes(item.id) ? "selected" : ""}
+                                        >
+                                            <td>{item.itemName}</td>
+                                            <td>{item.itemUnitMeasure}</td>
+                                            <td>{item.itemCategory}</td>
+                                            <td className="table-status">
+                                                <span className={`chip ${item.itemStatus}`}>
+                                                    {formatStatus(item.itemStatus)}
+                                                </span>
+                                            </td>
+                                            <td>{item.linkedSupplier}</td>
+                                            <td>
+                                                <ActionButtons
+                                                    onView={() => openModal("view-item", item)}
+                                                    onEdit={() => openModal("edit-item", item)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )))}
                             </tbody>
                         </table>
                     </div>

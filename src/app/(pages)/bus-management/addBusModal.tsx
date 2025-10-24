@@ -902,10 +902,9 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     </label>
 
                                     {/* Display uploaded document */}
-                                    {pendingOrFile && (
+                                    {pendingOrFile ? (
                                         <FileList
-                                            files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]
-                                            }
+                                            files={[{ name: pendingOrFile.name, size: pendingOrFile.size }]}
                                             showRemove={true}
                                             onRemove={async () => {
                                                 const result = await showRemoveFileConfirmation();
@@ -915,6 +914,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                                 }
                                             }}
                                         />
+                                    ) : (
+                                        <p className="add-info-message">No files selected</p>
                                     )}
                                     <p className="add-error-message">{formErrors?.orFile}</p>
                                 </div>
@@ -953,10 +954,9 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     </label>
 
                                     {/* Display uploaded document */}
-                                    {pendingCrFile && (
+                                    {pendingCrFile ? (
                                         <FileList
-                                            files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]
-                                            }
+                                            files={[{ name: pendingCrFile.name, size: pendingCrFile.size }]}
                                             showRemove={true}
                                             onRemove={async () => {
                                                 const result = await showRemoveFileConfirmation();
@@ -966,6 +966,8 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                                 }
                                             }}
                                         />
+                                    ) : (
+                                        <p className="add-info-message">No files selected</p>
                                     )}
                                     <p className="add-error-message">{formErrors?.crFile}</p>
                                 </div>
@@ -1000,9 +1002,11 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                     </label>
 
                                     {/* Display uploaded documents list */}
-                                    {pendingOtherFiles.length > 0 && (
+                                    {pendingOtherFiles.length > 0 ? (
                                         <>
-                                            <div className="uploaded-files-label">Uploaded Files ({pendingOtherFiles.length})</div>
+                                            <div className="uploaded-files-label">
+                                                Uploaded Files ({pendingOtherFiles.length})
+                                            </div>
                                             <FileList
                                                 files={pendingOtherFiles.map(f => ({ name: f.name, size: f.size }))}
                                                 showRemove={true}
@@ -1011,10 +1015,12 @@ export default function AddBusModal({ onSave, onClose }: AddBusModalProps) {
                                                     if (result.isConfirmed) {
                                                         setPendingOtherFiles(prev => prev.filter((_, i) => i !== idx));
                                                     }
-                                                }} />
+                                                }}
+                                            />
                                         </>
+                                    ) : (
+                                        <p className="add-info-message">No files selected</p>
                                     )}
-
                                     <p className="add-error-message">{formErrors?.otherDocuments}</p>
                                 </div>
                             </div>

@@ -56,7 +56,10 @@ export default function ViewItemModal({ item, formatStatus, onClose }: ViewItemM
                 </div>
             </div >
 
-            <p className="details-title">Linked Supplier/s</p>
+            <div className="details-header">
+                <p className="details-title">Linked Supplier/s</p>
+            </div>
+            
             <div className="modal-table-wrapper">
                 <div className="modal-table-container">
                     <table className="modal-table">
@@ -78,7 +81,7 @@ export default function ViewItemModal({ item, formatStatus, onClose }: ViewItemM
                                 <td>1 set = 3 pcs</td>
                                 <td>₱100.00</td>
                                 <td>5 days</td>
-                                <td>
+                                <td className="table-status">
                                     <span className={`chip ${"active"}`}>
                                         Active
                                     </span>

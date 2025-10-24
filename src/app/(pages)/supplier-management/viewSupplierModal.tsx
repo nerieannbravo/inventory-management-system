@@ -70,7 +70,10 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                 </div>
             </div >
 
-            <p className="details-title">Linked Item/s</p>
+            <div className="details-header">
+                <p className="details-title">Linked Item/s</p>
+            </div>
+            
             <div className="modal-table-wrapper">
                 <div className="modal-table-container">
                     <table className="modal-table">

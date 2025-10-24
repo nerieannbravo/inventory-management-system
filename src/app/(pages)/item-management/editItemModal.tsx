@@ -390,7 +390,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                                         </td>
                                         <td>₱{supplier.unitPrice?.toFixed(2)}</td>
                                         <td>{supplier.deliveryTime || '—'}</td>
-                                        <td>
+                                        <td className="table-status">
                                             <span className={`chip ${supplier.supplierStatus}`}>
                                                 {formatStatus(supplier.supplierStatus)}
                                             </span>

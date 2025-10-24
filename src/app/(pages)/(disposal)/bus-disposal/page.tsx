@@ -277,6 +277,11 @@ export default function BusDisposal() {
                     </button>
                 </div>
 
+                {/* Use when filtering with date range */}
+                {/* <div className="filter-results">
+                    Items from January 12, 2023 to December 12, 2024
+                </div> */}
+
                 {/* Table */}
                 <div className="table-wrapper">
                     <div className="table-container">
@@ -292,23 +297,30 @@ export default function BusDisposal() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(item => (
-                                    <tr
-                                        key={item.id}
-                                        className={selectedIds.includes(item.id) ? "selected" : ""}
-                                    >
-                                        <td>{item.bodyNumber}</td>
-                                        <td>{item.bodyBuilder}</td>
-                                        <td>{item.busType}</td>
-                                        <td>{item.disposalMethod}</td>
-                                        <td>{item.disposalDate}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-bus-disposal", item)}
-                                            />
+                                {paginatedData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="no-records">
+                                            No records found.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    paginatedData.map(item => (
+                                        <tr
+                                            key={item.id}
+                                            className={selectedIds.includes(item.id) ? "selected" : ""}
+                                        >
+                                            <td>{item.bodyNumber}</td>
+                                            <td>{item.bodyBuilder}</td>
+                                            <td>{item.busType}</td>
+                                            <td>{item.disposalMethod}</td>
+                                            <td>{item.disposalDate}</td>
+                                            <td>
+                                                <ActionButtons
+                                                    onView={() => openModal("view-bus-disposal", item)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )))}
                             </tbody>
                         </table>
                     </div>

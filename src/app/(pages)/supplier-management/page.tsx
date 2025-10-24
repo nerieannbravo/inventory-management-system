@@ -181,14 +181,14 @@ export default function SupplierManagement() {
     };
 
 
-    // for order status formatting
+    // for supplier status formatting
     function formatStatus(supplierStatus: string) {
         switch (supplierStatus) {
             case "active":
                 return "Active";
             case "inactive":
                 return "Inactive";
-                case "flagged":
+            case "flagged":
                 return "Flagged";
             case "blocked":
                 return "Blocked";
@@ -301,6 +301,11 @@ export default function SupplierManagement() {
                     </button>
                 </div>
 
+                {/* Use when filtering with date range */}
+                {/* <div className="filter-results">
+                    Items from January 12, 2023 to December 12, 2024
+                </div> */}
+
                 {/* Table */}
                 <div className="table-wrapper">
                     <div className="table-container">
@@ -317,29 +322,36 @@ export default function SupplierManagement() {
                                 </tr>
                             </thead>
                             <tbody className="table-body">
-                                {paginatedData.map(supplier => (
-                                    <tr
-                                        key={supplier.id}
-                                        className={selectedIds.includes(supplier.id) ? "selected" : ""}
-                                    >
-                                        <td>{supplier.supplierName}</td>
-                                        <td>{supplier.supplierAddress}</td>
-                                        <td>{supplier.supplierContact}</td>
-                                        <td>{supplier.supplierEmail}</td>
-                                        <td className="table-status">
-                                            <span className={`chip ${supplier.supplierStatus}`}>
-                                                {formatStatus(supplier.supplierStatus)}
-                                            </span>
-                                        </td>
-                                        <td>{supplier.linkedItem}</td>
-                                        <td>
-                                            <ActionButtons
-                                                onView={() => openModal("view-supplier", supplier)}
-                                                onEdit={() => openModal("edit-supplier", supplier)}
-                                            />
+                                {paginatedData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="no-records">
+                                            No records found.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    paginatedData.map(supplier => (
+                                        <tr
+                                            key={supplier.id}
+                                            className={selectedIds.includes(supplier.id) ? "selected" : ""}
+                                        >
+                                            <td>{supplier.supplierName}</td>
+                                            <td>{supplier.supplierAddress}</td>
+                                            <td>{supplier.supplierContact}</td>
+                                            <td>{supplier.supplierEmail}</td>
+                                            <td className="table-status">
+                                                <span className={`chip ${supplier.supplierStatus}`}>
+                                                    {formatStatus(supplier.supplierStatus)}
+                                                </span>
+                                            </td>
+                                            <td>{supplier.linkedItem}</td>
+                                            <td>
+                                                <ActionButtons
+                                                    onView={() => openModal("view-supplier", supplier)}
+                                                    onEdit={() => openModal("edit-supplier", supplier)}
+                                                />
+                                            </td>
+                                        </tr>
+                                    )))}
                             </tbody>
                         </table>
                     </div>

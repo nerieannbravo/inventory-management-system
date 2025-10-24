@@ -41,7 +41,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
 
                         <div className="form-group">
                             <label>Body Number</label>
-                            <p>{formatStatus(item.bodyNumber)}</p>
+                            <p>{item.bodyNumber}</p>
                         </div>
                     </div>
 
@@ -49,7 +49,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                     <div className="form-row">
                         <div className="form-group">
                             <label>Body Builder</label>
-                            <p>{formatStatus(item.bodyBuilder)}</p>
+                            <p>{item.bodyBuilder}</p>
                         </div>
 
                         <div className="form-group">
@@ -95,7 +95,7 @@ export default function ViewBusModal({ item, formatStatus, onClose }: ViewBusMod
                     <div className="form-row">
                         <div className="form-group">
                             <label>Condition</label>
-                            <p>{formatStatus(item.condition)}</p>
+                            <p>{item.condition}</p>
                         </div>
 
                         <div className="form-group">
