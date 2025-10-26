@@ -57,14 +57,8 @@
     color: var(--primary-text-color);
 }
 
-/* ----- ORANGE STYLING ----- */
-/* .chip.partially-completed {
-    background-color: #FCD8B2;
-    color: #BE600E;
-} */
-
 /* ----- PURPLE STYLING ----- */
-.chip.partially-completed {
-    background-color: #E1D6FF;
-    color: #6E38CC;
+.chip.partial {
+    background-color: var(--highlight-chip-bg-color);
+    color: var(--highlight-chip-text-color);
 }
