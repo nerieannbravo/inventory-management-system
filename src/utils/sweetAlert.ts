@@ -40,15 +40,10 @@ export const showCloseWithoutUpdatingConfirmation = () => {
 //-------------------- STOCK MANAGEMENT SPECIFIC -------------------//
 
 // ----- Add Stock Confirmation ----- //
-export const showStockSaveConfirmation = (count: number) => {
-    const message =
-        count > 1
-            ? `Are you sure you want to save these ${count} items?`
-            : `Are you sure you want to save this item?`;
-
+export const showStockSaveConfirmation = () => {
     return Swal.fire({
         title: 'Confirm Save',
-        html: `<p>${message}</p>`,
+        text: 'Are you sure you want to save this stock?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Save',
@@ -62,16 +57,11 @@ export const showStockSaveConfirmation = (count: number) => {
 };
 
 // ----- Add Stock Success ----- //
-export const showStockSavedSuccess = (count: number) => {
-    const message =
-        count > 1
-            ? `${count} items added successfully.`
-            : `Item added successfully.`;
-
+export const showStockSavedSuccess = () => {
     return Swal.fire({
         icon: 'success',
         title: 'Saved!',
-        html: `<p>${message}</p>`,
+        text: 'Stock added successfully.',
         background: 'white',
         timer: 2000,
         timerProgressBar: true,
@@ -313,44 +303,11 @@ export const showRequestSaveError = (errorMessage?: string) => {
 
 //-------------------- ORDER MANAGEMENT SPECIFIC -------------------//
 
-// ----- Add Order Confirmation ----- //
-export const showOrderSaveConfirmation = () => {
-    return Swal.fire({
-        title: 'Confirm Save',
-        text: 'Are you sure you want to save this order request?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Save',
-        cancelButtonText: 'Cancel',
-        background: 'white',
-        reverseButtons: true,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
-// ----- Add Order Success ----- //
-export const showOrderSavedSuccess = () => {
-    return Swal.fire({
-        icon: 'success',
-        title: 'Saved!',
-        text: 'Order added successfully.',
-        background: 'white',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        customClass: {
-            popup: 'swal-custom-popup'
-        }
-    });
-};
-
 // ----- Edit Order Confirmation ----- //
-export const showOrderUpdateConfirmation = (itemName: string) => {
+export const showOrderUpdateConfirmation = (refNo: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the order details for <strong>${itemName}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the order details for <strong>${refNo}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -378,6 +335,40 @@ export const showOrderUpdatedSuccess = () => {
         }
     });
 };
+
+// ----- Edit Order Confirmation ----- //
+export const showItemOrderUpdateConfirmation = (itemName: string) => {
+    return Swal.fire({
+        title: 'Confirm Update',
+        html: `<p>Are you sure you want to update the order item details for <strong>${itemName}</strong>?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
+// ----- Edit Order Success ----- //
+export const showItemOrderUpdatedSuccess = () => {
+    return Swal.fire({
+        title: 'Updated!',
+        text: 'Order item detail has been updated.',
+        icon: 'success',
+        background: 'white',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
+    });
+};
+
 
 //-------------------- BUS MANAGEMENT SPECIFIC -------------------//
 

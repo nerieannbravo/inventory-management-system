@@ -98,13 +98,17 @@ export const formatRequestStatus = (status: string): string => {
 export const formatOrderStatus = (status: string): string => {
     const statusMap: Record<string, string> = {
         // Original format
-        'APRROVED': 'Approved',
         'PENDING': 'Pending',
-        'COMPLETED': 'Completed',
+        'ADJUSTED': 'Adjusted',
+        'RECEIVED': 'Received',
+        'PARTIAL': 'Partial',
+        'CLOSED': 'Closed',
         // Temporary
-        'approved': 'Approved',
         'pending': 'Pending',
-        'completed': 'Completed'
+        'adjusted': 'Adjusted',
+        'received': 'Received',
+        'partial': 'Partial',
+        'closed': 'Closed'
     };
     return statusMap[status] || status;
 };
@@ -205,13 +209,17 @@ export const getRequestStatusStyle = (status: string) => {
 export const getOrderStatusStyle = (status: string) => {
     const statusStyleMap: Record<string, any> = {
         // Original format
-        'APPROVED': [reportStyles.statusChip, statusColors.approved],
         'PENDING': [reportStyles.statusChip, statusColors.pending],
-        'COMPLETED': [reportStyles.statusChip, statusColors.completed],
+        'ADJUSTED': [reportStyles.statusChip, statusColors.adjusted],
+        'RECEIVED': [reportStyles.statusChip, statusColors.received],
+        'PARTIAL': [reportStyles.statusChip, statusColors.partial],
+        'CLOSED': [reportStyles.statusChip, statusColors.closed],
         // Temporary
-        'approved': [reportStyles.statusChip, statusColors.approved],
         'pending': [reportStyles.statusChip, statusColors.pending],
-        'completed': [reportStyles.statusChip, statusColors.completed]
+        'adjusted': [reportStyles.statusChip, statusColors.adjusted],
+        'received': [reportStyles.statusChip, statusColors.received],
+        'partial': [reportStyles.statusChip, statusColors.partial],
+        'closed': [reportStyles.statusChip, statusColors.closed]
     };
     return statusStyleMap[status] || [reportStyles.statusChip];
 };
