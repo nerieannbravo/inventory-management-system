@@ -190,17 +190,25 @@ export const statusColors = {
     },
 
     // Order Status Colors
-    approved: {
-        backgroundColor: '#D1F7D1',
-        color: '#23915F',
-    },
     pending: {
         backgroundColor: '#FFF5C2',
         color: '#85643B',
     },
-    completed: {
+    adjusted: {
         backgroundColor: '#D6E4FF',
         color: '#0050B3',
+    },
+    received: {
+        backgroundColor: '#D1F7D1',
+        color: '#23915F',
+    },
+    partial: {
+        backgroundColor: '#E1D6FF',
+        color: '#6E38CC',
+    },
+    closed: {
+        backgroundColor: '#D9D9D9',
+        color: 'black',
     },
 
     // Bus Status Colors
