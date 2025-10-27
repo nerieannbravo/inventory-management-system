@@ -1,4 +1,3 @@
-// src/components/reports/order/OrderReportPDF.tsx
 import React, { useState } from "react";
 import {
     Document,
@@ -22,10 +21,13 @@ import "@/styles/pdfModal.css";
 // Interface definitions
 interface OrderItem {
     id: number;
-    itemName: string;
-    ordQuantity: number;
-    ordReqDate: string;
-    ordStatus: string;
+    refNo: string;
+    departmentName: string;
+    orderStatus: string;
+    dateApproved: string;
+    items: {
+        isApproved: boolean;
+    }[];
 }
 
 interface OrderReportPDFProps {
@@ -43,10 +45,12 @@ const OrderReportDocument: React.FC<{
     const today = new Date();
 
     // Calculate summary statistics
-    const totalOrder = orderData.length;
-    const approvedOrders = orderData.filter(item => item.ordStatus === 'approved').length;
-    const pendingOrders = orderData.filter(item => item.ordStatus === 'pending').length;
-    const completedOrders = orderData.filter(item => item.ordStatus === 'completed').length;
+    const totalOrders = orderData.length;
+    const pendingOrders = orderData.filter(item => item.orderStatus === "PENDING" || item.orderStatus === "pending").length;
+    const adjustedOrders = orderData.filter(item => item.orderStatus === "ADJUSTED" || item.orderStatus === "adjusted").length;
+    const receivedOrders = orderData.filter(item => item.orderStatus === "RECEIVED" || item.orderStatus === "received").length;
+    const partialOrders = orderData.filter(item => item.orderStatus === "PARTIAL" || item.orderStatus === "partial").length;
+    const closedOrders = orderData.filter(item => item.orderStatus === "CLOSED" || item.orderStatus === "closed").length;
 
     return (
         <Document>
@@ -59,7 +63,7 @@ const OrderReportDocument: React.FC<{
                         Generated on {formatDate(today)} at {formatTime(today)}
                     </Text>
                     <Text style={reportStyles.reportInfo}>
-                        Total Order Requests: {totalOrder}
+                        Total Orders: {totalOrders}
                     </Text>
                 </View>
 
@@ -69,16 +73,24 @@ const OrderReportDocument: React.FC<{
                 {/* Summary Section */}
                 <View style={reportStyles.summarySection}>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{approvedOrders}</Text>
-                        <Text style={reportStyles.summaryLabel}>Approved Orders</Text>
-                    </View>
-                    <View style={reportStyles.summaryItem}>
                         <Text style={reportStyles.summaryNumber}>{pendingOrders}</Text>
-                        <Text style={reportStyles.summaryLabel}>Pending Orders</Text>
+                        <Text style={reportStyles.summaryLabel}>Pending</Text>
                     </View>
                     <View style={reportStyles.summaryItem}>
-                        <Text style={reportStyles.summaryNumber}>{completedOrders}</Text>
-                        <Text style={reportStyles.summaryLabel}>Completed Orders</Text>
+                        <Text style={reportStyles.summaryNumber}>{adjustedOrders}</Text>
+                        <Text style={reportStyles.summaryLabel}>Adjusted</Text>
+                    </View>
+                    <View style={reportStyles.summaryItem}>
+                        <Text style={reportStyles.summaryNumber}>{receivedOrders}</Text>
+                        <Text style={reportStyles.summaryLabel}>Received</Text>
+                    </View>
+                    <View style={reportStyles.summaryItem}>
+                        <Text style={reportStyles.summaryNumber}>{partialOrders}</Text>
+                        <Text style={reportStyles.summaryLabel}>Partial</Text>
+                    </View>
+                    <View style={reportStyles.summaryItem}>
+                        <Text style={reportStyles.summaryNumber}>{closedOrders}</Text>
+                        <Text style={reportStyles.summaryLabel}>Closed</Text>
                     </View>
                 </View>
 
@@ -86,37 +98,44 @@ const OrderReportDocument: React.FC<{
                 <View style={reportStyles.table}>
                     {/* Table Header */}
                     <View style={reportStyles.tableHeader}>
-                        <Text style={reportStyles.columnLarge}>Item Name</Text>
-                        <Text style={reportStyles.columnMedium}>Requested Quantity</Text>
-                        <Text style={reportStyles.columnMedium}>Request Date</Text>
+                        <Text style={reportStyles.columnMedium}>Reference No.</Text>
+                        <Text style={reportStyles.columnLarge}>Department</Text>
+                        <Text style={reportStyles.columnSmall}>No. of Items</Text>
+                        <Text style={reportStyles.columnLarge}>Date Approved</Text>
                         <Text style={reportStyles.columnMedium}>Status</Text>
                     </View>
 
                     {/* Table Rows */}
-                    {orderData.map((item, index) => (
-                        <View
-                            key={item.id}
-                            style={[
-                                reportStyles.tableRow,
-                                index % 2 === 1 ? reportStyles.alternateRow : {}
-                            ]}
-                        >
-                            <Text style={reportStyles.columnLarge}>
-                                {item.itemName}
-                            </Text>
-                            <Text style={reportStyles.columnMedium}>
-                                {item.ordQuantity}
-                            </Text>
-                            <Text style={reportStyles.columnMedium}>
-                                {item.ordReqDate}
-                            </Text>
-                            <View style={reportStyles.statusContainer}>
-                                <Text style={getOrderStatusStyle(item.ordStatus)}>
-                                    {formatOrderStatus(item.ordStatus)}
+                    {orderData.map((item, index) => {
+                        const approvedItemsCount = item.items.filter(i => i.isApproved).length;
+                        return (
+                            <View
+                                key={item.id}
+                                style={[
+                                    reportStyles.tableRow,
+                                    index % 2 === 1 ? reportStyles.alternateRow : {}
+                                ]}
+                            >
+                                <Text style={reportStyles.columnMedium}>
+                                    {item.refNo}
                                 </Text>
+                                <Text style={reportStyles.columnLarge}>
+                                    {item.departmentName}
+                                </Text>
+                                <Text style={reportStyles.columnSmall}>
+                                    {approvedItemsCount}
+                                </Text>
+                                <Text style={reportStyles.columnLarge}>
+                                    {item.dateApproved}
+                                </Text>
+                                <View style={reportStyles.statusContainer}>
+                                    <Text style={getOrderStatusStyle(item.orderStatus)}>
+                                        {formatOrderStatus(item.orderStatus)}
+                                    </Text>
+                                </View>
                             </View>
-                        </View>
-                    ))}
+                        );
+                    })}
                 </View>
 
                 {/* Footer */}
@@ -164,7 +183,7 @@ export const OrderReportPreviewModal: React.FC<OrderReportPDFProps> = ({
                                     reportTitle={reportTitle}
                                 />
                             }
-                            fileName={generateFileName('order')}
+                            fileName={generateFileName('Order')}
                             className="download-btn"
                         >
                             {({ blob, url, loading, error }) =>

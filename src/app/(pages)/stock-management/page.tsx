@@ -8,7 +8,6 @@ import PaginationComponent from "@/components/pagination";
 import { showEditError } from "@/utils/sweetAlert";
 // import Loading from "@/components/loading";
 
-import AddStockModal, { StockForm } from "./addStockModal";
 import ViewStockModal from "./viewStockModal";
 import EditStockModal from "./editStockModal";
 import { StockReportPreviewModal } from "./stockReportPDF";
@@ -241,16 +240,10 @@ export default function StocksManagement() {
     };
 
     // for the modals of add, view, edit, and delete
-    const openModal = (mode: "add-stock" | "view-stock" | "edit-stock", rowData?: any) => {
+    const openModal = (mode: "view-stock" | "edit-stock", rowData?: any) => {
         let content;
 
         switch (mode) {
-            case "add-stock":
-                content = <AddStockModal
-                    onSave={handleAddStock}
-                    onClose={closeModal}
-                />;
-                break;
             case "view-stock":
                 content = <ViewStockModal
                     item={rowData}
@@ -283,14 +276,6 @@ export default function StocksManagement() {
         setIsModalOpen(false);
         setModalContent(null);
         setActiveRow(null);
-    };
-
-    // Handle add stocks
-    const handleAddStock = (stockForms: StockForm[]) => {
-        console.log("Saving forms:", stockForms);
-        // Logic to add multiple stock items to the data
-        // In a real app, this would likely be an API call
-        closeModal();
     };
 
     // Handle edit stocks

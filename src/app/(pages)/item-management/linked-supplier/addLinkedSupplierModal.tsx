@@ -150,7 +150,7 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
                                 const value = selected ? selected.value : customValue || "";
                                 handleChange("linkedSupplierName", value);
                             }}
-                            placeholder="Search or select supplier..."
+                            placeholder="Search supplier..."
                             error={formErrors?.linkedSupplierName}
                             allowCustom={false}
                             noResultsText="No suppliers found"

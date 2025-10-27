@@ -408,6 +408,12 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                 </form>
             </div>
 
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit}>
+                    <i className="ri-save-3-line" /> Save
+                </button>
+            </div>
+
             {/* Linked Items */}
             <div className="details-header">
                 <p className="details-title">Linked Item/s</p>
@@ -457,12 +463,6 @@ export default function AddSupplierModal({ onSave, onClose }: AddSupplierModalPr
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
-                </button>
             </div>
 
             {/* Dynamic Modal Manager */}

@@ -8,6 +8,7 @@ interface ActionButtonsProps {
     onSend?: () => void;
     onApprove?: () => void;
     onReject?: () => void;
+    onAddStock?: () => void;
     onToggleStar?: () => void;
     isStarred?: boolean;
     disableView?: boolean;
@@ -16,6 +17,7 @@ interface ActionButtonsProps {
     disableSend?: boolean;
     disableApprove?: boolean;
     disableReject?: boolean;
+    disableAddStock?: boolean;
     disableStar?: boolean;
 }
 
@@ -26,6 +28,7 @@ const ActionButtons = ({
     onSend,
     onApprove,
     onReject,
+    onAddStock,
     onToggleStar,
     isStarred = false,
     disableView = false,
@@ -34,6 +37,7 @@ const ActionButtons = ({
     disableSend = false,
     disableApprove = false,
     disableReject = false,
+    disableAddStock = false,
     disableStar = false
 }: ActionButtonsProps) => {
     return (
@@ -60,8 +64,9 @@ const ActionButtons = ({
             {onDelete && (
                 <button
                     className={`action-btn delete${disableDelete ? ' disabled' : ''}`}
-                    onClick={onDelete}
-                    title="Delete"
+                    onClick={disableDelete ? undefined : onDelete}
+                    title={disableDelete ? "Cannot delete this" : "Delete"}
+                    disabled={disableDelete}
                 >
                     <i className="ri-delete-bin-line"></i>
                 </button>
@@ -94,6 +99,16 @@ const ActionButtons = ({
                     disabled={disableReject}
                 >
                     <i className="ri-close-line"></i>
+                </button>
+            )}
+            {onAddStock && (
+                <button
+                    className={`action-btn add-stock${disableAddStock ? ' disabled' : ''}`}
+                    onClick={disableAddStock ? undefined : onAddStock}
+                    title={disableAddStock ? "Cannot add to stock at this status" : "Add to Stock"}
+                    disabled={disableAddStock}
+                >
+                    <i className="ri-menu-add-line"></i>
                 </button>
             )}
             {onToggleStar && (

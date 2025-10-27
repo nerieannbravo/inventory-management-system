@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import "@/styles/forms.css";
+import "@/styles/searchableDropdown.css";
 
 interface Option {
     id: string | number;

@@ -50,7 +50,7 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 			</button>
 
 			<div className="modal-heading">
-				<h1 className="modal-title">{item.itemName}</h1>
+				<h1 className="modal-title">View Stock</h1>
 				<div>
 					<p className="modal-date-time">Date Created: mm/dd/yyyy</p>
 					<p className="modal-date-time">Date Updated: mm/dd/yyyy</p>
@@ -59,6 +59,11 @@ export default function ViewStockModal({ item, formatStatus, onClose }: ViewStoc
 
 			<div className="modal-content view">
 				<div className="view-form">
+					<div className="form-group">
+						<label>Item Name</label>
+						<p>{item.itemName}</p>
+					</div>
+					
 					<div className="form-row">
 						<div className="form-group">
 							<label>Current Stock</label>

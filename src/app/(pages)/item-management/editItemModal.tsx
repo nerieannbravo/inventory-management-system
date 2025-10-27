@@ -351,8 +351,14 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         </textarea>
                         <p className="edit-error-message">{formErrors?.ordReason}</p>
                     </div>
-                </form >
-            </div >
+                </form>
+            </div>
+
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
+                    <i className="ri-save-3-line" /> Update
+                </button>
+            </div>
 
             {/* Linked Suppliers */}
             <div className="details-header">
@@ -411,12 +417,6 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
-                    <i className="ri-save-3-line" /> Update
-                </button>
             </div>
 
             {/* Dynamic Modal Manager */}

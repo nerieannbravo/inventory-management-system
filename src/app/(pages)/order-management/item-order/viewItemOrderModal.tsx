@@ -3,9 +3,10 @@ import { FileList } from "@/components/fileList";
 
 interface ViewOrderModalProps {
     item: {
+        id: number;
         isApproved: boolean;
         itemName: string;
-        originalQuantity: number;
+        requestedQuantity: number;
         approvedQuantity: number;
         receivedQuantity: number;
         usableQuantity: number;
@@ -15,7 +16,6 @@ interface ViewOrderModalProps {
         itemOrderStatus: string;
         adjustmentReason: string;
         attachmentFiles: File[];
-
     };
     formatStatus: (status: string) => string;
     onClose: () => void;
@@ -57,7 +57,7 @@ export default function ViewItemOrderModal({ item, formatStatus, onClose }: View
                     <div className="form-row">
                         <div className="form-group">
                             <label>Requested Quantity</label>
-                            <p>{item.originalQuantity}</p>
+                            <p>{item.requestedQuantity}</p>
                         </div>
 
                         <div className="form-group">

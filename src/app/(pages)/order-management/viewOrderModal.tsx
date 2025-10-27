@@ -19,19 +19,17 @@ interface ViewOrderModalProps {
         supplierContact: string;
         remarks: string;
         items: {
+            id: number;
             isApproved: boolean;
             itemName: string;
-            originalQuantity: number;
             approvedQuantity: number;
             receivedQuantity: number;
-            usableQuantity: number;
             unitMeasure: string;
             estimatedUnitCost: number;
             actualUnitCost: number;
             itemOrderStatus: string;
-            adjustmentReason: string;
-            attachmentFiles: File[];
         }[];
+        // Additional fields would be included in a real application
     };
     formatStatus: (status: string) => string;
     onClose: () => void;
@@ -84,6 +82,18 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
                 <div className="view-form">
                     <div className="form-row">
                         <div className="form-group">
+                            <label>Reference Number</label>
+                            <p>{item.refNo}</p>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Status</label>
+                            <p>{formatStatus(item.orderStatus)}</p>
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
                             <label>Department Name</label>
                             <p>{item.departmentName}</p>
                         </div>
@@ -91,11 +101,6 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
                         <div className="form-group">
                             <label>Date Approved</label>
                             <p>{item.dateApproved}</p>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Status</label>
-                            <p>{formatStatus(item.orderStatus)}</p>
                         </div>
                     </div>
 
@@ -113,13 +118,13 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
 
                     <div className="form-group">
                         <label>Remarks</label>
-                        <p>{item.remarks}</p>
+                        <p>{item.remarks || "N/A"}</p>
                     </div>
                 </div>
             </div>
 
             <div className="details-header">
-                <p className="details-title">Items</p>
+                <p className="details-title">Item/s</p>
             </div>
 
             <div className="modal-table-wrapper">
@@ -130,8 +135,8 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
                                 <th>Item Name</th>
                                 <th>Approved <br />Quantity</th>
                                 <th>Received <br />Quantity</th>
-                                <th>Estimated <br />Unit Cost</th>
-                                <th>Estimated <br />Amount</th>
+                                <th>Unit Cost</th>
+                                <th>Total Amount</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -140,7 +145,8 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
                             {item.items && item.items.length > 0 ? (
                                 item.items.filter(itemOrder => itemOrder.isApproved)
                                     .map((itemOrder, index) => {
-                                        const unitCost = itemOrder.estimatedUnitCost || 0;
+                                        const useEstimated = ["pending", "adjusted"].includes(itemOrder.itemOrderStatus.toLowerCase());
+                                        const unitCost = useEstimated ? itemOrder.estimatedUnitCost || 0 : itemOrder.actualUnitCost || 0;
                                         const quantity = itemOrder.approvedQuantity || 0;
                                         const totalAmount = unitCost * quantity;
 
@@ -179,20 +185,18 @@ export default function ViewOrderModal({ item, formatStatus, onClose }: ViewOrde
                                     <td style={{ textAlign: "center" }}>Total Amount</td>
                                     <td style={{ fontWeight: "bold" }}>
                                         ₱
-                                        {item.items
-                                            .filter(itemOrder => itemOrder.isApproved)
-                                            .reduce((sum, itemOrder) => {
-                                                const unitCost = itemOrder.estimatedUnitCost || 0;
-                                                const quantity = itemOrder.approvedQuantity || 0;
-                                                return sum + unitCost * quantity;
-                                            }, 0)
+                                        {item.items.filter(itemOrder => itemOrder.isApproved).reduce((sum, itemOrder) => {
+                                            const useEstimated = ["pending", "adjusted"].includes(itemOrder.itemOrderStatus.toLowerCase());
+                                            const unitCost = useEstimated ? itemOrder.estimatedUnitCost || 0 : itemOrder.actualUnitCost || 0;
+                                            const quantity = itemOrder.approvedQuantity || 0;
+                                            return sum + unitCost * quantity;
+                                        }, 0)
                                             .toFixed(2)}
                                     </td>
                                     <td colSpan={2}></td>
                                 </tr>
                             )}
                         </tbody>
-
                     </table>
                 </div>
             </div>

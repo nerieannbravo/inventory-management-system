@@ -301,7 +301,7 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                                     const value = selected ? selected.value : customValue || "";
                                     handleChange("itemCategory", value);
                                 }}
-                                placeholder="Search unit measure..."
+                                placeholder="Search category..."
                                 error={formErrors?.itemCategory}
                                 allowCustom={false}
                                 noResultsText="No category found"
@@ -337,6 +337,12 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                         <p className="add-error-message">{formErrors?.itemDescription}</p>
                     </div>
                 </form>
+            </div>
+
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit}>
+                    <i className="ri-save-3-line" /> Save
+                </button>
             </div>
 
             {/* Linked Suppliers */}
@@ -390,12 +396,6 @@ export default function AddItemModal({ onSave, onClose }: AddItemModalProps) {
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
-                </button>
             </div>
 
             {/* Dynamic Modal Manager */}

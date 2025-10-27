@@ -425,8 +425,14 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                         </textarea>
                         <p className="edit-error-message">{formErrors?.supplierRemarks}</p>
                     </div>
-                </form >
-            </div >
+                </form>
+            </div>
+
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
+                    <i className="ri-save-3-line" /> Update
+                </button>
+            </div>
 
             {/* Linked Items */}
             <div className="details-header">
@@ -477,12 +483,6 @@ export default function EditSupplierModal({ item, onSave, onClose }: EditSupplie
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
-                    <i className="ri-save-3-line" /> Update
-                </button>
             </div>
 
             {/* Dynamic Modal Manager */}

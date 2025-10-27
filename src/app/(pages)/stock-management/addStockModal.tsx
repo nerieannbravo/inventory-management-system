@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import SearchableDropdown from "@/components/searchableDropdown";
+
 import {
 	showStockSaveConfirmation, showStockSavedSuccess,
 	showCloseWithoutSavingConfirmation
@@ -9,16 +11,16 @@ import "@/styles/forms.css";
 
 // Export the interface so it can be imported by other components
 export interface StockForm {
-	name: string,
-	quantity: number,
-	unit: string,
-	reorder: number,
-	usable: number,
-	defective: number,
-	missing: number,
-	category: string,
-	status: string,
-	expiration: string,
+	itemName: string;
+	totalQuantity: number;
+	unitMeasure: string;
+	reorderLevel: number;
+	usableQuantity: number;
+	defectiveQuantity: number;
+	missingQuantity: number;
+	category: string;
+	status: string;
+	expirationDate: string;
 }
 
 interface FormError {
@@ -26,94 +28,92 @@ interface FormError {
 }
 
 interface AddStockModalProps {
-	onSave: (stockForms: StockForm[]) => void;
+	item?: {
+		id: number;
+		itemName: string;
+		approvedQuantity: number;
+		receivedQuantity: number;
+		unitMeasure: string;
+		usableQuantity?: number;
+	};
+	onSave: (stockForms: StockForm, itemId?: number) => void;
 	onClose: () => void;
 }
 
-export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
-	// Initial stock form state
-	const initialFormState: StockForm = {
-		name: "",
-		quantity: 10,
-		unit: "",
-		reorder: 0,
-		usable: 0,
-		defective: 0,
-		missing: 0,
-		category: "",
-		status: "available",
-		expiration: "",
+export default function AddStockModal({ item, onSave, onClose }: AddStockModalProps) {
+	// Calculate missing quantity from approved vs received
+	const calculateMissingFromDelivery = () => {
+		if (!item) return 0;
+		const approved = item.approvedQuantity || 0;
+		const received = item.receivedQuantity || 0;
+		return Math.max(0, approved - received); // Difference = items not delivered
 	};
 
-	const [stockForms, setStockForms] = useState<StockForm[]>([initialFormState]);
-	const [formErrors, setFormErrors] = useState<FormError[]>([{}]);
+	const [stockForm, setStockForm] = useState<StockForm>({
+		itemName: item?.itemName || "",
+		totalQuantity: item?.approvedQuantity || 0,
+		unitMeasure: item?.unitMeasure || "",
+		reorderLevel: 0,
+		usableQuantity: item?.usableQuantity || item?.receivedQuantity || 0, // Default to all received items as usable
+		defectiveQuantity: 0,
+		missingQuantity: calculateMissingFromDelivery(), // Auto-populate missing from delivery
+		category: "",
+		status: "Available",
+		expirationDate: "",
+	});
+
+	const [formErrors, setFormErrors] = useState<FormError>({});
 	const [isDirty, setIsDirty] = useState(false);
 
-	// Track if any form has been modified
+	// Define category options
+	const categoryOptions = [
+		{ id: 1, label: "Consumable", value: "Consumable" },
+		{ id: 2, label: "Tool", value: "Tool" },
+		{ id: 3, label: "Machine", value: "Machine" },
+		{ id: 4, label: "Equipment", value: "Equipment" },
+	];
+
+	// Track if form has been modified
 	useEffect(() => {
 		setIsDirty(true);
-	}, [stockForms]);
+	}, [stockForm]);
 
-	const handleFormChange = (index: number, field: string, value: any) => {
-		setStockForms((prev) =>
-			prev.map((form, i) =>
-				i === index ? { ...form, [field]: value } : form
-			)
-		);
+	// Function to handle changes in the form fields
+	const handleChange = (field: string, value: any) => {
+		setStockForm((prev) => ({ ...prev, [field]: value }));
 
-		// Clear errors for the changed field
-		if (formErrors[index] && formErrors[index][field]) {
-			const newErrors = [...formErrors];
-			delete newErrors[index][field];
-
-			// Also clear sum error if quantity-related fields are changed
-			if (["usable", "defective", "missing", "quantity"].includes(field)) {
-				delete newErrors[index]["sum"];
-			}
-
+		if (formErrors[field]) {
+			const newErrors = { ...formErrors };
+			delete newErrors[field];
 			setFormErrors(newErrors);
 		}
 	};
 
-	const handleAddAnotherStock = () => {
-		setStockForms((prev) => [...prev, initialFormState]);
-		setFormErrors((prev) => [...prev, {}]);
-	};
-
-	const handleRemoveStock = (index: number) => {
-		setStockForms((prev) => prev.filter((_, i) => i !== index));
-		setFormErrors((prev) => prev.filter((_, i) => i !== index));
-	};
-
 	const validateForm = (): boolean => {
-		const errors = stockForms.map((form) => {
-			const errorObj: FormError = {};
+		const errors: FormError = {};
 
-			if (!form.name) errorObj.name = "Item name is required";
-			if (form.reorder < 0) errorObj.reorder = "Reorder level must be at least 0";
-			if (form.reorder >= form.quantity) errorObj.reorder = "Reorder level must be lower than total quantity";
-			if (!form.category) errorObj.category = "Item category is required";
+		if (!stockForm.itemName) errors.itemName = "Item name is required";
+		if (stockForm.reorderLevel < 0) errors.reorderLevel = "Reorder level must be at least 0";
+		if (stockForm.reorderLevel >= stockForm.totalQuantity) errors.reorderLevel = "Reorder level must be lower than total quantity";
+		if (!stockForm.category) errors.category = "Item category is required";
 
-			const sum = form.usable + form.defective + form.missing;
-			if (sum !== form.quantity) {
-				errorObj.sum = "The combined total of usable, defective, and missing must equal the total quantity";
+		const sum = stockForm.usableQuantity + stockForm.defectiveQuantity + stockForm.missingQuantity;
+		if (sum !== stockForm.totalQuantity) {
+			errors.sum = "The combined total of usable, defective, and missing must equal the total quantity";
+		}
+
+		if (stockForm.expirationDate) {
+			const today = new Date();
+			const selectedDate = new Date(stockForm.expirationDate);
+			today.setHours(0, 0, 0, 0);
+			selectedDate.setHours(0, 0, 0, 0);
+			if (selectedDate < today) {
+				errors.expiration = "Expiration date cannot be in the past";
 			}
-
-			if (form.expiration) {
-				const today = new Date();
-				const selectedDate = new Date(form.expiration);
-				today.setHours(0, 0, 0, 0);
-				selectedDate.setHours(0, 0, 0, 0);
-				if (selectedDate < today) {
-					errorObj.expiration = "Expiration date cannot be in the past";
-				}
-			}
-
-			return errorObj;
-		});
+		}
 
 		setFormErrors(errors);
-		return errors.every((err) => Object.keys(err).length === 0);
+		return Object.keys(errors).length === 0;
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -121,10 +121,10 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 
 		if (!validateForm()) return;
 
-		const result = await showStockSaveConfirmation(stockForms.length);
+		const result = await showStockSaveConfirmation();
 		if (result.isConfirmed) {
-			onSave(stockForms);
-			await showStockSavedSuccess(stockForms.length);
+			onSave(stockForm, item?.id);  // Pass the item ID
+			await showStockSavedSuccess();
 		}
 	};
 
@@ -154,190 +154,154 @@ export default function AddStockModal({ onSave, onClose }: AddStockModalProps) {
 				</button>
 			</div>
 
-			{/* Add Stock Form - allows adding multiple stocks */}
-			{stockForms.map((form, index) => (
-				<div className="modal-content add" key={index}>
-					<form className="add-form" id={`add-form-${index}`}>
-						{/* Item Name */}
+			{/* Add Stock Form */}
+			<div className="modal-content add">
+				<form className="add-form">
+					{/* Item Name */}
+					<div className="form-group">
+						<label>Item Name</label>
+						<input disabled
+							type="text"
+							value={stockForm.itemName}
+						/>
+						<p className="add-error-message">{formErrors?.itemName}</p>
+					</div>
+
+					<div className="form-row">
+						{/* Total Quantity */}
 						<div className="form-group">
-							<label className="required">Item Name</label>
-							<select
-								className={formErrors[index]?.name ? "invalid-input" : ""}
-								value={form.name}
-								onChange={(e) => handleFormChange(index, "name", e.target.value)}
-							>
-								<option value="" disabled>Select an item...</option>
-								<option value="1">Item 1</option>
-								<option value="2">Item 2</option>
-								<option value="3">Item 3</option>
-								<option value="4">Item 4</option>
-								<option value="5">Item 5</option>
-							</select>
-							<p className="add-error-message">{formErrors[index]?.name}</p>
+							<label>Total Quantity</label>
+							<input disabled
+								type="number"
+								step="0.1"
+								min="0"
+								value={stockForm.totalQuantity}
+							/>
 						</div>
 
-						<div className="form-row">
-							{/* Quantity */}
-							<div className="form-group">
-								<label>Total Quantity</label>
-								<input disabled
-									type="number"
-									step="0.1"
-									min="0"
-									value={form.quantity}
-								/>
-							</div>
-
-							{/* Unit Measure */}
-							<div className="form-group">
-								<label>Unit Measure</label>
-								<select disabled value={form.unit}>
-									<option value="pcs">pcs (pieces)</option>
-									<option value="kg">kg (kilograms)</option>
-									<option value="l">L (liters)</option>
-									<option value="m">m (meters)</option>
-									<option value="box">box/es</option>
-									<option value="pack">pack/s</option>
-									<option value="roll">roll/s</option>
-								</select>
-							</div>
-
-							{/* Reorder Level */}
-							<div className="form-group">
-								<label className="required">Reorder Level</label>
-								<input
-									className={formErrors[index]?.reorder ? "invalid-input" : ""}
-									type="number"
-									step="0.1"
-									min="0"
-									value={form.reorder || ""}
-									placeholder="Enter reorder level here..."
-									onChange={(e) => handleFormChange(index, "reorder", Number(e.target.value))}
-								/>
-								<p className="add-error-message">{formErrors[index]?.reorder}</p>
-							</div>
-						</div>
-
-						<div className="form-row">
-							{/* Usable */}
-							<div className="form-group">
-								<label>Usable Quantity</label>
-								<input
-									className={formErrors[index]?.usable ? "invalid-input" : ""}
-									type="number"
-									step="0.1"
-									min="0"
-									value={form.usable || ""}
-									placeholder="0"
-									onChange={(e) => handleFormChange(index, "usable", Number(e.target.value))}
-								/>
-							</div>
-
-							{/* Defective */}
-							<div className="form-group">
-								<label>Defective Quantity</label>
-								<input
-									className={formErrors[index]?.defective ? "invalid-input" : ""}
-									type="number"
-									step="0.1"
-									min="0"
-									value={form.defective || ""}
-									placeholder="0"
-									onChange={(e) => handleFormChange(index, "defective", Number(e.target.value))}
-								/>
-							</div>
-
-							{/* Missing */}
-							<div className="form-group">
-								<label>Missing Quantity</label>
-								<input
-									className={formErrors[index]?.missing ? "invalid-input" : ""}
-									type="number"
-									step="0.1"
-									min="0"
-									value={form.missing || ""}
-									placeholder="0"
-									onChange={(e) => handleFormChange(index, "missing", Number(e.target.value))}
-								/>
-							</div>
-						</div>
-
-						{/* Sum Error */}
+						{/* Unit Measure */}
 						<div className="form-group">
-							{formErrors[index]?.sum && <p className="add-error-message quantity">{formErrors[index].sum}</p>}
+							<label>Unit Measure</label>
+							<input disabled
+								type="text"
+								value={stockForm.unitMeasure}
+							/>
 						</div>
 
-						<div className="form-row">
-							{/* Category */}
-							<div className="form-group">
-								<label className="required">Category</label>
-								<select
-									className={formErrors[index]?.category ? "invalid-input" : ""}
-									value={form.category}
-									onChange={(e) => handleFormChange(index, "category", e.target.value)}
-								>
-									<option value="" disabled>Select category...</option>
-									<option value="consumable">Consumable</option>
-									<option value="tool">Tool</option>
-									<option value="machine">Machine</option>
-									<option value="equipment">Equipment</option>
-								</select>
-								<p className="add-error-message">{formErrors[index]?.category}</p>
-							</div>
+						{/* Reorder Level */}
+						<div className="form-group">
+							<label className="required">Reorder Level</label>
+							<input
+								className={formErrors?.reorderLevel ? "invalid-input" : ""}
+								type="number"
+								step={0.01}
+								min={0.01}
+								value={stockForm.reorderLevel || ""}
+								onChange={(e) => handleChange("reorderLevel", parseFloat(e.target.value) || 0)}
+								placeholder="Enter reorder level here..."
+							/>
+							<p className="add-error-message">{formErrors?.reorderLevel}</p>
+						</div>
+					</div>
 
-							{/* Status */}
-							<div className="form-group">
-								<label>Status</label>
-								<select disabled value={form.status}>
-									<option value="available">Available</option>
-									<option value="out-of-stock">Out of Stock</option>
-									<option value="low-stock">Low Stock</option>
-									<option value="maintenance">Under Maintenance</option>
-								</select>
-							</div>
+					<div className="form-row">
+						{/* Usable Quantity */}
+						<div className="form-group">
+							<label className="required">Usable Quantity</label>
+							<input
+								className={formErrors?.usableQuantity ? "invalid-input" : ""}
+								type="number"
+								step={0.01}
+								min={0}
+								value={stockForm.usableQuantity || ""}
+								onChange={(e) => handleChange("usableQuantity", parseFloat(e.target.value) || 0)}
+								placeholder="Enter usable quantity here..."
+							/>
 						</div>
 
-						{/* Expiration */}
-						{form.category === "consumable" && (
-							<div className="form-group">
-								<label>Expiration Date</label>
-								<input
-									className={formErrors[index]?.expiration ? "invalid-input" : ""}
-									type="date"
-									value={form.expiration}
-									onChange={(e) => handleFormChange(index, "expiration", e.target.value)}
-								/>
-								<p className="add-error-message">{formErrors[index]?.expiration}</p>
-							</div>
-						)}
+						{/* Defective Quantity */}
+						<div className="form-group">
+							<label>Defective Quantity</label>
+							<input
+								className={formErrors?.defectiveQuantity ? "invalid-input" : ""}
+								type="number"
+								step={0.01}
+								min={0}
+								value={stockForm.defectiveQuantity || ""}
+								onChange={(e) => handleChange("defectiveQuantity", parseFloat(e.target.value) || 0)}
+								placeholder="Enter defective quantity here..."
+							/>
+						</div>
 
-					</form>
+						{/* Missing Quantity */}
+						<div className="form-group">
+							<label>Missing Quantity</label>
+							<input
+								className={formErrors?.missingQuantity ? "invalid-input" : ""}
+								type="number"
+								step={0.01}
+								min={0}
+								value={stockForm.missingQuantity || ""}
+								onChange={(e) => handleChange("missingQuantity", parseFloat(e.target.value) || 0)}
+								placeholder="Enter missing quantity here..."
+							/>
+						</div>
+					</div>
 
-					{/* Remove Stock Button - Only show if there's more than one form */}
-					{stockForms.length > 1 && (
-						<div className="remove-btn-wrapper">
-							<button
-								type="button"
-								className="remove-stock-btn"
-								onClick={() => handleRemoveStock(index)}
-							>
-								<i className="ri-close-line" /> Remove
-							</button>
+					{/* Sum Error */}
+					<div className="form-group">
+						{formErrors?.sum && <p className="add-error-message quantity">{formErrors.sum}</p>}
+					</div>
+
+					<div className="form-row">
+						{/* Category */}
+						<div className="form-group">
+							<label className="required">Category</label>
+							<SearchableDropdown
+								options={categoryOptions}
+								value={stockForm.category}
+								onChange={(selected, customValue) => {
+									const value = selected ? selected.value : customValue || "";
+									handleChange("category", value);
+								}}
+								placeholder="Search category..."
+								error={formErrors?.category}
+								allowCustom={false}
+								noResultsText="No category found"
+							/>
+						</div>
+
+						{/* Status */}
+						<div className="form-group">
+							<label>Status</label>
+							<input disabled
+								type="text"
+								value={stockForm.status}
+							/>
+						</div>
+					</div>
+
+					{/* Expiration */}
+					{stockForm.category === "Consumable" && (
+						<div className="form-group">
+							<label>Expiration Date</label>
+							<input
+								className={formErrors?.expirationDate ? "invalid-input" : ""}
+								type="date"
+								value={stockForm.expirationDate}
+								onChange={(e) => handleChange("expirationDate", e.target.value)}
+							/>
+							<p className="add-error-message">{formErrors?.expirationDate}</p>
 						</div>
 					)}
-				</div>
-			))}
+				</form>
+			</div>
 
 			<div className="modal-actions add">
-				<button type="button" className="add-another-btn" onClick={handleAddAnotherStock}>
-					<i className="ri-add-line" /> Add Another Stock
-				</button>
-
 				<button type="submit" className="submit-btn" onClick={handleSubmit}>
 					<i className="ri-save-3-line" /> Save
 				</button>
 			</div>
-
 		</>
 	);
 }
