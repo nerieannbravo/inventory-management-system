@@ -20,7 +20,7 @@ async function main() {
     await prisma.category.deleteMany({});
 
     console.log('📦 Seeding categories...');
-    const categoryData = [
+    const category_data = [
       { category_name: 'Consumable', date_created: new Date('2025-04-01') },
       { category_name: 'Bus', date_created: new Date('2025-04-16') },
       { category_name: 'Tool', date_created: new Date('2025-04-30') },
@@ -30,10 +30,10 @@ async function main() {
 
     const categoryMap: Record<string, string> = {};
 
-    for (const category of categoryData) {
+    for (const category of category_data) {
       const category_id = await generateId('category', 'CAT');
       const created = await prisma.category.create({
-        data: { category_id, ...category },
+        data: {category_id, ...category },
       });
       categoryMap[created.category_name] = created.category_id;
     }

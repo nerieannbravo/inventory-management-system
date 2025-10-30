@@ -3,7 +3,17 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export async function generateId(
-  model: 'category' | 'inventoryItem' | 'batch' | 'employeeRequest' | 'bus' | 'busOtherFiles' | 'busDisposal' | 'stockDisposal',
+  model: 'category' | 
+        'inventoryItem' | 
+        'batch' | 
+        'employeeRequest' | 
+        'bus' | 
+        'busOtherFiles' | 
+        'busDisposal' | 
+        'stockDisposal' | 
+        'item' |
+        'unitMeasure' |
+        'supplier',
   prefix: string,
   idField?: string
 ): Promise<string> {
@@ -105,6 +115,42 @@ export async function generateId(
       });
       idField = 'disposal_id';
       break;
+      
+      case 'item':
+      lastEntry = await prisma.item.findFirst({
+        orderBy: {
+          item_id: 'desc'
+        },
+        select: {
+          item_id: true
+        }
+      });
+      idField = 'item_id';
+      break;
+
+      case 'unitMeasure':
+      lastEntry = await prisma.unitMeasure.findFirst({
+        orderBy: {
+          unit_id: 'desc'
+        },
+        select: {
+          unit_id: true
+        }
+      });
+      idField = 'unit_id';
+      break;
+
+      case 'supplier':
+        lastEntry = await prisma.supplier.findFirst({
+          orderBy: {
+            supplier_id: 'desc'
+          },
+          select: {
+            supplier_id: true
+          }
+        });
+        idField = 'supplier_id';
+        break;
 
   }
 

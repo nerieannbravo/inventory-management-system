@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from "react";
 
 import {
@@ -12,6 +13,9 @@ export interface LinkedSupplierForm {
     unitPrice: number;
     deliveryTime: string;
     notes: string;
+    // optional ids for backend persistence
+    supplierId?: number;
+    unitId?: number;
 }
 
 interface FormError {
@@ -21,9 +25,11 @@ interface FormError {
 interface AddLinkedSupplierModalProps {
     onClose: () => void;
     onSave: (linkedSupplierForm: LinkedSupplierForm) => void;
+    // optional: when provided, modal will persist the linked supplier to that item id
+    itemId?: number | string;
 }
 
-export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSupplierModalProps) {
+export default function AddLinkedSupplierModal({ onClose, onSave, itemId }: AddLinkedSupplierModalProps) {
     const [linkedSupplierForm, setLinkedSupplierForm] = useState<LinkedSupplierForm>({
         linkedSupplierName: "",
         unitPrice: 0,
@@ -33,13 +39,51 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
 
     const [formErrors, setFormErrors] = useState<FormError>({});
     const [isDirty, setIsDirty] = useState(false);
+    const [suppliers, setSuppliers] = useState<Array<{ id: number; supplier_id: string; supplier_name: string }>>([]);
+    const [units, setUnits] = useState<Array<{ id: number; unit_name: string; abbreviation: string }>>([]);
+    const [listsLoading, setListsLoading] = useState(false);
 
     // Track if form has been modified
     useEffect(() => {
         setIsDirty(true);
     }, [linkedSupplierForm]);
 
-    const handleChange = (field: string, value: any) => {
+    // fetch supplier and unit lists for selects (extract so we can refresh)
+    useEffect(() => { fetchLists(); }, []);
+
+    async function fetchLists() {
+        let mounted = true;
+        setListsLoading(true);
+        try {
+            const [sRes, uRes] = await Promise.all([fetch('/api/suppliers'), fetch('/api/units')]);
+            const sBody = await sRes.json().catch(() => ({}));
+            const uBody = await uRes.json().catch(() => ({}));
+            if (!mounted) return;
+            console.debug('suppliers fetch', { ok: sRes.ok, body: sBody });
+            console.debug('units fetch', { ok: uRes.ok, body: uBody });
+
+            // Suppliers: accept multiple shapes
+            let supplierList: Array<{ id: number; supplier_id?: string; supplier_name?: string }> = [];
+            if (Array.isArray(sBody.suppliers)) supplierList = sBody.suppliers;
+            else if (Array.isArray(sBody.data)) supplierList = sBody.data;
+            else if (Array.isArray(sBody)) supplierList = sBody;
+            if (supplierList.length > 0) setSuppliers(supplierList as Array<{ id: number; supplier_id: string; supplier_name: string }>);
+
+            // Units: accept multiple shapes
+            let unitList: Array<{ id: number; unit_name?: string; abbreviation?: string }> = [];
+            if (Array.isArray(uBody.units)) unitList = uBody.units;
+            else if (Array.isArray(uBody.data)) unitList = uBody.data;
+            else if (Array.isArray(uBody)) unitList = uBody;
+            if (unitList.length > 0) setUnits(unitList as Array<{ id: number; unit_name: string; abbreviation: string }>);
+        } catch (err) {
+            console.error('Failed to load supplier/unit lists', err);
+        } finally {
+            setListsLoading(false);
+            mounted = false;
+        }
+    }
+
+    const handleChange = (field: string, value: string | number | undefined) => {
         setLinkedSupplierForm((prev) => ({ ...prev, [field]: value }));
 
         // Clear the error for that field
@@ -53,9 +97,12 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
     const validateForm = (): boolean => {
         const errors: FormError = {};
 
-        if (!linkedSupplierForm.linkedSupplierName) errors.linkedSupplierName = "Supplier name is required";
+        if (!linkedSupplierForm.linkedSupplierName) errors.linkedSupplierName = "Supplier is required";
         if (linkedSupplierForm.unitPrice <= 0) errors.unitPrice = "Unit price must be greater than 0";
         if (!linkedSupplierForm.deliveryTime) errors.deliveryTime = "Delivery time is required";
+
+        // If units list is available, ensure a unit is chosen via unitId
+        if (units.length > 0 && !linkedSupplierForm.unitId) errors.unitId = 'Unit is required';
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -67,12 +114,60 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
         if (!validateForm()) return;
 
         const result = await showSupplierSaveConfirmation();
-        if (result.isConfirmed) {
-            onSave(linkedSupplierForm);
-            await showSupplierSavedSuccess();
-            onClose();
+        if (!result.isConfirmed) return;
+
+        // If itemId was provided, persist to backend
+        if (itemId) {
+            try {
+                const payload: Record<string, unknown> = {
+                    item_id: Number(itemId),
+                    supplier_id: linkedSupplierForm.supplierId,
+                    unit_id: linkedSupplierForm.unitId ?? undefined,
+                    unit_price: linkedSupplierForm.unitPrice,
+                    delivery_time: linkedSupplierForm.deliveryTime,
+                    note: linkedSupplierForm.notes ?? undefined,
+                };
+
+                const res = await fetch('/api/supplier-items', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    setFormErrors({ submit: body?.error ?? `Failed to save (status ${res.status})` });
+                    return;
+                }
+
+                // Normalize returned data for parent; include unit id and abbreviation so parent can display authoritative values
+                onSave({
+                    id: body.supplier_id ?? body.id ?? Date.now(),
+                    linkedSupplierName: body.supplierName ?? linkedSupplierForm.linkedSupplierName,
+                    unitId: body.unit_id ?? linkedSupplierForm.unitId,
+                    unitAbbrev: body.unit?.abbreviation ?? body.unit_abbreviation ?? (selectedUnit ? selectedUnit.abbreviation : ''),
+                    unitPrice: body.unit_price ?? linkedSupplierForm.unitPrice,
+                    deliveryTime: body.delivery_time ?? linkedSupplierForm.deliveryTime,
+                    notes: body.note ?? linkedSupplierForm.notes,
+                } as LinkedSupplierForm & { unitId?: number; unitAbbrev?: string });
+            } catch (err) {
+                console.error('Failed to POST supplier-item', err);
+                setFormErrors({ submit: 'Failed to save linked supplier' });
+                return;
+            }
+        } else {
+            // local-only mode - include unit metadata
+            onSave({
+                ...linkedSupplierForm,
+                unitAbbrev: selectedUnit ? selectedUnit.abbreviation : undefined,
+            } as LinkedSupplierForm & { unitAbbrev?: string });
         }
+
+        await showSupplierSavedSuccess();
+        onClose();
     };
+
+    const selectedUnit = units.find(u => u.id === Number(linkedSupplierForm.unitId));
 
     const handleClose = async () => {
         if (!isDirty) {
@@ -99,28 +194,67 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
                         <label>Supplier Name</label>
                         <select
                             className={formErrors?.linkedSupplierName ? "invalid-input" : ""}
-                            value={linkedSupplierForm.linkedSupplierName}
-                            onChange={(e) => handleChange("linkedSupplierName", e.target.value)}
+                            value={linkedSupplierForm.supplierId ?? ''}
+                            onChange={(e) => {
+                                const id = Number(e.target.value);
+                                handleChange('supplierId', Number.isNaN(id) ? undefined : id);
+                                // also store name for display
+                                const found = suppliers.find(s => s.id === id);
+                                handleChange('linkedSupplierName', found ? found.supplier_name : '');
+                            }}
                         >
-                            <option value="" disabled>Select supplier name...</option>
-                            <option value="Kang Seulgi">Kang Seulgi</option>
-                            <option value="Leo Lee">Leo Lee</option>
-                            <option value="Zhang Jiahao">Zhang Jiahao</option>
+                            {listsLoading ? (
+                                <option value="" disabled>Loading suppliers...</option>
+                            ) : suppliers.length === 0 ? (
+                                <>
+                                    <option value="" disabled>No suppliers found</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="" disabled>Select supplier name...</option>
+                                    {suppliers.map(s => (
+                                        <option key={s.id} value={s.id}>{s.supplier_name}</option>
+                                    ))}
+                                </>
+                            )}
                         </select>
+                        {!listsLoading && suppliers.length === 0 && (
+                            <button type="button" className="modal-table-add-btn" onClick={() => fetchLists()} style={{ marginLeft: 8 }}>
+                                Refresh
+                            </button>
+                        )}
                         <p className="add-error-message">{formErrors?.linkedSupplierName}</p>
                     </div>
 
                     <div className="form-row">
+                        {/* Unit select (if units loaded) */}
+                        {units.length > 0 && (
+                            <div className="form-group">
+                                <label>Unit</label>
+                                <select
+                                    value={linkedSupplierForm.unitId ?? ''}
+                                    onChange={(e) => handleChange('unitId', Number(e.target.value))}
+                                >
+                                    <option value="" disabled>Select unit...</option>
+                                    {units.map(u => (
+                                        <option key={u.id} value={u.id}>{u.unit_name} ({u.abbreviation})</option>
+                                    ))}
+                                </select>
+                                <p className="add-error-message">{formErrors?.unitId}</p>
+                            </div>
+                        )}
                         {/* Unit Price */}
                         <div className="form-group">
                             <label>Unit Price</label>
-                            <input
-                                className={formErrors?.unitPrice ? "invalid-input" : ""}
-                                type="number"
-                                value={linkedSupplierForm.unitPrice || ""}
-                                onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
-                                placeholder="Enter unit price here..."
-                            />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <input
+                                    className={formErrors?.unitPrice ? "invalid-input" : ""}
+                                    type="number"
+                                    value={linkedSupplierForm.unitPrice || ""}
+                                    onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
+                                    placeholder="Enter unit price here..."
+                                />
+                            </div>
                             <p className="add-error-message">{formErrors?.unitPrice}</p>
                         </div>
 
@@ -148,8 +282,6 @@ export default function AddLinkedSupplierModal({ onClose, onSave }: AddLinkedSup
                         />
                         <p className="add-error-message"></p>
                     </div>
-
-
                 </form >
             </div >
 

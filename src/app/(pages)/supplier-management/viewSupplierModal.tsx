@@ -1,23 +1,24 @@
 import "@/styles/forms.css";
 
 interface ViewSupplierModalProps {
-    item: {
+    supplier: {
         id: number;
-        supplierName: string,
-        supplierStreet: string,
-        supplierBarangay: string,
-        supplierCity: string,
-        supplierProvince: string,
-        supplierContact: string,
-        supplierEmail: string,
-        supplierStatus: string,
+        supplier_name: string,
+        contact_number: string,
+        street: string,
+        barangay: string,
+        city: string,
+        province: string,
+        email: string,
+        status: string,
+        remarks: string,
         // Additional fields would be included in a real application
     };
     formatStatus: (status: string) => string;
     onClose: () => void;
 }
 
-export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewSupplierModalProps) {
+export default function ViewSupplierModal({ supplier, formatStatus, onClose }: ViewSupplierModalProps) {
     return (
         <>
             <button className="close-modal-btn view" onClick={onClose}>
@@ -32,57 +33,66 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                 <div className="view-form">
                     <div className="form-group">
                         <label>Supplier Name</label>
-                        <p>{item.supplierName}</p>
+                        <p>{supplier.supplier_name}</p>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
                             <label>Contact Number</label>
-                            <p>{item.supplierContact}</p>
+                            <p>{supplier.contact_number}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Email</label>
-                            <p>{item.supplierEmail}</p>
+                            <p>{supplier.email}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Status</label>
-                            <p>{formatStatus(item.supplierStatus)}</p>
+                            <p>{formatStatus(supplier.status)}</p>
                         </div>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
                             <label>Street</label>
-                            <p>178 Don Fabian Extension</p>
+                            <p>{supplier.street}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Barangay</label>
-                            <p>Commonwealth</p>
+                            <p>{supplier.barangay}</p>
                         </div>
                     </div>
 
                     <div className="form-row">
                         <div className="form-group">
                             <label>City</label>
-                            <p>Quezon City</p>
+                            <p>{supplier.city}</p>
                         </div>
 
                         <div className="form-group">
                             <label>Province</label>
-                            <p>Metro Manila</p>
+                            <p>{supplier.province}</p>
                         </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Remarks/Notes</label>
+                        {supplier.remarks ? (
+                            <p>{supplier.remarks}</p>
+                        ) : (
+                            <p className="no-records" style={{ color: "red" }}>No remarks available</p>
+                        )}
                     </div>
                 </div>
             </div >
 
-            <p className="details-title">Linked Item/s</p>
+            <p className="details-title">Linked supplier/s</p>
             <table className="modal-table">
                 <thead className="modal-table-heading">
                     <tr>
-                        <th>Item Name</th>
+                        <th>Supplier Name</th>
                         <th>Unit Measure</th>
                         <th>Unit Price</th>
                         <th>Category</th>
@@ -90,7 +100,7 @@ export default function ViewSupplierModal({ item, formatStatus, onClose }: ViewS
                 </thead>
                 <tbody className="modal-table-body">
                     <tr>
-                        <td>Item 1</td>
+                        <td>supplier 1</td>
                         <td>pcs</td>
                         <td>250</td>
                         <td>Consumable</td>

@@ -1,4 +1,10 @@
 -- CreateEnum
+CREATE TYPE "ItemStatus" AS ENUM ('ACTIVE', 'INACTIVE');
+
+-- CreateEnum
+CREATE TYPE "SupplierStatus" AS ENUM ('ACTIVE', 'INACTIVE');
+
+-- CreateEnum
 CREATE TYPE "InventoryStatus" AS ENUM ('LOW_STOCK', 'AVAILABLE', 'NOT_AVAILABLE', 'OUT_OF_STOCK', 'UNDER_MAINTENANCE', 'EXPIRED', 'IN_USED', 'DISPOSED');
 
 -- CreateEnum
@@ -33,6 +39,74 @@ CREATE TYPE "DisposalMethod" AS ENUM ('SOLD', 'SCRAPPED', 'DONATED', 'TRANSFERRE
 
 -- CreateEnum
 CREATE TYPE "DisposalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED');
+
+-- CreateTable
+CREATE TABLE "items" (
+    "id" SERIAL NOT NULL,
+    "item_id" VARCHAR(20) NOT NULL,
+    "item_name" VARCHAR(100) NOT NULL,
+    "unit_id" INTEGER NOT NULL,
+    "category_id" TEXT NOT NULL,
+    "status" "ItemStatus" NOT NULL DEFAULT 'ACTIVE',
+    "description" VARCHAR(255),
+    "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
+    "isdeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "suppliers" (
+    "id" SERIAL NOT NULL,
+    "supplier_id" VARCHAR(20) NOT NULL,
+    "supplier_name" VARCHAR(100) NOT NULL,
+    "contact_number" VARCHAR(15) NOT NULL,
+    "email" VARCHAR(100),
+    "street" VARCHAR(255),
+    "barangay" VARCHAR(100),
+    "city" VARCHAR(100),
+    "province" VARCHAR(100),
+    "status" "SupplierStatus" NOT NULL DEFAULT 'ACTIVE',
+    "remarks" VARCHAR(255),
+    "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
+    "isdeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "suppliers_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "supplier_items" (
+    "id" SERIAL NOT NULL,
+    "supplier_id" INTEGER NOT NULL,
+    "item_id" INTEGER NOT NULL,
+    "unit_id" INTEGER NOT NULL,
+    "conversion_factor" DOUBLE PRECISION NOT NULL DEFAULT 1,
+    "unit_price" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "delivery_time" VARCHAR(50) NOT NULL,
+    "note" VARCHAR(255),
+    "is_preferred" BOOLEAN NOT NULL DEFAULT false,
+    "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
+    "isdeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "supplier_items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "unit_measures" (
+    "id" SERIAL NOT NULL,
+    "unit_id" VARCHAR(20) NOT NULL,
+    "unit_name" VARCHAR(50) NOT NULL,
+    "abbreviation" VARCHAR(10) NOT NULL,
+    "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "unit_measures_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "inventory_items" (
@@ -70,12 +144,15 @@ CREATE TABLE "batches" (
 
 -- CreateTable
 CREATE TABLE "categories" (
+    "id" SERIAL NOT NULL,
     "category_id" VARCHAR(20) NOT NULL,
     "category_name" VARCHAR(100) NOT NULL,
+    "category_description" VARCHAR(255),
     "date_created" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "date_updated" TIMESTAMP(3) NOT NULL,
     "isdeleted" BOOLEAN NOT NULL DEFAULT false,
 
-    CONSTRAINT "categories_pkey" PRIMARY KEY ("category_id")
+    CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -205,6 +282,30 @@ CREATE TABLE "stock_disposals" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "items_item_id_key" ON "items"("item_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "suppliers_supplier_id_key" ON "suppliers"("supplier_id");
+
+-- CreateIndex
+CREATE INDEX "supplier_items_unit_id_idx" ON "supplier_items"("unit_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "supplier_items_supplier_id_item_id_key" ON "supplier_items"("supplier_id", "item_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "unit_measures_unit_id_key" ON "unit_measures"("unit_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "unit_measures_unit_name_key" ON "unit_measures"("unit_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "unit_measures_abbreviation_key" ON "unit_measures"("abbreviation");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "categories_category_id_key" ON "categories"("category_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "categories_category_name_key" ON "categories"("category_name");
 
 -- CreateIndex
@@ -218,6 +319,18 @@ CREATE UNIQUE INDEX "bus_chasis_number_key" ON "bus"("chasis_number");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "bus_engine_number_key" ON "bus"("engine_number");
+
+-- AddForeignKey
+ALTER TABLE "items" ADD CONSTRAINT "items_unit_id_fkey" FOREIGN KEY ("unit_id") REFERENCES "unit_measures"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_supplier_id_fkey" FOREIGN KEY ("supplier_id") REFERENCES "suppliers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "items"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "supplier_items" ADD CONSTRAINT "supplier_items_unit_id_fkey" FOREIGN KEY ("unit_id") REFERENCES "unit_measures"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "inventory_items" ADD CONSTRAINT "inventory_items_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("category_id") ON DELETE RESTRICT ON UPDATE CASCADE;

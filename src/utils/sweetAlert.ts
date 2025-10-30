@@ -988,10 +988,10 @@ export const showCategorySavedSuccess = () => {
 };
 
 // ----- Edit Category Confirmation ----- //
-export const showCategoryUpdateConfirmation = (categoryName: string) => {
+export const showCategoryUpdateConfirmation = (category_name: string) => {
     return Swal.fire({
         title: 'Confirm Update',
-        html: `<p>Are you sure you want to update the details for <strong>${categoryName}</strong>?</p>`,
+        html: `<p>Are you sure you want to update the details for <strong>${category_name}</strong>?</p>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Update',
@@ -1017,5 +1017,28 @@ export const showCategoryUpdatedSuccess = () => {
         customClass: {
             popup: 'swal-custom-popup'
         }
+    });
+};
+
+// ----- Add/Edit Item Error (e.g., duplicate name) ----- //
+export const showItemSaveError = (message?: string) => {
+    return Swal.fire({
+        title: 'Error',
+        html: `<p>${message ?? 'Failed to save item. Please try again.'}</p>`,
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: { popup: 'swal-custom-popup' }
+    });
+};
+
+export const showItemUpdateError = (message?: string) => {
+    return Swal.fire({
+        title: 'Error',
+        html: `<p>${message ?? 'Failed to update item. Please try again.'}</p>`,
+        icon: 'error',
+        confirmButtonText: 'Okay',
+        background: 'white',
+        customClass: { popup: 'swal-custom-popup' }
     });
 };

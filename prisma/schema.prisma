@@ -8,6 +8,82 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+model Item {
+  id          Int      @id @default(autoincrement())
+  item_id      String   @unique @db.VarChar(20)
+  item_name     String   @db.VarChar(100)
+  unit_id       Int
+  category_id   Int   
+  status        ItemStatus @default(ACTIVE)
+  description  String?  @db.VarChar(255)
+  date_created  DateTime @default(now())
+  date_updated  DateTime @updatedAt
+  isdeleted     Boolean  @default(false)
+  suppliers    SupplierItem[]
+
+  unit         UnitMeasure @relation(fields: [unit_id], references: [id], onDelete: Cascade)
+  category     Category    @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@map("items")
+}
+
+model Supplier {
+  id          Int      @id @default(autoincrement())
+  supplier_id   String   @unique @db.VarChar(20)
+  supplier_name String   @db.VarChar(100)
+  contact_number String  @db.VarChar(15)
+  email         String?  @db.VarChar(100)
+  street       String?  @db.VarChar(255)
+  barangay     String?  @db.VarChar(100)
+  city         String?  @db.VarChar(100)
+  province     String?  @db.VarChar(100)
+  status        SupplierStatus @default(ACTIVE)
+  remarks      String?  @db.VarChar(255)
+  date_created  DateTime @default(now())
+  date_updated  DateTime @updatedAt
+  isdeleted     Boolean  @default(false)
+  items         SupplierItem[]
+
+  @@map("suppliers")
+}
+
+model SupplierItem {
+  supplier_id       Int
+  item_id          Int
+  unit_id          Int
+  unit_price            Float   @default(0)
+  delivery_time    String  @db.VarChar(50)
+  note             String?  @db.VarChar(255)
+  is_preferred     Boolean  @default(false)
+  date_created     DateTime @default(now())
+  date_updated     DateTime @updatedAt
+  isdeleted        Boolean  @default(false)
+
+  supplier         Supplier @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  item             Item     @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  unit UnitMeasure @relation("SupplierUnit", fields: [unit_id], references: [id], onDelete: Cascade)
+
+  @@unique([supplier_id, item_id])
+  @@index([unit_id])
+  @@map("supplier_items")
+}
+
+model UnitMeasure {
+  id                    Int              @id @default(autoincrement())
+  unit_id                String           @unique @db.VarChar(20) // e.g., UNIT-001
+  unit_name              String           @unique @db.VarChar(50) // pcs, liters, kg, etc.
+  abbreviation          String           @unique @db.VarChar(10) // pcs, L, kg, etc.
+  description           String?          @db.Text
+  is_deleted             Boolean          @default(false)
+  date_created             DateTime         @default(now())
+  date_updated             DateTime         @updatedAt
+
+  // Relations
+  items                 Item[]
+  supplierItems        SupplierItem[]   @relation("SupplierUnit")
+
+  @@map("unit_measures")
+}
 
 model InventoryItem {
   item_id       String          @id @db.VarChar(20)
@@ -48,11 +124,15 @@ model Batch {
 }
 
 model Category {
-  category_id    String          @id @db.VarChar(20)
+  id            Int             @id @default(autoincrement())
+  category_id    String          @unique @db.VarChar(20)
   category_name  String          @unique @db.VarChar(100)
+  category_description String?   @db.VarChar(255)
   date_created   DateTime        @default(now())
+  date_updated   DateTime        @updatedAt
   isdeleted      Boolean         @default(false)
   inventoryItems InventoryItem[]
+  items         Item[]
 
   @@map("categories")
 }
@@ -189,6 +269,14 @@ model StockDisposal {
   @@map("stock_disposals")
 }
 
+enum ItemStatus {
+  ACTIVE
+  INACTIVE
+}
+enum SupplierStatus {
+  ACTIVE
+  INACTIVE
+}
 
 enum InventoryStatus {
   LOW_STOCK
@@ -199,6 +287,7 @@ enum InventoryStatus {
   EXPIRED
   IN_USED
   DISPOSED
+  INACTIVE
 }
 
 enum RequestType {

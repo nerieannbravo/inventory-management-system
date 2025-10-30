@@ -11,11 +11,12 @@ interface EditLinkedSupplierModalProps {
     item: {
         id: number;
         linkedSupplierName: string;
+        unit : { unit_id: number; abbreviation: string; unit_name: string };
         unitPrice: number;
         deliveryTime: string;
         notes: string;
     };
-    onSave: (updatedItem: any) => void;
+    onSave: (updatedItem: { id: number; linkedSupplierName: string; unitId?: number; unitPrice: number; deliveryTime: string; notes: string; unitAbbrev?: string }) => void;
     onClose: () => void;
 }
 
@@ -23,6 +24,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
     const [formData, setFormData] = useState({
         id: item.id,
         linkedSupplierName: item.linkedSupplierName,
+        unitId: item.unit.unit_id,
         unitPrice: item.unitPrice,
         deliveryTime: item.deliveryTime,
         notes: item.notes
@@ -34,6 +36,10 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [units, setUnits] = useState<Array<{ id: number; unit_name: string; abbreviation: string }>>([]);
+    const [listsLoading, setListsLoading] = useState(true);
+    const [listsError, setListsError] = useState<string | null>(null);
+    
 
     // Check if form data has changed from original
     useEffect(() => {
@@ -41,7 +47,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
         setIsFormDirty(hasChanges);
     }, [formData, originalData]);
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string | number) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -55,6 +61,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
         if (!formData.linkedSupplierName) errors.linkedSupplierName = "Supplier name is required";
         if (formData.unitPrice <= 0) errors.unitPrice = "Unit price must be greater than 0";
         if (!formData.deliveryTime) errors.deliveryTime = "Delivery time is required";
+        if (units.length > 0 && !formData.unitId) errors.unitId = 'Unit is required';
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -67,7 +74,8 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
         const result = await showSupplierUpdateConfirmation(formData.linkedSupplierName);
         if (result.isConfirmed) {
-            onSave(formData);
+            // include unit abbreviation so parent/table can display authoritative unit info
+            onSave({ ...formData, unitAbbrev: selectedUnit ? selectedUnit.abbreviation : '' });
             await showSupplierUpdatedSuccess();
         }
     };
@@ -83,6 +91,34 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
             onClose();
         }
     };
+
+    // Fetch units for the unit select and to display unit abbreviation near price
+    useEffect(() => {
+        let mounted = true;
+        const fetchUnits = async () => {
+            setListsLoading(true);
+            setListsError(null);
+            try {
+                const res = await fetch('/api/units');
+                const body = await res.json().catch(() => ({}));
+                if (res.ok && body?.units) {
+                    if (mounted) setUnits(body.units);
+                } else {
+                    if (mounted) setListsError('Failed to load units');
+                }
+            } catch (err) {
+                console.error('Failed to fetch units', err);
+                if (mounted) setListsError('Failed to load units');
+            } finally {
+                if (mounted) setListsLoading(false);
+            }
+        };
+
+        fetchUnits();
+        return () => { mounted = false; };
+    }, []);
+
+    const selectedUnit = units.find(u => u.id === Number(formData.unitId));
 
     return (
         <>
@@ -115,16 +151,34 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
                     </div>
 
                     <div className="form-row">
+                        <div className="form-group">
+                            <label>Unit</label>
+                            <select
+                                className={formErrors?.unitId ? "invalid-input" : ""}
+                                value={formData.unitId ?? ''}
+                                onChange={(e) => handleChange('unitId', e.target.value)}
+                                disabled={listsLoading}
+                            >
+                                <option value="" disabled>Select unit...</option>
+                                {units.map(u => (
+                                    <option key={u.id} value={u.id}>{u.unit_name} ({u.abbreviation})</option>
+                                ))}
+                            </select>
+                            <p className="edit-error-message">{formErrors?.unitId || listsError}</p>
+                        </div>
+
                         {/* Unit Price */}
                         <div className="form-group">
                             <label>Unit Price</label>
-                            <input
-                                className={formErrors?.unitPrice ? "invalid-input" : ""}
-                                type="number"
-                                value={formData.unitPrice || ""}
-                                onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
-                                placeholder="Enter unit price here..."
-                            />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <input
+                                    className={formErrors?.unitPrice ? "invalid-input" : ""}
+                                    type="number"
+                                    value={formData.unitPrice || ""}
+                                    onChange={(e) => handleChange("unitPrice", Number(e.target.value))}
+                                    placeholder="Enter unit price here..."
+                                />
+                            </div>
                             <p className="edit-error-message">{formErrors?.unitPrice}</p>
                         </div>
 
