@@ -29,19 +29,12 @@ export async function GET(request: NextRequest) {
         include: {
           unit: { select: { id: true, unit_name: true, abbreviation: true } },
           category: { select: { id: true, category_name: true, category_id: true } },
-          _count: { select: { suppliers: true } },
         },
       });
       if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
-  // expose a friendly supplierCount field and remove nested _count if present
-      const cloned: Record<string, unknown> = JSON.parse(JSON.stringify(item));
-      const maybeCount = cloned['_count'] as unknown;
-      let supplierCount = 0;
-      if (maybeCount && typeof maybeCount === 'object') {
-        supplierCount = (maybeCount as { suppliers?: number }).suppliers ?? 0;
-      }
-      delete (cloned as Record<string, unknown>)['_count'];
-      return NextResponse.json({ ...(cloned as object), supplierCount });
+      // compute supplier count excluding soft-deleted supplier_items
+      const supplierCount = await prisma.supplierItem.count({ where: { item_id: item.id, isdeleted: false } });
+      return NextResponse.json({ ...item, supplierCount });
     }
 
     if (itemIdParam) {
@@ -50,18 +43,11 @@ export async function GET(request: NextRequest) {
         include: {
           unit: { select: { id: true, unit_name: true, abbreviation: true } },
           category: { select: { id: true, category_name: true, category_id: true } },
-          _count: { select: { suppliers: true } },
         },
       });
       if (!item) return NextResponse.json({ error: 'Item not found' }, { status: 404 });
-      const cloned: Record<string, unknown> = JSON.parse(JSON.stringify(item));
-      const maybeCount2 = cloned['_count'] as unknown;
-      let supplierCount2 = 0;
-      if (maybeCount2 && typeof maybeCount2 === 'object') {
-        supplierCount2 = (maybeCount2 as { suppliers?: number }).suppliers ?? 0;
-      }
-      delete (cloned as Record<string, unknown>)['_count'];
-      return NextResponse.json({ ...(cloned as object), supplierCount: supplierCount2 });
+      const supplierCount2 = await prisma.supplierItem.count({ where: { item_id: item.id, isdeleted: false } });
+      return NextResponse.json({ ...item, supplierCount: supplierCount2 });
     }
 
     // Pagination & filtering for list
@@ -91,22 +77,28 @@ export async function GET(request: NextRequest) {
         include: {
           unit: { select: { id: true, unit_name: true, abbreviation: true } },
           category: { select: { id: true, category_name: true, category_id: true } },
-          _count: { select: { suppliers: true } },
         },
       }),
     ]);
 
-    // Map items to expose supplierCount at top-level for each item
-    const mapped = items.map((it) => {
-      const cloned: Record<string, unknown> = JSON.parse(JSON.stringify(it));
-      const maybeCount3 = cloned['_count'] as unknown;
-      let supplierCount3 = 0;
-      if (maybeCount3 && typeof maybeCount3 === 'object') {
-        supplierCount3 = (maybeCount3 as { suppliers?: number }).suppliers ?? 0;
-      }
-      delete (cloned as Record<string, unknown>)['_count'];
-      return { ...(cloned as object), supplierCount: supplierCount3 };
-    });
+    // Get supplier counts for the returned items (exclude soft-deleted supplier_items)
+    const itemIds = items.map(i => i.id);
+    const counts = itemIds.length > 0
+      ? await prisma.supplierItem.groupBy({
+          by: ['item_id'],
+          where: { item_id: { in: itemIds }, isdeleted: false },
+          _count: { item_id: true },
+        })
+      : [];
+    const countsMap = new Map<number, number>();
+    for (const c of counts) {
+      countsMap.set(c.item_id as number, (c._count?.item_id as number) ?? 0);
+    }
+
+    const mapped = items.map(it => ({
+      ...it,
+      supplierCount: countsMap.get(it.id) ?? 0,
+    }));
 
     return NextResponse.json({
       data: mapped,

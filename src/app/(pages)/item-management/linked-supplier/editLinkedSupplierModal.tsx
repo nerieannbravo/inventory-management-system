@@ -7,7 +7,7 @@ import {
 
 import "@/styles/forms.css";
 
-interface EditLinkedSupplierModalProps {
+ interface EditLinkedSupplierModalProps {
     item: {
         id: number;
         linkedSupplierName: string;
@@ -16,11 +16,13 @@ interface EditLinkedSupplierModalProps {
         deliveryTime: string;
         notes: string;
     };
+    // the numeric id of the parent Item (items.id) so we can identify the supplier-item composite
+    itemId?: number;
     onSave: (updatedItem: { id: number; linkedSupplierName: string; unitId?: number; unitPrice: number; deliveryTime: string; notes: string; unitAbbrev?: string }) => void;
     onClose: () => void;
 }
 
-export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditLinkedSupplierModalProps) {
+export default function EditLinkedSupplierModal({ item, itemId, onSave, onClose }: EditLinkedSupplierModalProps) {
     const [formData, setFormData] = useState({
         id: item.id,
         linkedSupplierName: item.linkedSupplierName,
@@ -36,6 +38,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [submitting, setSubmitting] = useState(false);
     const [units, setUnits] = useState<Array<{ id: number; unit_name: string; abbreviation: string }>>([]);
     const [listsLoading, setListsLoading] = useState(true);
     const [listsError, setListsError] = useState<string | null>(null);
@@ -74,9 +77,45 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
 
         const result = await showSupplierUpdateConfirmation(formData.linkedSupplierName);
         if (result.isConfirmed) {
-            // include unit abbreviation so parent/table can display authoritative unit info
-            onSave({ ...formData, unitAbbrev: selectedUnit ? selectedUnit.abbreviation : '' });
-            await showSupplierUpdatedSuccess();
+            // If parent itemId is not provided (e.g. Add Item modal), do a local save only
+            if (!itemId) {
+                onSave({ ...formData, unitAbbrev: selectedUnit ? selectedUnit.abbreviation : '' });
+                await showSupplierUpdatedSuccess();
+                return;
+            }
+
+            // Call PATCH API to update supplier-item
+            try {
+                setSubmitting(true);
+                const res = await fetch('/api/supplier-items', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        supplier_id: formData.id,
+                        item_id: itemId,
+                        unit_id: formData.unitId,
+                        unit_price: formData.unitPrice,
+                        delivery_time: formData.deliveryTime,
+                        note: formData.notes
+                    })
+                });
+
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    const msg = body?.error ?? `Failed to update supplier (${res.status})`;
+                    alert(String(msg));
+                    return;
+                }
+
+                // include unit abbreviation so parent/table can display authoritative unit info
+                onSave({ ...formData, unitAbbrev: selectedUnit ? selectedUnit.abbreviation : '' });
+                await showSupplierUpdatedSuccess();
+            } catch (err) {
+                console.error('Failed to update supplier-item', err);
+                alert('Failed to update supplier.');
+            } finally {
+                setSubmitting(false);
+            }
         }
     };
 
@@ -211,7 +250,7 @@ export default function EditLinkedSupplierModal({ item, onSave, onClose }: EditL
             </div >
 
             <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty || submitting}>
                     <i className="ri-save-3-line" /> Update
                 </button>
             </div>

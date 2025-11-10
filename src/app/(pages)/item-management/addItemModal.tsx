@@ -176,6 +176,7 @@ export default function AddItemModal({ onSave, onClose, preloadedUnits, preloade
                 // pass created item to parent so the UI can insert it
                 onSave(created);
                 await showItemSavedSuccess();
+                window.location.reload();
                 closeModal();
             } else if (res.status === 409) {
                 const msg = body?.error ?? 'Item name already exists';
@@ -432,7 +433,7 @@ export default function AddItemModal({ onSave, onClose, preloadedUnits, preloade
                 <tbody className="modal-table-body">
                     {linkedSuppliers.length === 0 ? (
                         <tr>
-                            <td colSpan={6} style={{ textAlign: 'center' }}>No supplier added.</td>
+                            <td colSpan={6} className="no-records">No supplier added.</td>
                         </tr>
                     ) : (
                         linkedSuppliers.map(supplier => (

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 
 import {
     showSupplierSaveConfirmation, showSupplierSavedSuccess,
-    showCloseWithoutSavingConfirmation
+    showCloseWithoutSavingConfirmation, showRestoreDeletedSupplierConfirmation
 } from "@/utils/sweetAlert";
 
 import "@/styles/forms.css";
@@ -55,9 +55,14 @@ export default function AddLinkedSupplierModal({ onClose, onSave, itemId }: AddL
         let mounted = true;
         setListsLoading(true);
         try {
-            const [sRes, uRes] = await Promise.all([fetch('/api/suppliers'), fetch('/api/units')]);
+            // If itemId is provided, also fetch existing supplier-links for this item so we can exclude already-linked suppliers
+            const requests = [fetch('/api/suppliers'), fetch('/api/units')];
+            if (itemId) requests.push(fetch(`/api/supplier-items?item_id=${encodeURIComponent(String(itemId))}`));
+
+            const [sRes, uRes, siRes] = await Promise.all(requests as Promise<Response>[]);
             const sBody = await sRes.json().catch(() => ({}));
             const uBody = await uRes.json().catch(() => ({}));
+            const siBody = siRes ? await siRes.json().catch(() => ({})) : null;
             if (!mounted) return;
             console.debug('suppliers fetch', { ok: sRes.ok, body: sBody });
             console.debug('units fetch', { ok: uRes.ok, body: uBody });
@@ -67,7 +72,25 @@ export default function AddLinkedSupplierModal({ onClose, onSave, itemId }: AddL
             if (Array.isArray(sBody.suppliers)) supplierList = sBody.suppliers;
             else if (Array.isArray(sBody.data)) supplierList = sBody.data;
             else if (Array.isArray(sBody)) supplierList = sBody;
-            if (supplierList.length > 0) setSuppliers(supplierList as Array<{ id: number; supplier_id: string; supplier_name: string }>);
+
+            // If we fetched supplier-items for this item, build a set of supplier ids that are already linked and not deleted
+            const alreadyLinkedSupplierIds = new Set<number>();
+            if (siBody && Array.isArray(siBody.data)) {
+                for (const si of siBody.data) {
+                    // si may include supplier object or supplier_id value
+                    if (si && !si.isdeleted) {
+                        const sup = si.supplier ?? null;
+                        const supId = sup?.id ?? (si.supplier_id ?? si.supplierId ?? null);
+                        if (supId) alreadyLinkedSupplierIds.add(Number(supId));
+                    }
+                }
+            }
+
+            // Filter out already-linked suppliers (only when not deleted)
+            if (supplierList.length > 0) {
+                const filtered = supplierList.filter(s => !alreadyLinkedSupplierIds.has(Number(s.id)));
+                setSuppliers(filtered as Array<{ id: number; supplier_id: string; supplier_name: string }>);
+            }
 
             // Units: accept multiple shapes
             let unitList: Array<{ id: number; unit_name?: string; abbreviation?: string }> = [];
@@ -136,6 +159,49 @@ export default function AddLinkedSupplierModal({ onClose, onSave, itemId }: AddL
 
                 const body = await res.json().catch(() => ({}));
                 if (!res.ok) {
+                    // If backend indicates a deleted existing record, offer to restore instead of failing
+                    if (body?.deleted === true) {
+                        const supplierName = body?.supplier?.supplier_name ?? linkedSupplierForm.linkedSupplierName ?? '';
+                        const restoreResult = await showRestoreDeletedSupplierConfirmation(supplierName);
+                        if (restoreResult.isConfirmed) {
+                            try {
+                                const restoreRes = await fetch('/api/supplier-items', {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ supplier_id: body.supplier_id ?? linkedSupplierForm.supplierId, item_id: Number(itemId), restore: true }),
+                                });
+                                const restoreBody = await restoreRes.json().catch(() => ({}));
+                                if (!restoreRes.ok) {
+                                    setFormErrors({ submit: restoreBody?.error ?? `Failed to restore (status ${restoreRes.status})` });
+                                    return;
+                                }
+
+                                // Normalise restored response for parent
+                                const updated = restoreBody?.data ?? restoreBody;
+                                onSave({
+                                    id: updated?.supplier_id ?? updated?.supplier_id ?? Date.now(),
+                                    linkedSupplierName: updated?.supplier?.supplier_name ?? linkedSupplierForm.linkedSupplierName,
+                                    unitId: updated?.unit_id ?? linkedSupplierForm.unitId,
+                                    unitAbbrev: (updated?.unit?.abbreviation) ?? (selectedUnit ? selectedUnit.abbreviation : ''),
+                                    unitPrice: updated?.unit_price ?? linkedSupplierForm.unitPrice,
+                                    deliveryTime: updated?.delivery_time ?? linkedSupplierForm.deliveryTime,
+                                    notes: updated?.note ?? linkedSupplierForm.notes,
+                                } as LinkedSupplierForm & { unitId?: number; unitAbbrev?: string });
+
+                                await showSupplierSavedSuccess();
+                                onClose();
+                                return;
+                            } catch (err) {
+                                console.error('Failed to restore supplier-item', err);
+                                setFormErrors({ submit: 'Failed to restore linked supplier' });
+                                return;
+                            }
+                        }
+                        // if user declined to restore, show message and return
+                        setFormErrors({ submit: 'Operation cancelled. Supplier link exists but was deleted.' });
+                        return;
+                    }
+
                     setFormErrors({ submit: body?.error ?? `Failed to save (status ${res.status})` });
                     return;
                 }

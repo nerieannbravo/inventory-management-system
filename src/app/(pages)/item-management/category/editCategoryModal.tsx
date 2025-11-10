@@ -4,6 +4,7 @@ import {
     showCategoryUpdateConfirmation, showCategoryUpdatedSuccess,
     showCloseWithoutUpdatingConfirmation
 } from "@/utils/sweetAlert";
+import Swal from 'sweetalert2';
 
 import "@/styles/forms.css";
 
@@ -13,7 +14,7 @@ interface EditCategoryModalProps {
         categoryName: string;
         categoryDescription: string;
     };
-    onSave: (updatedItem: any) => void;
+    onSave: (updatedItem: { id: number; categoryName: string; categoryDescription: string }) => void;
     onClose: () => void;
 }
 
@@ -30,6 +31,7 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
 
     // Add formErrors state
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [submitting, setSubmitting] = useState(false);
 
     // Check if form data has changed from original
     useEffect(() => {
@@ -37,7 +39,7 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
         setIsFormDirty(hasChanges);
     }, [formData, originalData]);
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
@@ -49,8 +51,6 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
 
         // Validate inputs
         if (!formData.categoryName) errors.categoryName = "Category name is required";
-        if (!formData.categoryDescription) errors.categoryDescription = "Category description is required";
-
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -62,8 +62,32 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
 
         const result = await showCategoryUpdateConfirmation(formData.categoryName);
         if (result.isConfirmed) {
-            onSave(formData);
-            await showCategoryUpdatedSuccess();
+            try {
+                setSubmitting(true);
+                const res = await fetch('/api/category', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: formData.id, category_name: formData.categoryName, category_description: formData.categoryDescription })
+                });
+                const body = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    const updated = body.category ?? body;
+                    onSave(updated);
+                    await showCategoryUpdatedSuccess();
+                    
+                } else if (res.status === 409) {
+                    await Swal.fire({ icon: 'error', title: 'Duplicate Category', text: body?.error ?? 'Category name already exists' });
+                } else if (res.status === 400) {
+                    await Swal.fire({ icon: 'error', title: 'Cannot edit category', text: body?.error ?? 'Category cannot be edited because it is linked or invalid' });
+                } else {
+                    await Swal.fire({ icon: 'error', title: 'Error', text: body?.error ?? `Failed to update category (status ${res.status})` });
+                }
+            } catch (err) {
+                console.error('Failed to update category', err);
+                await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update category. Please try again.' });
+            } finally {
+                setSubmitting(false);
+            }
         }
     };
 
@@ -124,10 +148,10 @@ export default function EditCategoryModal({ item, onSave, onClose }: EditCategor
             </div >
 
             <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
-                    <i className="ri-save-3-line" /> Update
-                </button>
-            </div>
+                        <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty || submitting}>
+                            <i className="ri-save-3-line" /> Update
+                        </button>
+                    </div>
 
         </>
     );

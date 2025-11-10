@@ -44,7 +44,9 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
 
     // Linked supplier row type used by this component
     type LinkedSupplierRow = {
-        id: number;
+        id: number; // will hold supplier.id from DB
+        supplier_id?: number;
+        item_id?: number;
         linkedSupplierName: string;
         unitPrice: number;
         unitAbbrev?: string;
@@ -125,12 +127,14 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
         if (result.isConfirmed) {
             onSave(formData);
             await showItemUpdatedSuccess();
+            window.location.reload();
         }
     };
 
     const handleClose = async () => {
         if (!isFormDirty) {
             onClose();
+            window.location.reload();
             return;
         }
 
@@ -159,6 +163,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         content = (
                             <EditLinkedSupplierModal
                                 item={rowData}
+                                itemId={item.id}
                                 onSave={handleEditLinkedSupplier}
                                 onClose={closeModal}
                             />
@@ -213,7 +218,10 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
         let mounted = true;
         interface SupplierItemResp {
             id?: number;
-            supplier?: { supplier_name?: string };
+            // supplier include now contains id and supplier_name per API
+            supplier?: { id?: number; supplier_name?: string };
+            // item relation may include numeric id
+            item?: { id?: number; item_id?: string; item_name?: string };
             unit?: { id?: number; abbreviation?: string; unit_name?: string };
             unit_abbreviation?: string;
             unit_price?: number;
@@ -236,7 +244,11 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
 
             const data = body?.data ?? [];
             const mapped = (data as SupplierItemResp[]).map((si, idx) => ({
-                id: si.id ?? idx,
+                // use supplier.id as the row id so downstream code can treat `id` as supplier id
+                id: si.supplier?.id ?? idx,
+                supplier_id: si.supplier?.id ?? undefined,
+                // item relation may include numeric id; fallback to parent `item.id`
+                item_id: si.item?.id ?? item.id,
                 linkedSupplierName: si.supplier?.supplier_name ?? 'Unknown',
                 unitPrice: si.unit_price ?? 0,
                 unitAbbrev: si.unit?.abbreviation ?? si.unit_abbreviation ?? '',
@@ -297,19 +309,37 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
     // Handle delete linked supplier
     const handleDeleteSupplier = async (supplierId: number) => {
         const result = await showDeleteLinkedSupplierConfirmation();
-        if (result.isConfirmed) {
-            // optimistic remove
-            setLinkedSuppliers(prev => prev.filter(supplier => supplier.id !== supplierId));
-            await showDeleteLinkedSupplierSuccess();
+        if (!result.isConfirmed) {
+            closeModal();
+            return;
+        }
 
-            // refresh list
+        try {
+            const res = await fetch('/api/supplier-items', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ supplier_id: supplierId, item_id: item.id })
+            });
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const msg = body?.error ?? `Failed to delete supplier (${res.status})`;
+                alert(String(msg));
+                return;
+            }
+
+            // success - refresh authoritative list
+            await showDeleteLinkedSupplierSuccess();
             try {
                 await fetchLinkedSuppliers();
             } catch (err) {
                 console.error('Refresh after delete failed', err);
             }
+        } catch (err) {
+            console.error('Failed to delete supplier-item', err);
+            alert('Failed to delete linked supplier.');
+        } finally {
+            closeModal();
         }
-        closeModal();
     };
 
     return (
@@ -399,13 +429,20 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                     </div>
                 </form >
             </div >
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
+                    <i className="ri-save-3-line" /> Update
+                </button>
+            </div>
+            <br/>
+            <br/>
 
             {/* Linked Suppliers */}
             <div className="details-header">
                 <p className="details-title">Linked Supplier/s</p>
-                <button className="modal-table-add-btn" onClick={() => openModal("add-linkedSupplier")}>
-                    <i className="ri-add-line" /> Add Supplier
-                </button>
+                     <button className="modal-table-add-btn" onClick={() => openModal("add-linkedSupplier")}>
+                        <i className="ri-add-line" /> Add Supplier
+                    </button>
             </div>
 
             {/* Table */}
@@ -431,7 +468,7 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                         </tr>
                     ) : linkedSuppliers.length === 0 ? (
                         <tr>
-                            <td colSpan={6} style={{ textAlign: 'center' }}>No linked suppliers found.</td>
+                            <td colSpan={6} className="no-records">No linked suppliers found.</td>
                         </tr>
                     ) : (
                         linkedSuppliers.map(supplier => (
@@ -452,12 +489,6 @@ export default function EditItemModal({ item, onSave, onClose }: EditItemModalPr
                     )}
                 </tbody>
             </table>
-
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit} disabled={!isFormDirty}>
-                    <i className="ri-save-3-line" /> Update
-                </button>
-            </div>
 
             {/* Dynamic Modal Manager */}
             <ModalManager

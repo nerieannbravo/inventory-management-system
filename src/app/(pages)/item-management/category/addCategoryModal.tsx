@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import ModalManager from "@/components/modalManager";
 import ActionButtons from "@/components/actionButtons";
@@ -8,6 +8,7 @@ import {
     showCategorySaveConfirmation, showCategorySavedSuccess,
     showCloseWithoutSavingConfirmation
 } from "@/utils/sweetAlert";
+import Swal from 'sweetalert2';
 
 import "@/styles/forms.css";
 
@@ -26,28 +27,76 @@ interface AddCategoryModalProps {
     onClose: () => void;
 }
 
-// Sample category data - replace with your actual data source
-const sampleCategoryList = [
-    {
-        id: 1,
-        categoryName: "Category 1",
-        categoryDescription: "Description for Category 1"
-    },
-    {
-        id: 2,
-        categoryName: "Category 2",
-        categoryDescription: "Description for Category 2"
-    }
-];
 
 export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalProps) {
     // Modal management state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-    const [activeRow, setActiveRow] = useState<any>(null);
 
     // State for category list
-    const [categoryList, setCategoryList] = useState(sampleCategoryList);
+    type CategoryRow = { id: number; category_id?: string; categoryName: string; categoryDescription: string };
+    const [categoryList, setCategoryList] = useState<CategoryRow[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
+    // Normalize incoming API/modal payload into CategoryRow
+    const mapToCategoryRow = useCallback((raw: unknown): CategoryRow => {
+        const obj = raw as Record<string, unknown>;
+        const rawId = obj['id'] ?? obj['ID'] ?? obj['Id'] ?? 0;
+        const id = Number(typeof rawId === 'number' || typeof rawId === 'string' ? rawId : 0);
+
+        const category_id = typeof obj['category_id'] === 'string'
+            ? obj['category_id'] as string
+            : typeof obj['categoryId'] === 'string'
+                ? obj['categoryId'] as string
+                : undefined;
+
+        const categoryName = typeof obj['category_name'] === 'string'
+            ? obj['category_name'] as string
+            : typeof obj['categoryName'] === 'string'
+                ? obj['categoryName'] as string
+                : typeof obj['name'] === 'string'
+                    ? obj['name'] as string
+                    : '';
+
+        const categoryDescription = typeof obj['category_description'] === 'string'
+            ? obj['category_description'] as string
+            : typeof obj['categoryDescription'] === 'string'
+                ? obj['categoryDescription'] as string
+                : typeof obj['description'] === 'string'
+                    ? obj['description'] as string
+                    : '';
+
+        return { id, category_id, categoryName, categoryDescription };
+    }, []);
+
+    // Fetch categories from backend and update local state; extracted so we can refresh after optimistic updates
+    const fetchCategories = useCallback(async () => {
+        setIsLoading(true);
+        setFetchError(null);
+        try {
+            const res = await fetch('/api/category');
+            const body = await res.json().catch(() => ({}));
+
+            let items: unknown[] = [];
+            if (Array.isArray(body)) items = body as unknown[];
+            else if (Array.isArray(body?.categories)) items = body.categories as unknown[];
+            else if (Array.isArray(body?.data)) items = body.data as unknown[];
+            else if (body?.categories && typeof body.categories === 'object') items = [body.categories] as unknown[];
+
+            const mapped: CategoryRow[] = items.map((c: unknown) => mapToCategoryRow(c));
+            setCategoryList(mapped);
+        } catch (err) {
+            console.error('Failed to fetch categories', err);
+            setFetchError('Failed to load categories');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [mapToCategoryRow]);
+
+    useEffect(() => {
+        void fetchCategories();
+    }, [fetchCategories]);
 
     // Initial category form state
     const [categoryForm, setCategoryForm] = useState<CategoryForm>({
@@ -63,7 +112,7 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
         setIsDirty(true);
     }, [categoryForm]);
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string) => {
         setCategoryForm((prev) => ({ ...prev, [field]: value }));
 
         // Clear the error for that field
@@ -78,7 +127,6 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
         const errors: FormError = {};
 
         if (!categoryForm.categoryName) errors.categoryName = "Category name is required";
-        if (!categoryForm.categoryDescription) errors.categoryDescription = "Category description is required";
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
@@ -91,8 +139,38 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
 
         const result = await showCategorySaveConfirmation();
         if (result.isConfirmed) {
-            onSave(categoryForm);
-            await showCategorySavedSuccess();
+            // Call API to create category
+            try {
+                const res = await fetch('/api/category', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category_name: categoryForm.categoryName, category_description: categoryForm.categoryDescription })
+                });
+                const body = await res.json().catch(() => ({}));
+                if (res.status === 201) {
+                    const createdRaw = body.category ?? body;
+                    const createdRow = mapToCategoryRow(createdRaw);
+                    // optimistic add
+                    setCategoryList(prev => [createdRow, ...prev]);
+                    onSave(createdRaw);
+                    await showCategorySavedSuccess();
+                    closeModal();
+
+                    // refresh authoritative data
+                    try {
+                        await fetchCategories();
+                    } catch (err) {
+                        console.error('Refresh after create failed', err);
+                    }
+                } else if (res.status === 409) {
+                    await Swal.fire({ icon: 'error', title: 'Duplicate Category', text: body?.error ?? 'Category name already exists' });
+                } else {
+                    await Swal.fire({ icon: 'error', title: 'Error', text: body?.error ?? `Failed to save category (status ${res.status})` });
+                }
+            } catch (err) {
+                console.error('Failed to create category', err);
+                await Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to save category. Please try again.' });
+            }
         }
     };
 
@@ -109,14 +187,14 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
     };
 
     // Modal management for category actions
-    const openModal = (mode: "edit-category", rowData?: any) => {
+    const openModal = (mode: "edit-category", rowData?: CategoryRow) => {
         let content;
 
         switch (mode) {
             case "edit-category":
                 content = (
                     <EditCategoryModal
-                        item={rowData}
+                        item={rowData!}
                         onSave={handleEditCategory}
                         onClose={closeModal}
                     />
@@ -127,24 +205,33 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
         }
 
         setModalContent(content);
-        setActiveRow(rowData || null);
         setIsModalOpen(true);
     };
 
     const closeModal = () => {
         setIsModalOpen(false);
         setModalContent(null);
-        setActiveRow(null);
     };
 
-    // Handle edit category
-    const handleEditCategory = (updatedCategory: any) => {
-        const updatedList = categoryList.map(category =>
-            category.id === updatedCategory.id ? updatedCategory : category
-        );
-        setCategoryList(updatedList);
+    // Handle edit category (optimistic update + refresh)
+    const handleEditCategory = async (updatedCategoryRaw: unknown) => {
+        const updatedCategory = mapToCategoryRow(updatedCategoryRaw);
+
+        // optimistic update
+        setCategoryList(prev => prev.map(category =>
+            category.id === updatedCategory.id ? { ...category, ...updatedCategory } : category
+        ));
         closeModal();
-    }
+
+        // refresh authoritative data
+        try {
+            await fetchCategories();
+        } catch (err) {
+            console.error('Refresh after edit failed', err);
+        }
+    };
+
+    
 
     return (
         <>
@@ -191,6 +278,12 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                 </form>
             </div>
 
+            <div className="modal-actions">
+                <button type="submit" className="submit-btn" onClick={handleSubmit}>
+                    <i className="ri-save-3-line" /> Save
+                </button>
+            </div>
+
             {/* Category List */}
             <div className="details-header">
                 <p className="details-title">Existing Categories</p>
@@ -206,25 +299,35 @@ export default function AddCategoryModal({ onSave, onClose }: AddCategoryModalPr
                     </tr>
                 </thead>
                 <tbody className="modal-table-body">
-                    {categoryList.map(category => (
-                        <tr key={category.id}>
-                            <td>{category.categoryName}</td>
-                            <td>{category.categoryDescription}</td>
-                            <td>
-                                <ActionButtons
-                                    onEdit={() => openModal("edit-category", category)}
-                                />
-                            </td>
+                    {isLoading ? (
+                        <tr>
+                            <td colSpan={3} style={{ textAlign: 'center' }}>Loading categories...</td>
                         </tr>
-                    ))}
+                    ) : fetchError ? (
+                        <tr>
+                            <td colSpan={3} style={{ textAlign: 'center', color: 'var(--danger)' }}>{fetchError}</td>
+                        </tr>
+                    ) : categoryList.length === 0 ? (
+                        <tr>
+                            <td colSpan={3} style={{ textAlign: 'center' }}>No categories found.</td>
+                        </tr>
+                    ) : (
+                        categoryList.map(category => (
+                            <tr key={category.id}>
+                                <td>{category.categoryName}</td>
+                                <td>{category.categoryDescription ? category.categoryDescription : <span style={{ color: "red" }}>N/A</span>}</td>
+                                <td>
+                                    <ActionButtons
+                                        onEdit={() => openModal("edit-category", category)}
+                                    />
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
 
-            <div className="modal-actions">
-                <button type="submit" className="submit-btn" onClick={handleSubmit}>
-                    <i className="ri-save-3-line" /> Save
-                </button>
-            </div>
+            
 
             {/* Dynamic Modal Manager */}
             <ModalManager

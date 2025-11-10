@@ -1023,7 +1023,7 @@ export const showCategoryUpdatedSuccess = () => {
 // ----- Add/Edit Item Error (e.g., duplicate name) ----- //
 export const showItemSaveError = (message?: string) => {
     return Swal.fire({
-        title: 'Error',
+        title: 'Duplicate Item',
         html: `<p>${message ?? 'Failed to save item. Please try again.'}</p>`,
         icon: 'error',
         confirmButtonText: 'Okay',
@@ -1034,11 +1034,28 @@ export const showItemSaveError = (message?: string) => {
 
 export const showItemUpdateError = (message?: string) => {
     return Swal.fire({
-        title: 'Error',
+        title: 'Duplicate Item',
         html: `<p>${message ?? 'Failed to update item. Please try again.'}</p>`,
         icon: 'error',
         confirmButtonText: 'Okay',
         background: 'white',
         customClass: { popup: 'swal-custom-popup' }
+    });
+};
+
+// ----- Restore Deleted Linked Supplier Confirmation ----- //
+export const showRestoreDeletedSupplierConfirmation = (supplierName: string) => {
+    return Swal.fire({
+        title: 'Restore Supplier',
+        html: `<p>A link for <strong>${supplierName}</strong> to this item already exists but was deleted. Do you want to restore it?</p>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Restore',
+        cancelButtonText: 'Cancel',
+        background: 'white',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-custom-popup'
+        }
     });
 };
