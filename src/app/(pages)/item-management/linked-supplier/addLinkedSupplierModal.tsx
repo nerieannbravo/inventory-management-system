@@ -284,11 +284,6 @@ export default function AddLinkedSupplierModal({ onClose, onSave, itemId }: AddL
                                 </>
                             )}
                         </select>
-                        {!listsLoading && suppliers.length === 0 && (
-                            <button type="button" className="modal-table-add-btn" onClick={() => fetchLists()} style={{ marginLeft: 8 }}>
-                                Refresh
-                            </button>
-                        )}
                         <p className="add-error-message">{formErrors?.linkedSupplierName}</p>
                     </div>
 
